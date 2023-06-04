@@ -15,6 +15,6 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     python_requires=">=3.7, <4",
-    install_requires=["attrs >= 21.3.0", 'PyJWT >= 2.6.0, < 3', 'requests >= 2.28.0, < 3', 'cryptography >= 40.0.0, < 41', 'pyOpenSSL >= 23.1.1, < 24', 'asn1', 'cattrs'],
+    install_requires=["attrs >= 21.3.0", 'PyJWT >= 2.6.0, < 3', 'requests >= 2.28.0, < 3', 'cryptography >= 40.0.0, < 42', 'pyOpenSSL >= 23.1.1, < 24', 'asn1', 'cattrs'],
     package_data={"appstoreserverlibrary": ["py.typed"]},
 )

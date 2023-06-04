@@ -4,4 +4,4 @@ requests >= 2.28.0, < 3
 cryptography >= 40.0.0, < 41
 pyOpenSSL >= 23.1.1, < 24
 asn1==2.7.0
-cattrs==22.2.0
+cattrs==23.1.2

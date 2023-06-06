@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from attr import define
-from typing import List
+from typing import List, Optional
 import attr
 
 from .ExtendReasonCode import ExtendReasonCode
@@ -36,7 +36,7 @@ class MassExtendRenewalDateRequest:
     https://developer.apple.com/documentation/appstoreserverapi/requestidentifier
     """
 
-    storefrontCountryCodes: "List[str]" = attr.ib(default=None)
+    storefrontCountryCodes: "Optional[List[str]]" = attr.ib(default=None)
     """
     A list of storefront country codes you provide to limit the storefronts for a subscription-renewal-date extension.
     

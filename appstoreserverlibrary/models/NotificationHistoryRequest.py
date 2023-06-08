@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+from typing import Optional
 from attr import define
 import attr
 
@@ -28,7 +29,7 @@ class NotificationHistoryRequest:
     https://developer.apple.com/documentation/appstoreserverapi/enddate
     """
 
-    notificationType: NotificationTypeV2 = attr.ib(default=None)
+    notificationType: Optional[NotificationTypeV2] = attr.ib(default=None)
     """
     A notification type. Provide this field to limit the notification history records to those with this one notification type. For a list of notifications types, see notificationType.
     Include either the transactionId or the notificationType in your query, but not both.
@@ -36,14 +37,14 @@ class NotificationHistoryRequest:
     https://developer.apple.com/documentation/appstoreserverapi/notificationtype
     """
 
-    notificationSubtype: Subtype = attr.ib(default=None)
+    notificationSubtype: Optional[Subtype] = attr.ib(default=None)
     """
     A notification subtype. Provide this field to limit the notification history records to those with this one notification subtype. For a list of subtypes, see subtype. If you specify a notificationSubtype, you need to also specify its related notificationType.
     
     https://developer.apple.com/documentation/appstoreserverapi/notificationsubtype
     """
 
-    transactionId: str = attr.ib(default=None)
+    transactionId: Optional[str] = attr.ib(default=None)
     """
     The transaction identifier, which may be an original transaction identifier, of any transaction belonging to the customer. Provide this field to limit the notification history request to this one customer.
     Include either the transactionId or the notificationType in your query, but not both.
@@ -51,7 +52,7 @@ class NotificationHistoryRequest:
     https://developer.apple.com/documentation/appstoreserverapi/transactionid
     """
 
-    onlyFailures: bool = attr.ib(default=None)
+    onlyFailures: Optional[bool] = attr.ib(default=None)
     """
     A Boolean value you set to true to request only the notifications that haven’t reached your server successfully. The response also includes notifications that the App Store server is currently retrying to send to your server.
     

@@ -21,6 +21,8 @@ from .models.HistoryResponse import HistoryResponse
 from .models.MassExtendRenewalDateRequest import MassExtendRenewalDateRequest
 from .models.MassExtendRenewalDateResponse import MassExtendRenewalDateResponse
 from .models.MassExtendRenewalDateStatusResponse import MassExtendRenewalDateStatusResponse
+from .models.NotificationHistoryRequest import NotificationHistoryRequest
+from .models.NotificationHistoryResponse import NotificationHistoryResponse
 from .models.OrderLookupResponse import OrderLookupResponse
 from .models.RefundHistoryResponse import RefundHistoryResponse
 from .models.SendTestNotificationResponse import SendTestNotificationResponse
@@ -219,6 +221,22 @@ class AppStoreServerAPIClient:
         """
         return self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse)
     
+    def get_notification_history(self, pagination_token: str, notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
+        """
+        Get a list of notifications that the App Store server attempted to send to your server.
+
+        :param pagination_token An optional token you use to get the next set of up to 20 notification history records. All responses that have more records available include a paginationToken. Omit this parameter the first time you call this endpoint.
+        :param notification_history_request The request body that includes the start and end dates, and optional query constraints.
+        :return A response that contains the App Store Server Notifications history for your app.
+        :throws APIException If a response was returned indicating the request could not be processed
+        https://developer.apple.com/documentation/appstoreserverapi/get_notification_history
+        """
+        queryParameters: Dict[str, List[str]] = dict()
+        if pagination_token != None:
+            queryParameters["paginationToken"] = [pagination_token]
+        
+        return self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse)
+
     def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest) -> HistoryResponse:
         """
         Get a customer's in-app purchase transaction history for your app.
@@ -240,7 +258,7 @@ class AppStoreServerAPIClient:
             queryParameters["endDate"] = [str(transaction_history_request.endDate)]
         
         if transaction_history_request.productIds != None:
-            queryParameters["product_id"] = transaction_history_request.productIds
+            queryParameters["productId"] = transaction_history_request.productIds
         
         if transaction_history_request.productTypes != None:
             queryParameters["productType"] = [product_type.value for product_type in transaction_history_request.productTypes]

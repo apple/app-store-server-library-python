@@ -8,7 +8,7 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="app-store-server-library",
+    name="app-store-server",
     version="0.1.0",
     description="The App Store Server Library",
     long_description=long_description,

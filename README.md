@@ -20,7 +20,7 @@ This software is currently in Beta testing. Therefore, it should only be used fo
 
 ### Gradle
 ```groovy
-pip install app-store-server
+pip install app-store-server-library
 ```
 
 ## Documentation

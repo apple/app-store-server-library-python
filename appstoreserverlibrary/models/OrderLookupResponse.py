@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from attr import define
-from typing import List
+from typing import List, Optional
 import attr
 
 from .OrderLookupStatus import OrderLookupStatus
@@ -14,14 +14,14 @@ class OrderLookupResponse:
     https://developer.apple.com/documentation/appstoreserverapi/orderlookupresponse
     """
 
-    status: OrderLookupStatus = attr.ib(default=None)
+    status: Optional[OrderLookupStatus] = attr.ib(default=None)
     """
     The status that indicates whether the order ID is valid.
     
     https://developer.apple.com/documentation/appstoreserverapi/orderlookupstatus
     """
 
-    signedTransactions: "List[str]" = attr.ib(default=None)
+    signedTransactions: Optional[List[str]] = attr.ib(default=None)
     """
     An array of in-app purchase transactions that are part of order, signed by Apple, in JSON Web Signature format.
     """

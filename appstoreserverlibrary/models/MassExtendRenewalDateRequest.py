@@ -14,7 +14,7 @@ class MassExtendRenewalDateRequest:
     https://developer.apple.com/documentation/appstoreserverapi/massextendrenewaldaterequest
     """
 
-    extendByDays: int = attr.ib(default=None)
+    extendByDays: Optional[int] = attr.ib(default=None)
     """
     The number of days to extend the subscription renewal date.
     
@@ -22,28 +22,28 @@ class MassExtendRenewalDateRequest:
     maximum: 90
     """
 
-    extendReasonCode: ExtendReasonCode = attr.ib(default=None)
+    extendReasonCode: Optional[ExtendReasonCode] = attr.ib(default=None)
     """
     The reason code for the subscription-renewal-date extension.
     
     https://developer.apple.com/documentation/appstoreserverapi/extendreasoncode
     """    
 
-    requestIdentifier: str = attr.ib(default=None)
+    requestIdentifier: Optional[str] = attr.ib(default=None)
     """
     A string that contains a unique identifier you provide to track each subscription-renewal-date extension request.
     
     https://developer.apple.com/documentation/appstoreserverapi/requestidentifier
     """
 
-    storefrontCountryCodes: "Optional[List[str]]" = attr.ib(default=None)
+    storefrontCountryCodes: Optional[List[str]] = attr.ib(default=None)
     """
     A list of storefront country codes you provide to limit the storefronts for a subscription-renewal-date extension.
     
     https://developer.apple.com/documentation/appstoreserverapi/storefrontcountrycodes
     """
 
-    productId: str = attr.ib(default=None)
+    productId: Optional[str] = attr.ib(default=None)
     """
     The unique identifier for the product, that you create in App Store Connect.
     

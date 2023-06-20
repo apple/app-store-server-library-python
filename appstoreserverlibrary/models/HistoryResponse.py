@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from attr import define
-from typing import List
+from typing import List, Optional
 import attr
 
 from .Environment import Environment
@@ -14,42 +14,42 @@ class HistoryResponse:
     https://developer.apple.com/documentation/appstoreserverapi/historyresponse
     """
 
-    revision: str = attr.ib(default=None)
+    revision: Optional[str] = attr.ib(default=None)
     """
     A token you use in a query to request the next set of transactions for the customer.
     
     https://developer.apple.com/documentation/appstoreserverapi/revision
     """
 
-    hasMore: bool = attr.ib(default=None)
+    hasMore: Optional[bool] = attr.ib(default=None)
     """
     A Boolean value indicating whether the App Store has more transaction data.
     
     https://developer.apple.com/documentation/appstoreserverapi/hasmore
     """
 
-    bundleId: str = attr.ib(default=None)
+    bundleId: Optional[str] = attr.ib(default=None)
     """
     The bundle identifier of an app.
     
     https://developer.apple.com/documentation/appstoreserverapi/bundleid
     """
 
-    appAppleId: int = attr.ib(default=None)
+    appAppleId: Optional[int] = attr.ib(default=None)
     """
     The unique identifier of an app in the App Store.
     
     https://developer.apple.com/documentation/appstoreservernotifications/appappleid
     """
 
-    environment: Environment = attr.ib(default=None)
+    environment: Optional[Environment] = attr.ib(default=None)
     """
     The server environment in which you're making the request, whether sandbox or production.
     
     https://developer.apple.com/documentation/appstoreserverapi/environment
     """
 
-    signedTransactions: "List[str]" = attr.ib(default=None)
+    signedTransactions: Optional[List[str]] = attr.ib(default=None)
     """
     An array of in-app purchase transactions for the customer, signed by Apple, in JSON Web Signature format.
     

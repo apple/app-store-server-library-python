@@ -17,8 +17,8 @@ class ReceiptUtility:
         Extracts a transaction id from an encoded App Receipt. Throws if the receipt does not match the expected format.
         *NO validation* is performed on the receipt, and any data returned should only be used to call the App Store Server API.
 
-        :param appReceipt The unmodified app receipt
-        :returns A transaction id from the array of in-app purchases, null if the receipt contains no in-app purchases
+        :param appReceipt: The unmodified app receipt
+        :return: A transaction id from the array of in-app purchases, null if the receipt contains no in-app purchases
         """
         decoder = asn1.Decoder()
         decoder.start(b64decode(app_receipt, validate=True))
@@ -82,8 +82,8 @@ class ReceiptUtility:
         """
         Extracts a transaction id from an encoded transactional receipt. Throws if the receipt does not match the expected format.
         *NO validation* is performed on the receipt, and any data returned should only be used to call the App Store Server API.
-        :param transactionReceipt The unmodified transactionReceipt
-        :returns A transaction id, or null if no transactionId is found in the receipt
+        :param transactionReceipt: The unmodified transactionReceipt
+        :return: A transaction id, or null if no transactionId is found in the receipt
         """
         decoded_top_level = base64.b64decode(transaction_receipt).decode('utf-8')
         matching_result = re.search('"purchase-info"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_top_level)

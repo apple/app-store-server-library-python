@@ -22,12 +22,12 @@ class PromotionalOfferSignatureCreator:
 
         https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/subscriptions_and_offers/generating_a_signature_for_promotional_offers
 
-        :param product_identifier The subscription product identifier
-        :param subscription_offer_id The subscription discount identifier
-        :param application_username An optional string value that you define; may be an empty string
-        :param nonce A one-time UUID value that your server generates. Generate a new nonce for every signature.
-        :param timestamp A timestamp your server generates in UNIX time format, in milliseconds. The timestamp keeps the offer active for 24 hours.
-        :return The Base64 encoded signature
+        :param product_identifier: The subscription product identifier
+        :param subscription_offer_id: The subscription discount identifier
+        :param application_username: An optional string value that you define; may be an empty string
+        :param nonce: A one-time UUID value that your server generates. Generate a new nonce for every signature.
+        :param timestamp: A timestamp your server generates in UNIX time format, in milliseconds. The timestamp keeps the offer active for 24 hours.
+        :return: The Base64 encoded signature
         """
         payload = self._bundle_id + '\u2063' + \
             self._key_id + '\u2063' + \

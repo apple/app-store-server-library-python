@@ -47,9 +47,9 @@ class SignedDataVerifier:
         """
         Verifies and decodes a signedRenewalInfo obtained from the App Store Server API, an App Store Server Notification, or from a device
 
-        :param signed_renewal_info The signedRenewalInfo field
-        :return The decoded renewal info after verification
-        :throws VerificationException Thrown if the data could not be verified
+        :param signed_renewal_info: The signedRenewalInfo field
+        :return: The decoded renewal info after verification
+        :throws VerificationException: Thrown if the data could not be verified
         """
         return cattrs.structure(self._decode_signed_object(signed_renewal_info), JWSRenewalInfoDecodedPayload)
 
@@ -57,9 +57,9 @@ class SignedDataVerifier:
         """
         Verifies and decodes a signedTransaction obtained from the App Store Server API, an App Store Server Notification, or from a device
 
-        :param signed_transaction The signedRenewalInfo field
-        :return The decoded transaction info after verification
-        :throws VerificationException Thrown if the data could not be verified
+        :param signed_transaction: The signedRenewalInfo field
+        :return: The decoded transaction info after verification
+        :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_transaction_info = cattrs.structure(self._decode_signed_object(signed_transaction), JWSTransactionDecodedPayload)
         if decoded_transaction_info.bundleId != self._bundle_id:
@@ -72,9 +72,9 @@ class SignedDataVerifier:
         """
         Verifies and decodes an App Store Server Notification signedPayload
 
-        :param signedPayload The payload received by your server
-        :return The decoded payload after verification
-        :throws VerificationException Thrown if the data could not be verified
+        :param signedPayload: The payload received by your server
+        :return: The decoded payload after verification
+        :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_dict = self._decode_signed_object(signed_payload)
         decoded_signed_notification = cattrs.structure(decoded_dict, ResponseBodyV2DecodedPayload)
@@ -99,9 +99,9 @@ class SignedDataVerifier:
         """
         Verifies and decodes a signed AppTransaction
 
-        :param signed_app_transaction The signed AppTransaction
-        :return The decoded AppTransaction after validation
-        :throws VerificationException Thrown if the data could not be verified
+        :param signed_app_transaction: The signed AppTransaction
+        :return: The decoded AppTransaction after validation
+        :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_dict = self._decode_signed_object(signed_app_transaction)
         decoded_app_transaction = cattrs.structure(decoded_dict, AppTransaction)

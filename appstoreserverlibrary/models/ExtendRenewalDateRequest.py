@@ -1,4 +1,5 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
+from typing import Optional
 
 from attr import define
 import attr
@@ -13,7 +14,7 @@ class ExtendRenewalDateRequest:
     https://developer.apple.com/documentation/appstoreserverapi/extendrenewaldaterequest
     """
 
-    extendByDays: int = attr.ib(default=None)
+    extendByDays: Optional[int] = attr.ib(default=None)
     """
     The number of days to extend the subscription renewal date.
     
@@ -21,14 +22,14 @@ class ExtendRenewalDateRequest:
     maximum: 90
     """
 
-    extendReasonCode: ExtendReasonCode = attr.ib(default=None)
+    extendReasonCode: Optional[ExtendReasonCode] = attr.ib(default=None)
     """
     The reason code for the subscription date extension
     
     https://developer.apple.com/documentation/appstoreserverapi/extendreasoncode
     """
 
-    requestIdentifier: str = attr.ib(default=None)
+    requestIdentifier: Optional[str] = attr.ib(default=None)
     """
     A string that contains a unique identifier you provide to track each subscription-renewal-date extension request.
     

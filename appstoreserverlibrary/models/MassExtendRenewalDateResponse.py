@@ -1,4 +1,5 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
+from typing import Optional
 
 from attr import define
 import attr
@@ -11,7 +12,7 @@ class MassExtendRenewalDateResponse:
     https://developer.apple.com/documentation/appstoreserverapi/massextendrenewaldateresponse
     """
 
-    requestIdentifier: str = attr.ib(default=None)
+    requestIdentifier: Optional[str] = attr.ib(default=None)
     """
     A string that contains a unique identifier you provide to track each subscription-renewal-date extension request.
     

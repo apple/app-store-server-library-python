@@ -15,14 +15,14 @@ class NotificationHistoryRequest:
     https://developer.apple.com/documentation/appstoreserverapi/notificationhistoryrequest
     """
 
-    startDate: int = attr.ib(default=None)
+    startDate: Optional[int] = attr.ib(default=None)
     """
     The start date of the timespan for the requested App Store Server Notification history records. The startDate needs to precede the endDate. Choose a startDate that's within the past 180 days from the current date.
     
     https://developer.apple.com/documentation/appstoreserverapi/startdate
     """
 
-    endDate: int = attr.ib(default=None)
+    endDate: Optional[int] = attr.ib(default=None)
     """
     The end date of the timespan for the requested App Store Server Notification history records. Choose an endDate that's later than the startDate. If you choose an endDate in the future, the endpoint automatically uses the current date as the endDate.
     

@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from attr import define
-from typing import List
+from typing import List, Optional
 import attr
 
 @define
@@ -12,19 +12,19 @@ class RefundHistoryResponse:
     https://developer.apple.com/documentation/appstoreserverapi/refundhistoryresponse
     """
 
-    signedTransactions: "List[str]" = attr.ib(default=None)
+    signedTransactions: Optional[List[str]] = attr.ib(default=None)
     """
     A list of up to 20 JWS transactions, or an empty array if the customer hasn't received any refunds in your app. The transactions are sorted in ascending order by revocationDate.
     """
 
-    revision: str = attr.ib(default=None)
+    revision: Optional[str] = attr.ib(default=None)
     """
     A token you use in a query to request the next set of transactions for the customer.
     
     https://developer.apple.com/documentation/appstoreserverapi/revision
     """
 
-    hasMore: bool = attr.ib(default=None)
+    hasMore: Optional[bool] = attr.ib(default=None)
     """
     A Boolean value indicating whether the App Store has more transaction data.
     

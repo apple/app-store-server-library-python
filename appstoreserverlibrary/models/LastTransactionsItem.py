@@ -1,4 +1,5 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
+from typing import Optional
 
 from attr import define
 import attr
@@ -13,28 +14,28 @@ class LastTransactionsItem:
     https://developer.apple.com/documentation/appstoreserverapi/lasttransactionsitem
     """
 
-    status: VerificationStatus = attr.ib(default=None)
+    status: Optional[VerificationStatus] = attr.ib(default=None)
     """
     The status of the auto-renewable subscription.
     
     https://developer.apple.com/documentation/appstoreserverapi/status
     """
 
-    originalTransactionId: str = attr.ib(default=None)
+    originalTransactionId: Optional[str] = attr.ib(default=None)
     """
     The original transaction identifier of a purchase.
     
     https://developer.apple.com/documentation/appstoreserverapi/originaltransactionid
     """
 
-    signedTransactionInfo: str = attr.ib(default=None)
+    signedTransactionInfo: Optional[str] = attr.ib(default=None)
     """
     Transaction information signed by the App Store, in JSON Web Signature (JWS) format.
     
     https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
     """
 
-    signedRenewalInfo: str = attr.ib(default=None)
+    signedRenewalInfo: Optional[str] = attr.ib(default=None)
     """
     Subscription renewal information, signed by the App Store, in JSON Web Signature (JWS) format.
     

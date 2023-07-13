@@ -4,7 +4,7 @@ from typing import Optional
 from attr import define
 import attr
 
-from appstoreserverlibrary.signed_data_verifier import VerificationStatus
+from appstoreserverlibrary.models.Status import Status
 
 @define
 class LastTransactionsItem: 
@@ -14,7 +14,7 @@ class LastTransactionsItem:
     https://developer.apple.com/documentation/appstoreserverapi/lasttransactionsitem
     """
 
-    status: Optional[VerificationStatus] = attr.ib(default=None)
+    status: Optional[Status] = attr.ib(default=None)
     """
     The status of the auto-renewable subscription.
     

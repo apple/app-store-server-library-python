@@ -6,7 +6,7 @@ build:
     python: "3.11"
   jobs:
     pre_build:
-     - sphinx-apidoc -F -H "App Store Server Library" -A "Apple Inc." -V "0.1.0" -e -a -o _staging . tests setup.py
+     - sphinx-apidoc -F -H "App Store Server Library" -A "Apple Inc." -V "0.2.0" -e -a -o _staging . tests setup.py
 
 sphinx:
   configuration: _staging/conf.py

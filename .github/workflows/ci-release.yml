@@ -1,0 +1,28 @@
+name: Release Builder
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    name: Python Release Builder
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    - name: Install build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build the sdist and wheel
+      run: >-
+        python3 -m
+        build
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}

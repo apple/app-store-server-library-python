@@ -1,0 +1,32 @@
+name: Snapshot Builder
+on:
+  push:
+    branches: [ main ]
+    tags-ignore:
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build:
+    name: Python Snapshot Builder
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    - name: Install build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build the sdist and wheel
+      run: >-
+        python3 -m
+        build
+    - name: Publish to Test PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository-url: https://test.pypi.org/legacy/

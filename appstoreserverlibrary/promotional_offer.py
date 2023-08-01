@@ -16,7 +16,7 @@ class PromotionalOfferSignatureCreator:
        self._signing_key = serialization.load_pem_private_key(signing_key, password=None, backend=default_backend())
        self._key_id = key_id
        self._bundle_id = bundle_id
-    def create_signature(self, product_identifier: str, subscription_offer_id: str, application_username: str, nonce: uuid, timestamp: int):
+    def create_signature(self, product_identifier: str, subscription_offer_id: str, application_username: str, nonce: uuid.UUID, timestamp: int):
         """
         Return the Base64 encoded signature
 

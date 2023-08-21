@@ -1,5 +1,5 @@
 # Apple App Store Server Python Library
-The Python server library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi) and [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications)
+The Python server library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi) and [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications). Also available in [Swift](https://github.com/apple/app-store-server-library-swift), [Node.js](https://github.com/apple/app-store-server-library-node), and [Java](https://github.com/apple/app-store-server-library-java).
 
 ## Table of Contents
 1. [Beta](#-beta-)

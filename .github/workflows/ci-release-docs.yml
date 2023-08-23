@@ -1,0 +1,41 @@
+name: Doc Builder
+on:
+  release:
+    types: [published]
+permissions:
+  pages: write
+  id-token: write
+jobs:
+  build:
+    name: Python Doc Builder
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r docs/requirements.txt
+    - name: Sphinx Api Docs
+      run: sphinx-apidoc -F -H "App Store Server Library" -A "Apple Inc." -V "0.2.1" -e -a -o _staging . tests setup.py
+    - name: Spinx build
+      run: sphinx-build -b html _staging _build
+    - name: Upload docs
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: _build
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy docs
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v2

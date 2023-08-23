@@ -25,7 +25,7 @@ pip install app-store-server-library
 
 ## Documentation
 
-[ReadTheDocs](TODO)
+[Documentation](https://apple.github.io/app-store-server-library-python/)
 
 [WWDC Video](https://developer.apple.com/videos/play/wwdc2023/10143/)
 ## Usage

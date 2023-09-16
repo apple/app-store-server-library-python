@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class PlayTime(Enum): 
+class PlayTime(IntEnum): 
     """
     A value that indicates the amount of time that the customer used the app.
     

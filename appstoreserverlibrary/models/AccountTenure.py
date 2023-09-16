@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class AccountTenure(Enum): 
+class AccountTenure(IntEnum): 
     """
     The age of the customer's account.
     

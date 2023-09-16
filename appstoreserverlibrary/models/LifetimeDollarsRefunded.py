@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class LifetimeDollarsRefunded(Enum): 
+class LifetimeDollarsRefunded(IntEnum): 
     """
     A value that indicates the dollar amount of refunds the customer has received in your app, since purchasing the app, across all platforms.
     

@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class InAppOwnershipType(Enum): 
+class InAppOwnershipType(str, Enum): 
     """
     The relationship of the user with the family-shared purchase to which they have access.
     

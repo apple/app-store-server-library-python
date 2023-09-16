@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class NotificationTypeV2(Enum): 
+class NotificationTypeV2(str, Enum): 
     """
     A notification type value that App Store Server Notifications V2 uses.
     

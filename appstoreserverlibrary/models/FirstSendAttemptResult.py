@@ -3,7 +3,7 @@
 from enum import Enum, unique
 
 @unique
-class FirstSendAttemptResult(Enum): 
+class FirstSendAttemptResult(str, Enum): 
     """
     An error or result that the App Store server receives when attempting to send an App Store server notification to your server.
     

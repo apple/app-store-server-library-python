@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class OrderLookupStatus(Enum): 
+class OrderLookupStatus(IntEnum): 
     """
     A value that indicates whether the order ID in the request is valid for your app.
     

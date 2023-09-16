@@ -7,13 +7,13 @@ import attr
 
 from .InAppOwnershipType import InAppOwnershipType
 
-class ProductType(Enum):
+class ProductType(str, Enum):
     AUTO_RENEWABLE = "AUTO_RENEWABLE"
     NON_RENEWABLE = "NON_RENEWABLE"
     CONSUMABLE = "CONSUMABLE"
     NON_CONSUMABLE = "NON_CONSUMABLE"
 
-class Order(Enum):
+class Order(str, Enum):
     ASCENDING = "ASCENDING"
     DESCENDING = "DESCENDING"
 

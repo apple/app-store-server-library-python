@@ -1,10 +1,12 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
-
+import importlib
 import unittest
 from base64 import b64decode
-from appstoreserverlibrary.models.Environment import Environment
-from appstoreserverlibrary.models.NotificationHistoryRequest import NotificationTypeV2
 
+import appstoreserverlibrary.models as v1
+import appstoreserverlibrary.models.v2 as v2
+from appstoreserverlibrary.models.Environment import Environment
+from appstoreserverlibrary.models.v2.Environment import Environment as EnvironmentV2
 from appstoreserverlibrary.signed_data_verifier import VerificationException, VerificationStatus, SignedDataVerifier
 from appstoreserverlibrary.signed_data_verifier_v2 import SignedDataVerifierV2
 
@@ -18,24 +20,26 @@ TRANSACTION_INFO = "eyJ4NWMiOlsiTUlJQm9EQ0NBVWFnQXdJQkFnSUJDekFLQmdncWhrak9QUVFE
 
 
 def get_payload_verifier(verifier_cls):
-    verifier = verifier_cls([b64decode(ROOT_CA_BASE64_ENCODED)], False, Environment.SANDBOX, "com.example")
+    environment = v1.Environment.Environment.SANDBOX if verifier_cls == SignedDataVerifier else v2.Environment.Environment.SANDBOX
+    verifier = verifier_cls([b64decode(ROOT_CA_BASE64_ENCODED)], False, environment, "com.example")
     verifier._chain_verifier.enable_strict_checks = False  # We don't have authority identifiers on test certs
     return verifier
 
 
 verifier_variants = [
-    ("attr", get_payload_verifier(SignedDataVerifier)),
-    ("pydantic", get_payload_verifier(SignedDataVerifierV2))
+    ("v1", v1.__name__, get_payload_verifier(SignedDataVerifier)),
+    ("v2", v2.__name__, get_payload_verifier(SignedDataVerifierV2))
 ]
 
 
 class PayloadVerification(unittest.TestCase):
 
     def test_app_store_server_notification_decoding(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
                 notification = verifier.verify_and_decode_notification(TEST_NOTIFICATION)
-                self.assertEqual(notification.notificationType, NotificationTypeV2.TEST)
+                self.assertEqual(notification.notificationType,
+                                 importlib.import_module(module_name).NotificationTypeV2.NotificationTypeV2.TEST)
 
     def test_app_store_server_notification_decoding_production(self):
         verifier = SignedDataVerifier([b64decode(ROOT_CA_BASE64_ENCODED)], False, Environment.PRODUCTION, "com.example",
@@ -46,18 +50,20 @@ class PayloadVerification(unittest.TestCase):
         self.assertEqual(context.exception.status, VerificationStatus.INVALID_ENVIRONMENT)
 
     def test_missing_x5c_header(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
-                with self.assertRaises(VerificationException) as context:
+                with self.assertRaises(importlib.import_module(verifier.__module__).VerificationException) as context:
                     verifier.verify_and_decode_notification(MISSING_X5C_HEADER_CLAIM)
-            self.assertEqual(context.exception.status, VerificationStatus.VERIFICATION_FAILURE)
+            self.assertEqual(context.exception.status,
+                             importlib.import_module(verifier.__module__).VerificationStatus.VERIFICATION_FAILURE)
 
     def test_wrong_bundle_id_for_server_notification(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
-                with self.assertRaises(VerificationException) as context:
+                with self.assertRaises(importlib.import_module(verifier.__module__).VerificationException) as context:
                     verifier.verify_and_decode_notification(WRONG_BUNDLE_ID)
-            self.assertEqual(context.exception.status, VerificationStatus.INVALID_APP_IDENTIFIER)
+            self.assertEqual(context.exception.status,
+                             importlib.import_module(verifier.__module__).VerificationStatus.INVALID_APP_IDENTIFIER)
 
     def test_wrong_app_apple_id_for_server_notification(self):
         verifier = SignedDataVerifier([b64decode(ROOT_CA_BASE64_ENCODED)], False, Environment.PRODUCTION, "com.example",
@@ -68,30 +74,34 @@ class PayloadVerification(unittest.TestCase):
         self.assertEqual(context.exception.status, VerificationStatus.INVALID_APP_IDENTIFIER)
 
     def test_renewal_info_decoding(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
                 notification = verifier.verify_and_decode_renewal_info(RENEWAL_INFO)
-                self.assertEqual(notification.environment, Environment.SANDBOX)
+                self.assertEqual(notification.environment,
+                                 importlib.import_module(module_name).Environment.Environment.SANDBOX)
 
     def test_transaction_info_decoding(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
                 notification = verifier.verify_and_decode_signed_transaction(TRANSACTION_INFO)
-                self.assertEqual(notification.environment, Environment.SANDBOX)
+                self.assertEqual(notification.environment,
+                                 importlib.import_module(module_name).Environment.Environment.SANDBOX)
 
     def test_malformed_jwt_with_too_many_parts(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
-                with self.assertRaises(VerificationException) as context:
+                with self.assertRaises(importlib.import_module(verifier.__module__).VerificationException) as context:
                     verifier.verify_and_decode_notification("a.b.c.d")
-                self.assertEqual(context.exception.status, VerificationStatus.VERIFICATION_FAILURE)
+                self.assertEqual(context.exception.status,
+                                 importlib.import_module(verifier.__module__).VerificationStatus.VERIFICATION_FAILURE)
 
     def test_malformed_jwt_with_malformed_data(self):
-        for variant, verifier in verifier_variants:
+        for variant, module_name, verifier in verifier_variants:
             with self.subTest(variant):
-                with self.assertRaises(VerificationException) as context:
+                with self.assertRaises(importlib.import_module(verifier.__module__).VerificationException) as context:
                     verifier.verify_and_decode_notification("a.b.c")
-                self.assertEqual(context.exception.status, VerificationStatus.VERIFICATION_FAILURE)
+                self.assertEqual(context.exception.status,
+                                 importlib.import_module(verifier.__module__).VerificationStatus.VERIFICATION_FAILURE)
 
 
 if __name__ == '__main__':

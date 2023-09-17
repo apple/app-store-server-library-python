@@ -6,8 +6,6 @@ from enum import Enum
 import time
 import datetime
 
-import cattrs
-
 import asn1
 import jwt
 import requests
@@ -52,7 +50,7 @@ class SignedDataVerifierV2:
         :return: The decoded renewal info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        return cattrs.structure(self._decode_signed_object(signed_renewal_info), JWSRenewalInfoDecodedPayload)
+        return JWSRenewalInfoDecodedPayload.model_validate(self._decode_signed_object(signed_renewal_info))
 
     def verify_and_decode_signed_transaction(self, signed_transaction: str) -> JWSTransactionDecodedPayload:
         """
@@ -62,8 +60,8 @@ class SignedDataVerifierV2:
         :return: The decoded transaction info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        decoded_transaction_info = cattrs.structure(self._decode_signed_object(signed_transaction),
-                                                    JWSTransactionDecodedPayload)
+        signed_object = self._decode_signed_object(signed_transaction)
+        decoded_transaction_info = JWSTransactionDecodedPayload.model_validate(signed_object)
         if decoded_transaction_info.bundleId != self._bundle_id:
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if decoded_transaction_info.environment != self._environment:
@@ -107,7 +105,7 @@ class SignedDataVerifierV2:
         :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_dict = self._decode_signed_object(signed_app_transaction)
-        decoded_app_transaction = cattrs.structure(decoded_dict, AppTransaction)
+        decoded_app_transaction = AppTransaction.model_validate(decoded_dict)
         environment = decoded_app_transaction.receiptType
         if decoded_app_transaction.bundleId != self._bundle_id or (
                 self._environment == Environment.PRODUCTION and decoded_app_transaction.appAppleId != self._app_apple_id):

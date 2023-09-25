@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class LifetimeDollarsPurchased(Enum): 
+class LifetimeDollarsPurchased(IntEnum): 
     """
     A value that indicates the total amount, in USD, of in-app purchases the customer has made in your app, across all platforms.
     

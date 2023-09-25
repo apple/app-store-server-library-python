@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class ExtendReasonCode(Enum): 
+class ExtendReasonCode(IntEnum): 
     """
     The code that represents the reason for the subscription-renewal-date extension.
     

@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class Environment(Enum): 
+class Environment(str, Enum): 
     """
     The server environment, either sandbox or production.
     

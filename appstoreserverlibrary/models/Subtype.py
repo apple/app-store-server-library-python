@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class Subtype(Enum): 
+class Subtype(str, Enum): 
     """
     A notification subtype value that App Store Server Notifications 2 uses.
     

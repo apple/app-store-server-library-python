@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class Type(Enum): 
+class Type(str, Enum): 
     """
     The type of in-app purchase products you can offer in your app.
     

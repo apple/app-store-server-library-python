@@ -2,7 +2,7 @@
 
 from typing import List
 from base64 import b64decode
-from enum import Enum
+from enum import IntEnum
 import time
 import datetime
 
@@ -274,7 +274,7 @@ class _ChainVerifier:
         raise VerificationException(VerificationStatus.VERIFICATION_FAILURE)
 
 
-class VerificationStatus(Enum):
+class VerificationStatus(IntEnum):
     OK = 0
     VERIFICATION_FAILURE = 1
     INVALID_APP_IDENTIFIER = 2

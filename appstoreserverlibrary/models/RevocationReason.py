@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class RevocationReason(Enum): 
+class RevocationReason(IntEnum): 
     """
     The reason for a refunded transaction.
     

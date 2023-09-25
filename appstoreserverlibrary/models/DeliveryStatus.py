@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class DeliveryStatus(Enum): 
+class DeliveryStatus(IntEnum): 
     """
     A value that indicates whether the app successfully delivered an in-app purchase that works properly.
     

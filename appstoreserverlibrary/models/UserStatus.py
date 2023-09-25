@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class UserStatus(Enum): 
+class UserStatus(IntEnum): 
     """
     The status of a customer's account within your app.
     

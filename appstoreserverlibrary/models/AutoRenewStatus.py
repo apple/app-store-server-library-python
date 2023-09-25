@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class AutoRenewStatus(Enum): 
+class AutoRenewStatus(IntEnum): 
     """
     The renewal status for an auto-renewable subscription.
     

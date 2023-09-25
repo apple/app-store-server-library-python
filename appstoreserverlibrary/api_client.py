@@ -2,7 +2,7 @@
 
 import calendar
 import datetime
-from enum import Enum
+from enum import IntEnum
 from typing import Dict, List, Optional, Type, TypeVar, Union
 from attr import define
 import cattrs
@@ -33,7 +33,7 @@ from .models.TransactionInfoResponse import TransactionInfoResponse
 
 T = TypeVar('T')
 
-class APIError(Enum):
+class APIError(IntEnum):
     GENERAL_BAD_REQUEST = 4000000
     INVALID_APP_IDENTIFIER = 4000002
     INVALID_REQUEST_REVISION = 4000005

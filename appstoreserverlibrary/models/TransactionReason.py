@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class TransactionReason(Enum): 
+class TransactionReason(str, Enum): 
     """
     The cause of a purchase transaction, which indicates whether it’s a customer’s purchase or a renewal for an auto-renewable subscription that the system initiates.
     

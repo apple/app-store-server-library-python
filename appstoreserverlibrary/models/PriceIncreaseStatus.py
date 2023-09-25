@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from enum import Enum
+from enum import IntEnum
 
-class PriceIncreaseStatus(Enum): 
+class PriceIncreaseStatus(IntEnum): 
     """
     The status that indicates whether an auto-renewable subscription is subject to a price increase.
     

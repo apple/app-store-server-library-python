@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class SendAttemptResult(Enum): 
+class SendAttemptResult(str, Enum): 
     """
     The success or error information the App Store server records when it attempts to send an App Store server notification to your server.
     

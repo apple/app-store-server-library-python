@@ -114,6 +114,11 @@ class SignedDataVerifier:
 
     def _decode_signed_object(self, signed_obj: str) -> dict:
         try:
+            decoded_jwt = jwt.decode(signed_obj, options={"verify_signature": False})
+            if self._environment == Environment.XCODE or self._environment == Environment.LOCAL_TESTING:
+                # Data is not signed by the App Store, and verification should be skipped
+                # The environment MUST be checked in the public method calling this
+                return decoded_jwt
             unverified_headers: dict = jwt.get_unverified_header(signed_obj)
             x5c_header: List[str] = unverified_headers.get("x5c")
             if x5c_header is None or len(x5c_header) == 0:
@@ -121,7 +126,6 @@ class SignedDataVerifier:
             algorithm_header: str = unverified_headers.get("alg")
             if algorithm_header is None or "ES256" != algorithm_header:
                 raise Exception("Algorithm was not ES256")
-            decoded_jwt = jwt.decode(signed_obj, options={"verify_signature": False})
             signed_date = decoded_jwt.get('signedDate') if decoded_jwt.get('signedDate') is not None else decoded_jwt.get('receiptCreationDate')
             effective_date = time.time() if self._enable_online_checks or signed_date is None else int(signed_date) // 1000
             signing_key = self._chain_verifier.verify_chain(x5c_header, self._enable_online_checks, effective_date)

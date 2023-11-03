@@ -6,8 +6,6 @@ from enum import IntEnum
 import time
 import datetime
 
-import cattrs
-
 import asn1
 import jwt
 import requests
@@ -19,6 +17,7 @@ from cryptography.x509 import ocsp, oid
 from OpenSSL import crypto
 
 from appstoreserverlibrary.models.AppTransaction import AppTransaction
+from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 
 from .models.Environment import Environment
 from .models.ResponseBodyV2DecodedPayload import ResponseBodyV2DecodedPayload
@@ -35,7 +34,7 @@ class SignedDataVerifier:
         enable_online_checks: bool,
         environment: Environment,
         bundle_id: str,
-        app_apple_id: str = None,
+        app_apple_id: int = None,
     ):
         self._chain_verifier = _ChainVerifier(root_certificates)
         self._environment = environment
@@ -51,7 +50,11 @@ class SignedDataVerifier:
         :return: The decoded renewal info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        return cattrs.structure(self._decode_signed_object(signed_renewal_info), JWSRenewalInfoDecodedPayload)
+        
+        decoded_renewal_info = _get_cattrs_converter(JWSRenewalInfoDecodedPayload).structure(self._decode_signed_object(signed_renewal_info), JWSRenewalInfoDecodedPayload)
+        if decoded_renewal_info.environment != self._environment:
+            raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
+        return decoded_renewal_info
 
     def verify_and_decode_signed_transaction(self, signed_transaction: str) -> JWSTransactionDecodedPayload:
         """
@@ -61,7 +64,7 @@ class SignedDataVerifier:
         :return: The decoded transaction info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        decoded_transaction_info = cattrs.structure(self._decode_signed_object(signed_transaction), JWSTransactionDecodedPayload)
+        decoded_transaction_info = _get_cattrs_converter(JWSTransactionDecodedPayload).structure(self._decode_signed_object(signed_transaction), JWSTransactionDecodedPayload)
         if decoded_transaction_info.bundleId != self._bundle_id:
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if decoded_transaction_info.environment != self._environment:
@@ -77,7 +80,7 @@ class SignedDataVerifier:
         :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_dict = self._decode_signed_object(signed_payload)
-        decoded_signed_notification = cattrs.structure(decoded_dict, ResponseBodyV2DecodedPayload)
+        decoded_signed_notification = _get_cattrs_converter(ResponseBodyV2DecodedPayload).structure(decoded_dict, ResponseBodyV2DecodedPayload)
         bundle_id = None
         app_apple_id = None
         environment = None
@@ -104,7 +107,7 @@ class SignedDataVerifier:
         :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_dict = self._decode_signed_object(signed_app_transaction)
-        decoded_app_transaction = cattrs.structure(decoded_dict, AppTransaction)
+        decoded_app_transaction = _get_cattrs_converter(AppTransaction).structure(decoded_dict, AppTransaction)
         environment = decoded_app_transaction.receiptType
         if decoded_app_transaction.bundleId != self._bundle_id or (self._environment == Environment.PRODUCTION and decoded_app_transaction.appAppleId != self._app_apple_id):
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)

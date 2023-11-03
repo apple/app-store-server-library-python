@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class DeliveryStatus(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class DeliveryStatus(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     A value that indicates whether the app successfully delivered an in-app purchase that works properly.
     

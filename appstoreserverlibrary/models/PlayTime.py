@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class PlayTime(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class PlayTime(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     A value that indicates the amount of time that the customer used the app.
     

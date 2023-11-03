@@ -4,21 +4,27 @@ from typing import Optional
 from attr import define
 import attr
 
-from appstoreserverlibrary.models.Status import Status
+from .LibraryUtility import AttrsRawValueAware
+from .Status import Status
 
 @define
-class LastTransactionsItem: 
+class LastTransactionsItem(AttrsRawValueAware):
     """
     The most recent App Store-signed transaction information and App Store-signed renewal information for an auto-renewable subscription.
     
     https://developer.apple.com/documentation/appstoreserverapi/lasttransactionsitem
     """
 
-    status: Optional[Status] = attr.ib(default=None)
+    status: Optional[Status] = Status.create_main_attr('rawStatus')
     """
     The status of the auto-renewable subscription.
     
     https://developer.apple.com/documentation/appstoreserverapi/status
+    """
+
+    rawStatus: Optional[int] = Status.create_raw_attr('status')
+    """
+    See status
     """
 
     originalTransactionId: Optional[str] = attr.ib(default=None)

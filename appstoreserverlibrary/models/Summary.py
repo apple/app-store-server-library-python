@@ -3,21 +3,28 @@
 from attr import define
 from typing import List, Optional
 import attr
+
 from .Environment import Environment
+from .LibraryUtility import AttrsRawValueAware
 
 @define
-class Summary: 
+class Summary(AttrsRawValueAware):
     """
     The payload data for a subscription-renewal-date extension notification.
     
     https://developer.apple.com/documentation/appstoreservernotifications/summary
     """
 
-    environment: Optional[Environment] = attr.ib(default=None)
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
     """
     The server environment that the notification applies to, either sandbox or production.
     
     https://developer.apple.com/documentation/appstoreservernotifications/environment
+    """
+           
+    rawEnvironment: Optional[str] = Environment.create_raw_attr('environment')
+    """
+    See environment
     """
 
     appAppleId: Optional[int] = attr.ib(default=None)

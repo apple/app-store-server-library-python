@@ -2,7 +2,9 @@
 
 from enum import Enum
 
-class NotificationTypeV2(str, Enum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class NotificationTypeV2(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     A notification type value that App Store Server Notifications V2 uses.
     

@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class AutoRenewStatus(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class AutoRenewStatus(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The renewal status for an auto-renewable subscription.
     

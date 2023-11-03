@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class RevocationReason(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class RevocationReason(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The reason for a refunded transaction.
     

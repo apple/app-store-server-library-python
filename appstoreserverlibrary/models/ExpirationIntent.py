@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class ExpirationIntent(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class ExpirationIntent(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The reason an auto-renewable subscription expired.
     

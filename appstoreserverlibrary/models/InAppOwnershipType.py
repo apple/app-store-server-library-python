@@ -2,7 +2,9 @@
 
 from enum import Enum
 
-class InAppOwnershipType(str, Enum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class InAppOwnershipType(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The relationship of the user with the family-shared purchase to which they have access.
     

@@ -10,3 +10,5 @@ class Environment(Enum):
     """
     SANDBOX = "Sandbox"
     PRODUCTION = "Production"
+    XCODE = "Xcode"
+    LOCAL_TESTING = "LocalTesting"

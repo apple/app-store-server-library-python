@@ -20,7 +20,7 @@ class ReceiptUtility:
         :param appReceipt: The unmodified app receipt
         :return: A transaction id from the array of in-app purchases, null if the receipt contains no in-app purchases
         """
-        decoder = asn1.Decoder()
+        decoder = IndefiniteFormAwareDecoder()
         decoder.start(b64decode(app_receipt, validate=True))
         tag = decoder.peek()
         if tag.typ != asn1.Types.Constructed or tag.nr != asn1.Numbers.Sequence:
@@ -39,6 +39,11 @@ class ReceiptUtility:
         decoder.read()
         decoder.enter()
         tag, value = decoder.read()
+        # Xcode uses nested OctetStrings, we extract the inner string in this case
+        if tag.typ == asn1.Types.Constructed and tag.nr == asn1.Numbers.OctetString:
+            inner_decoder = asn1.Decoder()
+            inner_decoder.start(value)
+            tag, value = inner_decoder.read()
         if tag.typ != asn1.Types.Primitive or tag.nr != asn1.Numbers.OctetString:
             raise ValueError()
         decoder = asn1.Decoder()
@@ -93,3 +98,19 @@ class ReceiptUtility:
             if inner_matching_result:
                 return inner_matching_result.group(1)
         return None
+
+class IndefiniteFormAwareDecoder(asn1.Decoder):
+    def _read_length(self) -> int:
+        index, input_data = self.m_stack[-1]
+        try:
+            byte = input_data[index]
+        except IndexError:
+            raise asn1.Error('Premature end of input.')
+        if byte == 0x80:
+            # Xcode receipts use indefinite length encoding, not supported by all parsers
+            # Indefinite length encoding is only entered, but never left during parsing for receipts
+            # We therefore round up indefinite length encoding to be the remaining length
+            self._read_byte()
+            index, input_data = self.m_stack[-1]
+            return len(input_data) - index
+        return super()._read_length()

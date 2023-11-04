@@ -3,6 +3,8 @@ from typing import Optional
 
 from attr import define
 import attr
+
+from .OfferDiscountType import OfferDiscountType
 from .Environment import Environment
 from .InAppOwnershipType import InAppOwnershipType
 from .LibraryUtility import AttrsRawValueAware
@@ -209,4 +211,30 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     rawTransactionReason: Optional[str] = TransactionReason.create_raw_attr('transactionReason')
     """
     See transactionReason
+    """
+
+    currency: Optional[str] = attr.ib(default=None)
+    """
+    The three-letter ISO 4217 currency code for the price of the product.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/currency
+    """
+
+    price: Optional[int] = attr.ib(default=None)
+    """
+    The price of the in-app purchase or subscription offer that you configured in App Store Connect, as an integer.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/price
+    """
+
+    offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType')
+    """
+    The payment mode you configure for an introductory offer, promotional offer, or offer code on an auto-renewable subscription.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype
+    """
+
+    rawOfferDiscountType: Optional[str] = OfferDiscountType.create_raw_attr('offerDiscountType')
+    """
+    See offerDiscountType
     """

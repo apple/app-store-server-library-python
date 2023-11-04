@@ -6,6 +6,7 @@ from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.ExpirationIntent import ExpirationIntent
 from appstoreserverlibrary.models.InAppOwnershipType import InAppOwnershipType
 from appstoreserverlibrary.models.NotificationTypeV2 import NotificationTypeV2
+from appstoreserverlibrary.models.OfferDiscountType import OfferDiscountType
 from appstoreserverlibrary.models.OfferType import OfferType
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
@@ -72,6 +73,10 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("PURCHASE", transaction.rawTransactionReason)
         self.assertEqual(Environment.LOCAL_TESTING, transaction.environment)
         self.assertEqual("LocalTesting", transaction.rawEnvironment)
+        self.assertEqual(10990, transaction.price)
+        self.assertEqual("USD", transaction.currency)
+        self.assertEqual(OfferDiscountType.PAY_AS_YOU_GO, transaction.offerDiscountType)
+        self.assertEqual("PAY_AS_YOU_GO", transaction.rawOfferDiscountType)
 
     
     def test_renewal_info_decoding(self):

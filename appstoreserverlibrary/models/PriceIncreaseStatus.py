@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class PriceIncreaseStatus(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class PriceIncreaseStatus(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The status that indicates whether an auto-renewable subscription is subject to a price increase.
     

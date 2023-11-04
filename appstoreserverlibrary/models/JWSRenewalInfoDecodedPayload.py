@@ -7,22 +7,28 @@ from .AutoRenewStatus import AutoRenewStatus
 from .Environment import Environment
 
 from .ExpirationIntent import ExpirationIntent
+from .LibraryUtility import AttrsRawValueAware
 from .OfferType import OfferType
 from .PriceIncreaseStatus import PriceIncreaseStatus
 
 @define
-class JWSRenewalInfoDecodedPayload: 
+class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     """
     A decoded payload containing subscription renewal information for an auto-renewable subscription.
     
     https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfodecodedpayload
     """
 
-    expirationIntent: Optional[ExpirationIntent] = attr.ib(default=None)
+    expirationIntent: Optional[ExpirationIntent] = ExpirationIntent.create_main_attr('rawExpirationIntent')
     """
     The reason the subscription expired.
     
     https://developer.apple.com/documentation/appstoreserverapi/expirationintent
+    """
+
+    rawExpirationIntent: Optional[int] = ExpirationIntent.create_raw_attr('expirationIntent')
+    """
+    See expirationIntent
     """
 
     originalTransactionId: Optional[str] = attr.ib(default=None)
@@ -46,11 +52,16 @@ class JWSRenewalInfoDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/productid
     """
 
-    autoRenewStatus: Optional[AutoRenewStatus] = attr.ib(default=None)
+    autoRenewStatus: Optional[AutoRenewStatus] = AutoRenewStatus.create_main_attr('rawAutoRenewStatus')
     """
     The renewal status of the auto-renewable subscription.
     
     https://developer.apple.com/documentation/appstoreserverapi/autorenewstatus
+    """
+
+    rawAutoRenewStatus: Optional[int] = AutoRenewStatus.create_raw_attr('autoRenewStatus')
+    """
+    See autoRenewStatus
     """
 
     isInBillingRetryPeriod: Optional[bool] = attr.ib(default=None)
@@ -60,11 +71,16 @@ class JWSRenewalInfoDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/isinbillingretryperiod
     """
 
-    priceIncreaseStatus: Optional[PriceIncreaseStatus] = attr.ib(default=None)
+    priceIncreaseStatus: Optional[PriceIncreaseStatus] = PriceIncreaseStatus.create_main_attr('rawPriceIncreaseStatus')
     """
     The status that indicates whether the auto-renewable subscription is subject to a price increase.
     
     https://developer.apple.com/documentation/appstoreserverapi/priceincreasestatus
+    """
+
+    rawPriceIncreaseStatus: Optional[int] = PriceIncreaseStatus.create_raw_attr('priceIncreaseStatus')
+    """
+    See priceIncreaseStatus
     """
 
     gracePeriodExpiresDate: Optional[int] = attr.ib(default=None)
@@ -74,11 +90,16 @@ class JWSRenewalInfoDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/graceperiodexpiresdate
     """
 
-    offerType: Optional[OfferType] = attr.ib(default=None)
+    offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType')
     """
     The type of the subscription offer.
     
     https://developer.apple.com/documentation/appstoreserverapi/offertype
+    """
+
+    rawOfferType: Optional[int] = OfferType.create_raw_attr('offerType')
+    """
+    See offerType
     """
 
     offerIdentifier: Optional[str] = attr.ib(default=None)
@@ -95,11 +116,16 @@ class JWSRenewalInfoDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/signeddate
     """
 
-    environment: Optional[Environment] = attr.ib(default=None)
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
     """
     The server environment, either sandbox or production.
     
     https://developer.apple.com/documentation/appstoreserverapi/environment
+    """
+
+    rawEnvironment: Optional[str] = Environment.create_raw_attr('environment')
+    """
+    See environment
     """
 
     recentSubscriptionStartDate: Optional[int] = attr.ib(default=None)

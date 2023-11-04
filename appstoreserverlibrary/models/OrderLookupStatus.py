@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class OrderLookupStatus(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class OrderLookupStatus(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     A value that indicates whether the order ID in the request is valid for your app.
     

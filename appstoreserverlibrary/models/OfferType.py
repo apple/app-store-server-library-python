@@ -2,7 +2,9 @@
 
 from enum import IntEnum
 
-class OfferType(IntEnum): 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
+class OfferType(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The type of subscription offer.
     

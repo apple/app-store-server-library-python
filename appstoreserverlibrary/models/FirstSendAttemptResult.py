@@ -2,8 +2,10 @@
 
 from enum import Enum, unique
 
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
+
 @unique
-class FirstSendAttemptResult(str, Enum): 
+class FirstSendAttemptResult(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     An error or result that the App Store server receives when attempting to send an App Store server notification to your server.
     

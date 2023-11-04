@@ -5,31 +5,42 @@ from attr import define
 import attr
 from .Data import Data
 
+from .LibraryUtility import AttrsRawValueAware
 from .NotificationTypeV2 import NotificationTypeV2
 from .Subtype import Subtype
 from .Summary import Summary
 
 
 @define
-class ResponseBodyV2DecodedPayload: 
+class ResponseBodyV2DecodedPayload(AttrsRawValueAware):
     """
     A decoded payload containing the version 2 notification data.
     
     https://developer.apple.com/documentation/appstoreservernotifications/responsebodyv2decodedpayload
     """
 
-    notificationType: Optional[NotificationTypeV2] = attr.ib(default=None)
+    notificationType: Optional[NotificationTypeV2] = NotificationTypeV2.create_main_attr('rawNotificationType')
     """
     The in-app purchase event for which the App Store sends this version 2 notification.
     
     https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
     """
 
-    subtype: Optional[Subtype] = attr.ib(default=None)
+    rawNotificationType: Optional[str] = NotificationTypeV2.create_raw_attr('notificationType')
+    """
+    See notificationType
+    """
+
+    subtype: Optional[Subtype] = Subtype.create_main_attr('rawSubtype')
     """
     Additional information that identifies the notification event. The subtype field is present only for specific version 2 notifications.
     
     https://developer.apple.com/documentation/appstoreservernotifications/subtype
+    """
+    
+    rawSubtype: Optional[str] = Subtype.create_raw_attr('subtype')
+    """
+    See subtype
     """
 
     notificationUUID: Optional[str] = attr.ib(default=None)

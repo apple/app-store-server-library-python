@@ -5,6 +5,7 @@ from attr import define
 import attr
 from .Environment import Environment
 from .InAppOwnershipType import InAppOwnershipType
+from .LibraryUtility import AttrsRawValueAware
 from .OfferType import OfferType
 from .RevocationReason import RevocationReason
 from .TransactionReason import TransactionReason
@@ -12,7 +13,7 @@ from .TransactionReason import TransactionReason
 from .Type import Type
 
 @define
-class JWSTransactionDecodedPayload: 
+class JWSTransactionDecodedPayload(AttrsRawValueAware):
     """
     A decoded payload containing transaction information.
     
@@ -89,11 +90,16 @@ class JWSTransactionDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/quantity
     """
 
-    type: Optional[Type] = attr.ib(default=None)
+    type: Optional[Type] = Type.create_main_attr('rawType')
     """
     The type of the in-app purchase.
     
     https://developer.apple.com/documentation/appstoreserverapi/type
+    """
+
+    rawType: Optional[str] = Type.create_raw_attr('type')
+    """
+    See type
     """
 
     appAccountToken: Optional[str] = attr.ib(default=None)
@@ -103,11 +109,16 @@ class JWSTransactionDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken
     """
 
-    inAppOwnershipType: Optional[InAppOwnershipType] = attr.ib(default=None)
+    inAppOwnershipType: Optional[InAppOwnershipType] = InAppOwnershipType.create_main_attr('rawInAppOwnershipType')
     """
     A string that describes whether the transaction was purchased by the user, or is available to them through Family Sharing.
     
     https://developer.apple.com/documentation/appstoreserverapi/inappownershiptype
+    """
+
+    rawInAppOwnershipType: Optional[str] = InAppOwnershipType.create_raw_attr('inAppOwnershipType')
+    """
+    See inAppOwnershipType
     """
 
     signedDate: Optional[int] = attr.ib(default=None)
@@ -117,11 +128,16 @@ class JWSTransactionDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/signeddate
     """
 
-    revocationReason: Optional[RevocationReason] = attr.ib(default=None)
+    revocationReason: Optional[RevocationReason] = RevocationReason.create_main_attr('rawRevocationReason')
     """
     The reason that the App Store refunded the transaction or revoked it from family sharing.
     
     https://developer.apple.com/documentation/appstoreserverapi/revocationreason
+    """
+
+    rawRevocationReason: Optional[int] = RevocationReason.create_raw_attr('revocationReason')
+    """
+    See revocationReason
     """
 
     revocationDate: Optional[int] = attr.ib(default=None)
@@ -138,11 +154,16 @@ class JWSTransactionDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/isupgraded
     """
 
-    offerType: Optional[OfferType] = attr.ib(default=None)
+    offerType: Optional[OfferType] = RevocationReason.create_main_attr('rawOfferType')
     """
     A value that represents the promotional offer type.
     
     https://developer.apple.com/documentation/appstoreserverapi/offertype
+    """
+
+    rawOfferType: Optional[int] = OfferType.create_raw_attr('offerType')
+    """
+    See offerType
     """
 
     offerIdentifier: Optional[str] = attr.ib(default=None)
@@ -152,11 +173,16 @@ class JWSTransactionDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
     """
 
-    environment: Optional[Environment] = attr.ib(default=None)
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
     """
     The server environment, either sandbox or production.
     
     https://developer.apple.com/documentation/appstoreserverapi/environment
+    """
+
+    rawEnvironment: Optional[str] = Environment.create_raw_attr('environment')
+    """
+    See environment
     """
 
     storefront: Optional[str] = attr.ib(default=None)
@@ -173,9 +199,14 @@ class JWSTransactionDecodedPayload:
     https://developer.apple.com/documentation/appstoreserverapi/storefrontid
     """
 
-    transactionReason: Optional[TransactionReason] = attr.ib(default=None)
+    transactionReason: Optional[TransactionReason] = TransactionReason.create_main_attr('rawTransactionReason')
     """
     The reason for the purchase transaction, which indicates whether it's a customer's purchase or a renewal for an auto-renewable subscription that the system initates.
     
     https://developer.apple.com/documentation/appstoreserverapi/transactionreason
+    """
+
+    rawTransactionReason: Optional[str] = TransactionReason.create_raw_attr('transactionReason')
+    """
+    See transactionReason
     """

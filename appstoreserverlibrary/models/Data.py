@@ -6,20 +6,24 @@ import attr
 
 from .Environment import Environment
 from .Status import Status
+from .LibraryUtility import AttrsRawValueAware
 
 @define
-class Data: 
+class Data(AttrsRawValueAware):
     """
     The app metadata and the signed renewal and transaction information.
     
     https://developer.apple.com/documentation/appstoreservernotifications/data
     """
-
-    environment: Optional[Environment] = attr.ib(default=None)
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
     """
     The server environment that the notification applies to, either sandbox or production.
     
     https://developer.apple.com/documentation/appstoreservernotifications/environment
+    """
+    rawEnvironment: Optional[str] = Environment.create_raw_attr('environment')
+    """
+    See environment
     """
 
     appAppleId: Optional[int] = attr.ib(default=None)
@@ -57,9 +61,14 @@ class Data:
     https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo
     """
         
-    status: Optional[Status] = attr.ib(default=None)
+    status: Optional[Status] = Status.create_main_attr('rawStatus')
     """
     The status of an auto-renewable subscription as of the signedDate in the responseBodyV2DecodedPayload.
     
     https://developer.apple.com/documentation/appstoreservernotifications/status
+    """
+
+    rawStatus: Optional[int] = Status.create_raw_attr('status')
+    """
+    See status
     """

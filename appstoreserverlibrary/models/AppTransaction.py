@@ -4,21 +4,28 @@ from typing import Optional
 from attr import define
 import attr
 
+from .LibraryUtility import AttrsRawValueAware
+
 from .Environment import Environment
 
 @define
-class AppTransaction: 
+class AppTransaction(AttrsRawValueAware):
     """
     Information that represents the customer’s purchase of the app, cryptographically signed by the App Store.
     
     https://developer.apple.com/documentation/storekit/apptransaction
     """
 
-    receiptType: Optional[Environment] = attr.ib(default=None)
+    receiptType: Optional[Environment] = Environment.create_main_attr('rawReceiptType')
     """
     The server environment that signs the app transaction.
     
     https://developer.apple.com/documentation/storekit/apptransaction/3963901-environment
+    """
+
+    rawReceiptType: Optional[str] = Environment.create_raw_attr('receiptType')
+    """
+    See receiptType
     """
 
     appAppleId: Optional[int] = attr.ib(default=None)

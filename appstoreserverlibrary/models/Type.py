@@ -1,8 +1,9 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from enum import Enum
+from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
-class Type(str, Enum): 
+class Type(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The type of in-app purchase products you can offer in your app.
     

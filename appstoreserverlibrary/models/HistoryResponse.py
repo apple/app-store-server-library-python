@@ -5,9 +5,10 @@ from typing import List, Optional
 import attr
 
 from .Environment import Environment
+from .LibraryUtility import AttrsRawValueAware
 
 @define
-class HistoryResponse: 
+class HistoryResponse(AttrsRawValueAware):
     """
     A response that contains the customer's transaction history for an app.
     
@@ -42,11 +43,16 @@ class HistoryResponse:
     https://developer.apple.com/documentation/appstoreservernotifications/appappleid
     """
 
-    environment: Optional[Environment] = attr.ib(default=None)
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
     """
     The server environment in which you're making the request, whether sandbox or production.
     
     https://developer.apple.com/documentation/appstoreserverapi/environment
+    """
+
+    rawEnvironment: Optional[str] = Environment.create_raw_attr('environment')
+    """
+    See environment
     """
 
     signedTransactions: Optional[List[str]] = attr.ib(default=None)

@@ -67,7 +67,7 @@ signed_data_verifier = SignedDataVerifier(root_certificates, enable_online_check
 
 try:    
     signed_notification = "ey.."
-    payload = signed_data_verifier.verify_and_decode_notification()
+    payload = signed_data_verifier.verify_and_decode_notification(signed_notification)
     print(payload)
 except VerificationException as e:
     print(e)

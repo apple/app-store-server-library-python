@@ -1,12 +1,11 @@
 name: Snapshot Builder
 on:
-  push:
-    branches: [ main ]
-    tags-ignore:
-      - "[0-9]+.[0-9]+.[0-9]+"
-      - "[0-9]+.[0-9]+.[0-9]+.[0-9]+"
+  release:
+    types: [published]
 jobs:
   build:
+    # Pre-release builds trigger a snapshot being created
+    if: "github.event.release.prerelease"
     name: Python Snapshot Builder
     runs-on: ubuntu-latest
     steps:

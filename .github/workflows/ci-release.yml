@@ -4,6 +4,8 @@ on:
     types: [published]
 jobs:
   build:
+    # Only non-pre-release builds trigger a release
+    if: "!github.event.release.prerelease"
     name: Python Release Builder
     runs-on: ubuntu-latest
     steps:

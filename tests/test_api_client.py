@@ -377,6 +377,71 @@ class DecodedPayloads(unittest.TestCase):
             return
         
         self.assertFalse(True)
+
+    def test_get_transaction_history_with_unknown_environment(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponseWithMalformedEnvironment.json',
+                                           'GET',
+                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/history/1234', 
+                                           {'revision': ['revision_input'],
+                                            'startDate': ['123455'],
+                                            'endDate': ['123456'],
+                                            'productId': ['com.example.1', 'com.example.2'],
+                                            'productType': ['CONSUMABLE', 'AUTO_RENEWABLE'],
+                                            'sort': ['ASCENDING'],
+                                            'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
+                                            'inAppOwnershipType': ['FAMILY_SHARED'],
+                                            'revoked': ['False']},
+                                            None)
+
+        request = TransactionHistoryRequest(
+            sort=Order.ASCENDING,
+            productTypes=[ProductType.CONSUMABLE, ProductType.AUTO_RENEWABLE],
+            endDate=123456,
+            startDate=123455,
+            revoked=False,
+            inAppOwnershipType=InAppOwnershipType.FAMILY_SHARED,
+            productIds=['com.example.1', 'com.example.2'],
+            subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
+        )
+
+        history_response = client.get_transaction_history('1234', 'revision_input', request)
+
+        self.assertIsNone(history_response.environment)
+        self.assertEqual("LocalTestingxxx", history_response.rawEnvironment)
+
+    def test_get_transaction_history_with_malformed_app_apple_id(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponseWithMalformedAppAppleId.json',
+                                           'GET',
+                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/history/1234', 
+                                           {'revision': ['revision_input'],
+                                            'startDate': ['123455'],
+                                            'endDate': ['123456'],
+                                            'productId': ['com.example.1', 'com.example.2'],
+                                            'productType': ['CONSUMABLE', 'AUTO_RENEWABLE'],
+                                            'sort': ['ASCENDING'],
+                                            'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
+                                            'inAppOwnershipType': ['FAMILY_SHARED'],
+                                            'revoked': ['False']},
+                                            None)
+
+        request = TransactionHistoryRequest(
+            sort=Order.ASCENDING,
+            productTypes=[ProductType.CONSUMABLE, ProductType.AUTO_RENEWABLE],
+            endDate=123456,
+            startDate=123455,
+            revoked=False,
+            inAppOwnershipType=InAppOwnershipType.FAMILY_SHARED,
+            productIds=['com.example.1', 'com.example.2'],
+            subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
+        )
+
+        try:
+            client.get_transaction_history('1234', 'revision_input', request)
+        except Exception:
+            return
+        
+        self.assertFalse(True)
+
     
     def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200):
         signing_key = read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')

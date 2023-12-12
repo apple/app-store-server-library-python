@@ -340,6 +340,7 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual(500, e.http_status_code)
             self.assertEqual(5000000, e.raw_api_error)
             self.assertEqual(APIError.GENERAL_INTERNAL, e.api_error)
+            self.assertEqual("An unknown error occurred.", e.error_message)
             return
         
         self.assertFalse(True)
@@ -357,6 +358,7 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual(429, e.http_status_code)
             self.assertEqual(4290000, e.raw_api_error)
             self.assertEqual(APIError.RATE_LIMIT_EXCEEDED, e.api_error)
+            self.assertEqual("Rate limit exceeded.", e.error_message)
             return
         
         self.assertFalse(True)
@@ -374,6 +376,7 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual(400, e.http_status_code)
             self.assertEqual(9990000, e.raw_api_error)
             self.assertIsNone(e.api_error)
+            self.assertEqual("Testing error.", e.error_message)
             return
         
         self.assertFalse(True)

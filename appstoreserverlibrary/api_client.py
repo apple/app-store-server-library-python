@@ -36,60 +36,391 @@ T = TypeVar('T')
 
 class APIError(IntEnum):
     GENERAL_BAD_REQUEST = 4000000
+    """
+    An error that indicates an invalid request.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/generalbadrequesterror
+    """
+
     INVALID_APP_IDENTIFIER = 4000002
+    """
+    An error that indicates an invalid app identifier.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidappidentifiererror
+    """
+
     INVALID_REQUEST_REVISION = 4000005
+    """
+    An error that indicates an invalid request revision.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidrequestrevisionerror
+    """
+
     INVALID_TRANSACTION_ID = 4000006
+    """
+    An error that indicates an invalid transaction identifier.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidtransactioniderror
+    """
+
     INVALID_ORIGINAL_TRANSACTION_ID = 4000008
+    """
+    An error that indicates an invalid original transaction identifier.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidoriginaltransactioniderror
+    """
+
     INVALID_EXTEND_BY_DAYS = 4000009
+    """
+    An error that indicates an invalid extend-by-days value.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidextendbydayserror
+    """
+
     INVALID_EXTEND_REASON_CODE = 4000010
-    INVALID_IDENTIFIER = 4000011
+    """
+    An error that indicates an invalid reason code.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidextendreasoncodeerror
+    """
+
+    INVALID_REQUEST_IDENTIFIER = 4000011
+    """
+    An error that indicates an invalid request identifier.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidrequestidentifiererror
+    """
+
     START_DATE_TOO_FAR_IN_PAST = 4000012
+    """
+    An error that indicates that the start date is earlier than the earliest allowed date.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/startdatetoofarinpasterror
+    """
+
     START_DATE_AFTER_END_DATE = 4000013
+    """
+    An error that indicates that the end date precedes the start date, or the two dates are equal.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/startdateafterenddateerror
+    """
+
     INVALID_PAGINATION_TOKEN = 4000014
+    """
+    An error that indicates the pagination token is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidpaginationtokenerror
+    """
+
     INVALID_START_DATE = 4000015
+    """
+    An error that indicates the start date is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidstartdateerror
+    """
+
     INVALID_END_DATE = 4000016
+    """
+    An error that indicates the end date is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidenddateerror
+    """
+    
     PAGINATION_TOKEN_EXPIRED = 4000017
+    """
+    An error that indicates the pagination token expired.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/paginationtokenexpirederror
+    """
+
     INVALID_NOTIFICATION_TYPE = 4000018
+    """
+    An error that indicates the notification type or subtype is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidnotificationtypeerror
+    """
+
     MULTIPLE_FILTERS_SUPPLIED = 4000019
+    """
+    An error that indicates the request is invalid because it has too many constraints applied.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/multiplefilterssuppliederror
+    """
+
     INVALID_TEST_NOTIFICATION_TOKEN = 4000020
+    """
+    An error that indicates the test notification token is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidtestnotificationtokenerror
+    """
+
     INVALID_SORT = 4000021
+    """
+    An error that indicates an invalid sort parameter.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidsorterror
+    """
+
     INVALID_PRODUCT_TYPE = 4000022
+    """
+    An error that indicates an invalid product type parameter.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidproducttypeerror
+    """
+
     INVALID_PRODUCT_ID = 4000023
+    """
+    An error that indicates the product ID parameter is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidproductiderror
+    """
+
     INVALID_SUBSCRIPTION_GROUP_IDENTIFIER = 4000024
+    """
+    An error that indicates an invalid subscription group identifier.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidsubscriptiongroupidentifiererror
+    """
+
     INVALID_EXCLUDE_REVOKED = 4000025
+    """
+    An error that indicates the query parameter exclude-revoked is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidexcluderevokederror
+
+    .. deprecated:: 1.5
+    """
+
     INVALID_IN_APP_OWNERSHIP_TYPE = 4000026
+    """
+    An error that indicates an invalid in-app ownership type parameter.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidinappownershiptypeerror
+    """
+
     INVALID_EMPTY_STOREFRONT_COUNTRY_CODE_LIST = 4000027
+    """
+    An error that indicates a required storefront country code is empty.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidemptystorefrontcountrycodelisterror
+    """
+
     INVALID_STOREFRONT_COUNTRY_CODE = 4000028
+    """
+    An error that indicates a storefront code is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidstorefrontcountrycodeerror
+    """
+
     INVALID_REVOKED = 4000030
+    """
+    An error that indicates the revoked parameter contains an invalid value.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidrevokederror
+    """
+
     INVALID_STATUS = 4000031
+    """
+    An error that indicates the status parameter is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidstatuserror
+    """
+
     INVALID_ACCOUNT_TENURE = 4000032
+    """
+    An error that indicates the value of the account tenure field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidaccounttenureerror
+    """
+
     INVALID_APP_ACCOUNT_TOKEN = 4000033
+    """
+    An error that indicates the value of the app account token field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidappaccounttokenerror
+    """
+
     INVALID_CONSUMPTION_STATUS = 4000034
+    """
+    An error that indicates the value of the consumption status field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidconsumptionstatuserror
+    """
+
     INVALID_CUSTOMER_CONSENTED = 4000035
+    """
+    An error that indicates the customer consented field is invalid or doesn’t indicate that the customer consented.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidcustomerconsentederror
+    """
+
     INVALID_DELIVERY_STATUS = 4000036
+    """
+    An error that indicates the value in the delivery status field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invaliddeliverystatuserror
+    """
+
     INVALID_LIFETIME_DOLLARS_PURCHASED = 4000037
+    """
+    An error that indicates the value in the lifetime dollars purchased field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidlifetimedollarspurchasederror
+    """
+
     INVALID_LIFETIME_DOLLARS_REFUNDED = 4000038
+    """
+    An error that indicates the value in the lifetime dollars refunded field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidlifetimedollarsrefundederror
+    """
+
     INVALID_PLATFORM = 4000039
+    """
+    An error that indicates the value in the platform field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidplatformerror
+    """
+
     INVALID_PLAY_TIME = 4000040
+    """
+    An error that indicates the value in the playtime field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidplaytimeerror
+    """
+
     INVALID_SAMPLE_CONTENT_PROVIDED = 4000041
+    """
+    An error that indicates the value in the sample content provided field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidsamplecontentprovidederror
+    """
+
     INVALID_USER_STATUS = 4000042
+    """
+    An error that indicates the value in the user status field is invalid.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invaliduserstatuserror
+    """
+
     INVALID_TRANSACTION_NOT_CONSUMABLE = 4000043
+    """
+    An error that indicates the transaction identifier doesn’t represent a consumable in-app purchase.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidtransactionnotconsumableerror
+    """
+
     SUBSCRIPTION_EXTENSION_INELIGIBLE = 4030004
+    """
+    An error that indicates the subscription doesn't qualify for a renewal-date extension due to its subscription state.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/subscriptionextensionineligibleerror
+    """
+
     SUBSCRIPTION_MAX_EXTENSION = 4030005
+    """
+    An error that indicates the subscription doesn’t qualify for a renewal-date extension because it has already received the maximum extensions.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/subscriptionmaxextensionerror
+    """
+
     FAMILY_SHARED_SUBSCRIPTION_EXTENSION_INELIGIBLE = 4030007
+    """
+    An error that indicates a subscription isn't directly eligible for a renewal date extension because the user obtained it through Family Sharing.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/familysharedsubscriptionextensionineligibleerror
+    """
+
     ACCOUNT_NOT_FOUND = 4040001
+    """
+    An error that indicates the App Store account wasn’t found.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/accountnotfounderror
+    """
+
     ACCOUNT_NOT_FOUND_RETRYABLE = 4040002
+    """
+    An error response that indicates the App Store account wasn’t found, but you can try again.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/accountnotfoundretryableerror
+    """
+
     APP_NOT_FOUND = 4040003
+    """
+    An error that indicates the app wasn’t found.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/appnotfounderror
+    """
+
     APP_NOT_FOUND_RETRYABLE = 4040004
+    """
+    An error response that indicates the app wasn’t found, but you can try again.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/appnotfoundretryableerror
+    """
+
     ORIGINAL_TRANSACTION_ID_NOT_FOUND = 4040005
+    """
+    An error that indicates an original transaction identifier wasn't found.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/originaltransactionidnotfounderror
+    """
+
     ORIGINAL_TRANSACTION_ID_NOT_FOUND_RETRYABLE = 4040006
+    """
+    An error response that indicates the original transaction identifier wasn’t found, but you can try again.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/originaltransactionidnotfoundretryableerror
+    """
+
     SERVER_NOTIFICATION_URL_NOT_FOUND = 4040007
+    """
+    An error that indicates that the App Store server couldn’t find a notifications URL for your app in this environment.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/servernotificationurlnotfounderror
+    """
+
     TEST_NOTIFICATION_NOT_FOUND = 4040008
+    """
+    An error that indicates that the test notification token is expired or the test notification status isn’t available.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/testnotificationnotfounderror
+    """
+
     STATUS_REQUEST_NOT_FOUND = 4040009
+    """
+    An error that indicates the server didn't find a subscription-renewal-date extension request for the request identifier and product identifier you provided.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/statusrequestnotfounderror
+    """
+
     TRANSACTION_ID_NOT_FOUND = 4040010
+    """
+    An error that indicates a transaction identifier wasn't found.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/transactionidnotfounderror
+    """
+
     RATE_LIMIT_EXCEEDED = 4290000
+    """
+    An error that indicates that the request exceeded the rate limit.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/ratelimitexceedederror
+    """
+
     GENERAL_INTERNAL = 5000000
+    """
+    An error that indicates a general internal error.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/generalinternalerror
+    """
+
     GENERAL_INTERNAL_RETRYABLE = 5000001
+    """
+    An error response that indicates an unknown error occurred, but you can try again.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/generalinternalretryableerror
+    """
 
 
 @define
@@ -97,11 +428,13 @@ class APIException(Exception):
     http_status_code: int
     api_error: Optional[APIError]
     raw_api_error: Optional[int]
+    error_message: Optional[str]
 
-    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None):
+    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None):
         self.http_status_code = http_status_code
         self.raw_api_error = raw_api_error
         self.api_error = None
+        self.error_message = error_message
         try:
             if raw_api_error is not None:
                 self.api_error = APIError(raw_api_error)
@@ -156,11 +489,11 @@ class AppStoreServerAPIClient:
                 raise APIException(response.status_code)
             try:
                 response_body = response.json()
-                raise APIException(response.status_code, response_body['errorCode'])
+                raise APIException(response.status_code, response_body['errorCode'], response_body['errorMessage'])
             except APIException as e:
                 raise e
-            except Exception:
-                raise APIException(response.status_code)
+            except Exception as e:
+                raise APIException(response.status_code) from e
 
     def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any]) -> requests.Response:
         return requests.request(method, url, params=params, headers=headers, json=json)

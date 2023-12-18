@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.0
+- Add error message to APIException [#52]
+
 ## 0.3.0
 - Add missing status field to the Data model [#33]
 - Add error codes from App Store Server API v1.9 [#39]

@@ -13,8 +13,8 @@ The Python server library for the [App Store Server API](https://developer.apple
 
 - Python 3.7+
 
-### Gradle
-```groovy
+### pip
+```sh
 pip install app-store-server-library
 ```
 

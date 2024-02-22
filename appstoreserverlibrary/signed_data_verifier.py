@@ -41,6 +41,8 @@ class SignedDataVerifier:
         self._bundle_id = bundle_id
         self._app_apple_id = app_apple_id
         self._enable_online_checks = enable_online_checks
+        if environment == Environment.PRODUCTION and app_apple_id is None:
+            raise ValueError("appAppleId is required when the environment is Production")
 
     def verify_and_decode_renewal_info(self, signed_renewal_info: str) -> JWSRenewalInfoDecodedPayload:
         """

@@ -58,7 +58,8 @@ root_certificates = load_root_certificates()
 enable_online_checks = True
 bundle_id = "com.example"
 environment = Environment.SANDBOX
-signed_data_verifier = SignedDataVerifier(root_certificates, enable_online_checks, environment, bundle_id)
+app_apple_id = None # appAppleId must be provided for the Production environment
+signed_data_verifier = SignedDataVerifier(root_certificates, enable_online_checks, environment, bundle_id, app_apple_id)
 
 try:    
     signed_notification = "ey.."

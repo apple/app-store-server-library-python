@@ -27,3 +27,4 @@ class NotificationTypeV2(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     TEST = "TEST"
     RENEWAL_EXTENSION = "RENEWAL_EXTENSION"
     REFUND_REVERSED = "REFUND_REVERSED"
+    EXTERNAL_PURCHASE_TOKEN = "EXTERNAL_PURCHASE_TOKEN"

@@ -1,6 +1,6 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from typing import List
+from typing import List, Optional
 from base64 import b64decode
 from enum import IntEnum
 import time
@@ -94,11 +94,21 @@ class SignedDataVerifier:
             bundle_id = decoded_signed_notification.summary.bundleId
             app_apple_id = decoded_signed_notification.summary.appAppleId
             environment = decoded_signed_notification.summary.environment
+        elif decoded_signed_notification.externalPurchaseToken:
+            bundle_id = decoded_signed_notification.externalPurchaseToken.bundleId
+            app_apple_id = decoded_signed_notification.externalPurchaseToken.appAppleId
+            if decoded_signed_notification.externalPurchaseToken.externalPurchaseId and decoded_signed_notification.externalPurchaseToken.externalPurchaseId.startswith("SANDBOX"):
+                environment = Environment.SANDBOX
+            else:
+                environment = Environment.PRODUCTION
+        self._verify_notification(bundle_id, app_apple_id, environment)
+        return decoded_signed_notification
+
+    def _verify_notification(self, bundle_id: Optional[str], app_apple_id: Optional[int], environment: Optional[Environment]):
         if bundle_id != self._bundle_id or (self._environment == Environment.PRODUCTION and app_apple_id != self._app_apple_id):
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
-        return decoded_signed_notification
 
     def verify_and_decode_app_transaction(self, signed_app_transaction: str) -> AppTransaction:
         """

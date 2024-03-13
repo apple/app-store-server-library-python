@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+from typing import Optional
 import unittest
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
 from appstoreserverlibrary.models.Environment import Environment
@@ -15,7 +16,7 @@ from appstoreserverlibrary.models.Subtype import Subtype
 from appstoreserverlibrary.models.TransactionReason import TransactionReason
 from appstoreserverlibrary.models.Type import Type
 
-from tests.util import create_signed_data_from_json, get_default_signed_data_verifier
+from tests.util import create_signed_data_from_json, get_default_signed_data_verifier, get_signed_data_verifier
 
 class DecodedPayloads(unittest.TestCase):
     def test_app_transaction_decoding(self):
@@ -122,6 +123,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148900000, notification.signedDate)
         self.assertIsNotNone(notification.data)
         self.assertIsNone(notification.summary)
+        self.assertIsNone(notification.externalPurchaseToken)
         self.assertEqual(Environment.LOCAL_TESTING, notification.data.environment)
         self.assertEqual("LocalTesting", notification.data.rawEnvironment)
         self.assertEqual(41234, notification.data.appAppleId)
@@ -148,6 +150,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148900000, notification.signedDate)
         self.assertIsNone(notification.data)
         self.assertIsNotNone(notification.summary)
+        self.assertIsNone(notification.externalPurchaseToken)
         self.assertEqual(Environment.LOCAL_TESTING, notification.summary.environment)
         self.assertEqual("LocalTesting", notification.summary.rawEnvironment)
         self.assertEqual(41234, notification.summary.appAppleId)
@@ -157,3 +160,61 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(["CAN", "USA", "MEX"], notification.summary.storefrontCountryCodes)
         self.assertEqual(5, notification.summary.succeededCount)
         self.assertEqual(2, notification.summary.failedCount)
+    
+    def test_external_purchase_token_notification_decoding(self):
+        signed_external_purchase_token_notification = create_signed_data_from_json('tests/resources/models/signedExternalPurchaseTokenNotification.json')
+        
+        signed_data_verifier = get_default_signed_data_verifier()
+
+        def check_environment_and_bundle_id(bundle_id: Optional[str], app_apple_id: Optional[int], environment: Optional[Environment]):
+            self.assertEqual("com.example", bundle_id)
+            self.assertEqual(55555, app_apple_id)
+            self.assertEqual(Environment.PRODUCTION, environment)
+
+        signed_data_verifier._verify_notification = check_environment_and_bundle_id
+
+        notification = signed_data_verifier.verify_and_decode_notification(signed_external_purchase_token_notification)
+        
+        self.assertEqual(NotificationTypeV2.EXTERNAL_PURCHASE_TOKEN, notification.notificationType)
+        self.assertEqual("EXTERNAL_PURCHASE_TOKEN", notification.rawNotificationType)
+        self.assertEqual(Subtype.UNREPORTED, notification.subtype)
+        self.assertEqual("UNREPORTED", notification.rawSubtype)
+        self.assertEqual("002e14d5-51f5-4503-b5a8-c3a1af68eb20", notification.notificationUUID)
+        self.assertEqual("2.0", notification.version)
+        self.assertEqual(1698148900000, notification.signedDate)
+        self.assertIsNone(notification.data)
+        self.assertIsNone(notification.summary)
+        self.assertIsNotNone(notification.externalPurchaseToken)
+        self.assertEqual("b2158121-7af9-49d4-9561-1f588205523e", notification.externalPurchaseToken.externalPurchaseId)
+        self.assertEqual(1698148950000, notification.externalPurchaseToken.tokenCreationDate)
+        self.assertEqual(55555, notification.externalPurchaseToken.appAppleId)
+        self.assertEqual("com.example", notification.externalPurchaseToken.bundleId)
+    
+    def test_external_purchase_token_sandbox_notification_decoding(self):
+        signed_external_purchase_token_notification = create_signed_data_from_json('tests/resources/models/signedExternalPurchaseTokenSandboxNotification.json')
+        
+        signed_data_verifier = get_default_signed_data_verifier()
+
+        def check_environment_and_bundle_id(bundle_id: Optional[str], app_apple_id: Optional[int], environment: Optional[Environment]):
+            self.assertEqual("com.example", bundle_id)
+            self.assertEqual(55555, app_apple_id)
+            self.assertEqual(Environment.SANDBOX, environment)
+
+        signed_data_verifier._verify_notification = check_environment_and_bundle_id
+
+        notification = signed_data_verifier.verify_and_decode_notification(signed_external_purchase_token_notification)
+        
+        self.assertEqual(NotificationTypeV2.EXTERNAL_PURCHASE_TOKEN, notification.notificationType)
+        self.assertEqual("EXTERNAL_PURCHASE_TOKEN", notification.rawNotificationType)
+        self.assertEqual(Subtype.UNREPORTED, notification.subtype)
+        self.assertEqual("UNREPORTED", notification.rawSubtype)
+        self.assertEqual("002e14d5-51f5-4503-b5a8-c3a1af68eb20", notification.notificationUUID)
+        self.assertEqual("2.0", notification.version)
+        self.assertEqual(1698148900000, notification.signedDate)
+        self.assertIsNone(notification.data)
+        self.assertIsNone(notification.summary)
+        self.assertIsNotNone(notification.externalPurchaseToken)
+        self.assertEqual("SANDBOX_b2158121-7af9-49d4-9561-1f588205523e", notification.externalPurchaseToken.externalPurchaseId)
+        self.assertEqual(1698148950000, notification.externalPurchaseToken.tokenCreationDate)
+        self.assertEqual(55555, notification.externalPurchaseToken.appAppleId)
+        self.assertEqual("com.example", notification.externalPurchaseToken.bundleId)

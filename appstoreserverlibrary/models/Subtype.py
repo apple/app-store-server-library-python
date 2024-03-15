@@ -26,3 +26,4 @@ class Subtype(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     PRODUCT_NOT_FOR_SALE = "PRODUCT_NOT_FOR_SALE"
     SUMMARY = "SUMMARY"
     FAILURE = "FAILURE"
+    UNREPORTED = "UNREPORTED"

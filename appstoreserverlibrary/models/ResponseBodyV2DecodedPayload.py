@@ -3,8 +3,9 @@ from typing import Optional
 
 from attr import define
 import attr
-from .Data import Data
 
+from .Data import Data
+from .ExternalPurchaseToken import ExternalPurchaseToken
 from .LibraryUtility import AttrsRawValueAware
 from .NotificationTypeV2 import NotificationTypeV2
 from .Subtype import Subtype
@@ -53,7 +54,7 @@ class ResponseBodyV2DecodedPayload(AttrsRawValueAware):
     data: Optional[Data] = attr.ib(default=None)
     """
     The object that contains the app metadata and signed renewal and transaction information.
-    The data and summary fields are mutually exclusive. The payload contains one of the fields, but not both.
+    The data, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
     
     https://developer.apple.com/documentation/appstoreservernotifications/data
     """
@@ -75,7 +76,15 @@ class ResponseBodyV2DecodedPayload(AttrsRawValueAware):
     summary: Optional[Summary] = attr.ib(default=None)
     """
     The summary data that appears when the App Store server completes your request to extend a subscription renewal date for eligible subscribers.
-    The data and summary fields are mutually exclusive. The payload contains one of the fields, but not both.
+    The data, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
     
     https://developer.apple.com/documentation/appstoreservernotifications/summary
+    """
+
+    externalPurchaseToken: Optional[ExternalPurchaseToken] = attr.ib(default=None)
+    """
+    This field appears when the notificationType is EXTERNAL_PURCHASE_TOKEN.
+    The data, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
+    
+    https://developer.apple.com/documentation/appstoreservernotifications/externalpurchasetoken
     """

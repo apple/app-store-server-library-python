@@ -47,6 +47,7 @@ class SignedDataVerifier:
     def verify_and_decode_renewal_info(self, signed_renewal_info: str) -> JWSRenewalInfoDecodedPayload:
         """
         Verifies and decodes a signedRenewalInfo obtained from the App Store Server API, an App Store Server Notification, or from a device
+        See https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo
 
         :param signed_renewal_info: The signedRenewalInfo field
         :return: The decoded renewal info after verification
@@ -61,6 +62,7 @@ class SignedDataVerifier:
     def verify_and_decode_signed_transaction(self, signed_transaction: str) -> JWSTransactionDecodedPayload:
         """
         Verifies and decodes a signedTransaction obtained from the App Store Server API, an App Store Server Notification, or from a device
+        See https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
 
         :param signed_transaction: The signedRenewalInfo field
         :return: The decoded transaction info after verification
@@ -76,6 +78,7 @@ class SignedDataVerifier:
     def verify_and_decode_notification(self, signed_payload: str) -> ResponseBodyV2DecodedPayload:
         """
         Verifies and decodes an App Store Server Notification signedPayload
+        See https://developer.apple.com/documentation/appstoreservernotifications/signedpayload
 
         :param signedPayload: The payload received by your server
         :return: The decoded payload after verification
@@ -113,6 +116,7 @@ class SignedDataVerifier:
     def verify_and_decode_app_transaction(self, signed_app_transaction: str) -> AppTransaction:
         """
         Verifies and decodes a signed AppTransaction
+        See https://developer.apple.com/documentation/storekit/apptransaction
 
         :param signed_app_transaction: The signed AppTransaction
         :return: The decoded AppTransaction after validation

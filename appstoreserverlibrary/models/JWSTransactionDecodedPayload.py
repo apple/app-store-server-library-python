@@ -222,7 +222,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
 
     price: Optional[int] = attr.ib(default=None)
     """
-    The price of the in-app purchase or subscription offer that you configured in App Store Connect, as an integer.
+    The price, in milliunits, of the in-app purchase or subscription offer that you configured in App Store Connect.
     
     https://developer.apple.com/documentation/appstoreserverapi/price
     """

@@ -13,4 +13,4 @@ class Environment(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     SANDBOX = "Sandbox"
     PRODUCTION = "Production"
     XCODE = "Xcode"
-    LOCAL_TESTING = "LocalTesting"
+    LOCAL_TESTING = "LocalTesting" # Used for unit testing

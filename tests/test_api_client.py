@@ -46,7 +46,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_extend_renewal_date_for_all_active_subscribers(self):
         client = self.get_client_with_body_from_file('tests/resources/models/extendRenewalDateForAllActiveSubscribersResponse.json',
                                            'POST',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/subscriptions/extend/mass',
+                                           'https://local-testing-base-url/inApps/v1/subscriptions/extend/mass',
                                            {}, 
                                            {'extendByDays': 45, 'extendReasonCode': 1, 'requestIdentifier': 'fdf964a4-233b-486c-aac1-97d8d52688ac', 'storefrontCountryCodes': ['USA', 'MEX'], 'productId': 'com.example.productId'})
         
@@ -65,7 +65,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_extend_subscription_renewal_date(self):
         client = self.get_client_with_body_from_file('tests/resources/models/extendSubscriptionRenewalDateResponse.json',
                                            'PUT',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/subscriptions/extend/4124214',
+                                           'https://local-testing-base-url/inApps/v1/subscriptions/extend/4124214',
                                            {},
                                            {'extendByDays': 45, 'extendReasonCode': 1, 'requestIdentifier': 'fdf964a4-233b-486c-aac1-97d8d52688ac'})
 
@@ -86,7 +86,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_all_subscription_statuses(self):
         client = self.get_client_with_body_from_file('tests/resources/models/getAllSubscriptionStatusesResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/subscriptions/4321', 
+                                           'https://local-testing-base-url/inApps/v1/subscriptions/4321', 
                                            {'status': [2, 1]},
                                            None)
 
@@ -134,7 +134,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_refund_history(self):
         client = self.get_client_with_body_from_file('tests/resources/models/getRefundHistoryResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v2/refund/lookup/555555', 
+                                           'https://local-testing-base-url/inApps/v2/refund/lookup/555555', 
                                            {'revision': ['revision_input']}, 
                                            None)
 
@@ -148,7 +148,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_status_of_subscription_renewal_date_extensions(self):
         client = self.get_client_with_body_from_file('tests/resources/models/getStatusOfSubscriptionRenewalDateExtensionsResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/subscriptions/extend/mass/20fba8a0-2b80-4a7d-a17f-85c1854727f8/com.example.product', 
+                                           'https://local-testing-base-url/inApps/v1/subscriptions/extend/mass/20fba8a0-2b80-4a7d-a17f-85c1854727f8/com.example.product', 
                                            {},
                                            None)
 
@@ -164,7 +164,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_test_notification_status(self):
         client = self.get_client_with_body_from_file('tests/resources/models/getTestNotificationStatusResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/test/8cd2974c-f905-492a-bf9a-b2f47c791d19',
+                                           'https://local-testing-base-url/inApps/v1/notifications/test/8cd2974c-f905-492a-bf9a-b2f47c791d19',
                                            {},
                                            None)
 
@@ -181,7 +181,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_notification_history(self):
         client = self.get_client_with_body_from_file('tests/resources/models/getNotificationHistoryResponse.json',
                                            'POST',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/history', 
+                                           'https://local-testing-base-url/inApps/v1/notifications/history', 
                                            {'paginationToken': ['a036bc0e-52b8-4bee-82fc-8c24cb6715d6']},
                                            {'startDate': 1698148900000, 'endDate': 1698148950000, 'notificationType': 'SUBSCRIBED', 'notificationSubtype': 'INITIAL_BUY', 'transactionId': '999733843', 'onlyFailures': True})
 
@@ -222,7 +222,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_transaction_history(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/history/1234', 
+                                           'https://local-testing-base-url/inApps/v1/history/1234', 
                                            {'revision': ['revision_input'],
                                             'startDate': ['123455'],
                                             'endDate': ['123456'],
@@ -259,7 +259,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_transaction_info(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionInfoResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/transactions/1234', 
+                                           'https://local-testing-base-url/inApps/v1/transactions/1234', 
                                            {},
                                            None)
 
@@ -271,7 +271,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_look_up_order_id(self):
         client = self.get_client_with_body_from_file('tests/resources/models/lookupOrderIdResponse.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/lookup/W002182',
+                                           'https://local-testing-base-url/inApps/v1/lookup/W002182',
                                            {},
                                            None)
 
@@ -285,7 +285,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_request_test_notification(self):
         client = self.get_client_with_body_from_file('tests/resources/models/requestTestNotificationResponse.json',
                                            'POST',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/test',
+                                           'https://local-testing-base-url/inApps/v1/notifications/test',
                                            {},
                                            None)
 
@@ -297,7 +297,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_send_consumption_data(self):
         client = self.get_client_with_body(b'',
                                            'PUT',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/transactions/consumption/49571273', 
+                                           'https://local-testing-base-url/inApps/v1/transactions/consumption/49571273', 
                                            {},
                                            {'customerConsented': True,
                                             'consumptionStatus': 1,
@@ -330,7 +330,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_api_error(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiException.json',
                                                      'POST',
-                                                     'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/test',
+                                                     'https://local-testing-base-url/inApps/v1/notifications/test',
                                                      {},
                                                      None,
                                                      500)
@@ -344,11 +344,21 @@ class DecodedPayloads(unittest.TestCase):
             return
         
         self.assertFalse(True)
+
+    def test_xcode_not_supported_error(self):
+        try:
+            signing_key = self.get_signing_key()
+            AppStoreServerAPIClient(signing_key, 'keyId', 'issuerId', 'com.example', Environment.XCODE)
+        except ValueError as e:
+            self.assertEqual("Xcode is not a supported environment for an AppStoreServerAPIClient", e.args[0])
+            return
+
+        self.assertFalse(True)
     
     def test_api_too_many_requests(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiTooManyRequestsException.json',
                                                      'POST',
-                                                     'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/test',
+                                                     'https://local-testing-base-url/inApps/v1/notifications/test',
                                                      {},
                                                      None,
                                                      429)
@@ -366,7 +376,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_unknown_error(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiUnknownError.json',
                                                      'POST',
-                                                     'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/notifications/test',
+                                                     'https://local-testing-base-url/inApps/v1/notifications/test',
                                                      {},
                                                      None,
                                                      400)
@@ -384,7 +394,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_transaction_history_with_unknown_environment(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponseWithMalformedEnvironment.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/history/1234', 
+                                           'https://local-testing-base-url/inApps/v1/history/1234', 
                                            {'revision': ['revision_input'],
                                             'startDate': ['123455'],
                                             'endDate': ['123456'],
@@ -415,7 +425,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_transaction_history_with_malformed_app_apple_id(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponseWithMalformedAppAppleId.json',
                                            'GET',
-                                           'https://api.storekit-sandbox.itunes.apple.com/inApps/v1/history/1234', 
+                                           'https://local-testing-base-url/inApps/v1/history/1234', 
                                            {'revision': ['revision_input'],
                                             'startDate': ['123455'],
                                             'endDate': ['123456'],
@@ -445,9 +455,11 @@ class DecodedPayloads(unittest.TestCase):
         
         self.assertFalse(True)
 
+    def get_signing_key(self):
+        return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
     
     def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200):
-        signing_key = read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
+        signing_key = self.get_signing_key()
         client = AppStoreServerAPIClient(signing_key, 'keyId', 'issuerId', 'com.example', Environment.LOCAL_TESTING)
         def fake_execute_and_validate_inputs(method: bytes, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any]):
             self.assertEqual(expected_method, method)

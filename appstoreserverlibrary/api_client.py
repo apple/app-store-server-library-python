@@ -443,8 +443,12 @@ class APIException(Exception):
 
 class AppStoreServerAPIClient:
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
+        if environment == Environment.XCODE:
+            raise ValueError("Xcode is not a supported environment for an AppStoreServerAPIClient")
         if environment == Environment.PRODUCTION:
             self._base_url = "https://api.storekit.itunes.apple.com"
+        elif environment == Environment.LOCAL_TESTING:
+            self._base_url = "https://local-testing-base-url"
         else:
             self._base_url = "https://api.storekit-sandbox.itunes.apple.com"
         self._signing_key = serialization.load_pem_private_key(signing_key, password=None, backend=default_backend())

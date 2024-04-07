@@ -34,7 +34,7 @@ class SignedDataVerifier:
         enable_online_checks: bool,
         environment: Environment,
         bundle_id: str,
-        app_apple_id: int = None,
+        app_apple_id: Optional[int] = None,
     ):
         self._chain_verifier = _ChainVerifier(root_certificates)
         self._environment = environment

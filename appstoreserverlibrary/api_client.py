@@ -525,7 +525,7 @@ class AppStoreServerAPIClient:
         """
         return self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse)
     
-    def get_all_subscription_statuses(self, transaction_id: str, status: List[Status] = None) -> StatusResponse:
+    def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
         Get the statuses for all of a customer's auto-renewable subscriptions in your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses
@@ -541,7 +541,7 @@ class AppStoreServerAPIClient:
         
         return self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse)
     
-    def get_refund_history(self, transaction_id: str, revision: str) -> RefundHistoryResponse:
+    def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
         Get a paginated list of all of a customer's refunded in-app purchases for your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_refund_history
@@ -581,7 +581,7 @@ class AppStoreServerAPIClient:
         """
         return self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse)
     
-    def get_notification_history(self, pagination_token: str, notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
+    def get_notification_history(self, pagination_token: Optional[str], notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
         """
         Get a list of notifications that the App Store server attempted to send to your server.
         https://developer.apple.com/documentation/appstoreserverapi/get_notification_history

@@ -39,9 +39,8 @@ Download and store the root certificates found in the Apple Root Certificates se
 ```python
 from appstoreserverlibrary.api_client import AppStoreServerAPIClient, APIException
 from appstoreserverlibrary.models.Environment import Environment
-from appstoreserverlibrary.models.SendTestNotificationResponse import SendTestNotificationResponse
 
-private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implemenation will vary
+private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implementation will vary
 
 key_id = "ABCDEFGHIJ"
 issuer_id = "99b16628-15e4-4668-972b-eeff55eeff55"
@@ -87,7 +86,7 @@ from appstoreserverlibrary.receipt_utility import ReceiptUtility
 from appstoreserverlibrary.models.HistoryResponse import HistoryResponse
 from appstoreserverlibrary.models.TransactionHistoryRequest import TransactionHistoryRequest, ProductType, Order
 
-private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implemenation will vary
+private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implementation will vary
 
 key_id = "ABCDEFGHIJ"
 issuer_id = "99b16628-15e4-4668-972b-eeff55eeff55"
@@ -125,7 +124,7 @@ except APIException as e:
 from appstoreserverlibrary.promotional_offer import PromotionalOfferSignatureCreator
 import time
 
-private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implemenation will vary
+private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implementation will vary
 
 key_id = "ABCDEFGHIJ"
 bundle_id = "com.example"

@@ -203,7 +203,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
 
     transactionReason: Optional[TransactionReason] = TransactionReason.create_main_attr('rawTransactionReason')
     """
-    The reason for the purchase transaction, which indicates whether it's a customer's purchase or a renewal for an auto-renewable subscription that the system initates.
+    The reason for the purchase transaction, which indicates whether it's a customer's purchase or a renewal for an auto-renewable subscription that the system initiates.
     
     https://developer.apple.com/documentation/appstoreserverapi/transactionreason
     """
@@ -222,7 +222,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
 
     price: Optional[int] = attr.ib(default=None)
     """
-    The price, in milliunits, of the in-app purchase or subscription offer that you configured in App Store Connect.
+    The price, in milli units, of the in-app purchase or subscription offer that you configured in App Store Connect.
     
     https://developer.apple.com/documentation/appstoreserverapi/price
     """

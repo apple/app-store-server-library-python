@@ -64,7 +64,7 @@ class SignedDataVerifier:
         Verifies and decodes a signedTransaction obtained from the App Store Server API, an App Store Server Notification, or from a device
         See https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
 
-        :param signed_transaction: The signedTransactionInfo field
+        :param signed_transaction: The signedTransaction field
         :return: The decoded transaction info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """

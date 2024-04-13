@@ -30,4 +30,6 @@ class OrderLookupResponse(AttrsRawValueAware):
     signedTransactions: Optional[List[str]] = attr.ib(default=None)
     """
     An array of in-app purchase transactions that are part of order, signed by Apple, in JSON Web Signature format.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
     """

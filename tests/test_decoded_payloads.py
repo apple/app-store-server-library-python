@@ -107,7 +107,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148800000, renewal_info.recentSubscriptionStartDate)
         self.assertEqual(1698148850000, renewal_info.renewalDate)
 
-    def test_notificaiton_decoding(self):
+    def test_notification_decoding(self):
         signed_notification = create_signed_data_from_json('tests/resources/models/signedNotification.json')
         
         signed_data_verifier = get_default_signed_data_verifier()

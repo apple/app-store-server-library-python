@@ -563,7 +563,7 @@ class AppStoreServerAPIClient:
         Checks whether a renewal date extension request completed, and provides the final count of successful or failed extensions.
         https://developer.apple.com/documentation/appstoreserverapi/get_status_of_subscription_renewal_date_extensions
 
-        :param request_identifier: The UUID that represents your request to the Extent Subscription Renewal Dates for All Active Subscribers endpoint.
+        :param request_identifier: The UUID that represents your request to the Extend Subscription Renewal Dates for All Active Subscribers endpoint.
         :param product_id: The product identifier of the auto-renewable subscription that you request a renewal-date extension for.
         :return: A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.
         :throws APIException: If a response was returned indicating the request could not be processed

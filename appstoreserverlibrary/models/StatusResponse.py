@@ -46,4 +46,5 @@ class StatusResponse(AttrsRawValueAware):
     """
     An array of information for auto-renewable subscriptions, including App Store-signed transaction information and App Store-signed renewal information.
     
+    https://developer.apple.com/documentation/appstoreserverapi/subscriptiongroupidentifieritem
     """

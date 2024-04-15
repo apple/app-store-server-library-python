@@ -15,6 +15,8 @@ class RefundHistoryResponse:
     signedTransactions: Optional[List[str]] = attr.ib(default=None)
     """
     A list of up to 20 JWS transactions, or an empty array if the customer hasn't received any refunds in your app. The transactions are sorted in ascending order by revocationDate.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
     """
 
     revision: Optional[str] = attr.ib(default=None)

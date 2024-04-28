@@ -66,5 +66,5 @@ class TransactionHistoryRequest:
    
     revoked: Optional[bool] = attr.ib(default=None)
     """
-    An optional Boolean value that indicates whether the response includes only revoked transactions when the value is true, or contains only non-revoked transactions when the value is false. By default, the request doesn't include this parameter.
+    An optional Boolean value that indicates whether the response includes only revoked transactions when the value is true, or contains only nonrevoked transactions when the value is false. By default, the request doesn't include this parameter.
     """

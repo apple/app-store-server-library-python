@@ -17,9 +17,9 @@ class ExtendRenewalDateRequest:
     extendByDays: Optional[int] = attr.ib(default=None)
     """
     The number of days to extend the subscription renewal date.
-    The number of days is a number from 1 to 90.
 
     https://developer.apple.com/documentation/appstoreserverapi/extendbydays
+    maximum: 90
     """
 
     extendReasonCode: Optional[ExtendReasonCode] = attr.ib(default=None)

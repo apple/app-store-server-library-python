@@ -308,6 +308,15 @@ class APIError(IntEnum):
     An error that indicates the transaction identifier doesn’t represent a consumable in-app purchase.
     
     https://developer.apple.com/documentation/appstoreserverapi/invalidtransactionnotconsumableerror
+
+    .. deprecated:: 1.11
+    """
+
+    INVALID_TRANSACTION_TYPE_NOT_SUPPORTED = 4000047
+    """
+    An error that indicates the transaction identifier represents an unsupported in-app purchase type.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidtransactiontypenotsupportederror
     """
 
     SUBSCRIPTION_EXTENSION_INELIGIBLE = 4030004

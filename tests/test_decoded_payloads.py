@@ -3,6 +3,7 @@
 from typing import Optional
 import unittest
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
+from appstoreserverlibrary.models.ConsumptionRequestReason import ConsumptionRequestReason
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.ExpirationIntent import ExpirationIntent
 from appstoreserverlibrary.models.InAppOwnershipType import InAppOwnershipType
@@ -133,6 +134,37 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("signed_renewal_info_value", notification.data.signedRenewalInfo);
         self.assertEqual(Status.ACTIVE, notification.data.status)
         self.assertEqual(1, notification.data.rawStatus)
+        self.assertIsNone(notification.data.consumptionRequestReason)
+        self.assertIsNone(notification.data.rawConsumptionRequestReason)
+
+    def test_consumption_request_notification_decoding(self):
+        signed_notification = create_signed_data_from_json('tests/resources/models/signedConsumptionRequestNotification.json')
+        
+        signed_data_verifier = get_default_signed_data_verifier()
+
+        notification = signed_data_verifier.verify_and_decode_notification(signed_notification)
+
+        self.assertEqual(NotificationTypeV2.CONSUMPTION_REQUEST, notification.notificationType)
+        self.assertEqual("CONSUMPTION_REQUEST", notification.rawNotificationType)
+        self.assertIsNone(notification.subtype)
+        self.assertIsNone(notification.rawSubtype)
+        self.assertEqual("002e14d5-51f5-4503-b5a8-c3a1af68eb20", notification.notificationUUID)
+        self.assertEqual("2.0", notification.version)
+        self.assertEqual(1698148900000, notification.signedDate)
+        self.assertIsNotNone(notification.data)
+        self.assertIsNone(notification.summary)
+        self.assertIsNone(notification.externalPurchaseToken)
+        self.assertEqual(Environment.LOCAL_TESTING, notification.data.environment)
+        self.assertEqual("LocalTesting", notification.data.rawEnvironment)
+        self.assertEqual(41234, notification.data.appAppleId)
+        self.assertEqual("com.example", notification.data.bundleId)
+        self.assertEqual("1.2.3", notification.data.bundleVersion)
+        self.assertEqual("signed_transaction_info_value", notification.data.signedTransactionInfo)
+        self.assertEqual("signed_renewal_info_value", notification.data.signedRenewalInfo);
+        self.assertEqual(Status.ACTIVE, notification.data.status)
+        self.assertEqual(1, notification.data.rawStatus)
+        self.assertEqual(ConsumptionRequestReason.UNINTENDED_PURCHASE, notification.data.consumptionRequestReason)
+        self.assertEqual("UNINTENDED_PURCHASE", notification.data.rawConsumptionRequestReason)
         
     def test_summary_notification_decoding(self):
         signed_summary_notification = create_signed_data_from_json('tests/resources/models/signedSummaryNotification.json')

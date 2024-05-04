@@ -27,6 +27,7 @@ from appstoreserverlibrary.models.OrderLookupStatus import OrderLookupStatus
 from appstoreserverlibrary.models.Platform import Platform
 from appstoreserverlibrary.models.PlayTime import PlayTime
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
+from appstoreserverlibrary.models.RefundPreference import RefundPreference
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.SendAttemptItem import SendAttemptItem
 from appstoreserverlibrary.models.SendAttemptResult import SendAttemptResult
@@ -309,7 +310,8 @@ class DecodedPayloads(unittest.TestCase):
                                             'playTime': 5,
                                             'lifetimeDollarsRefunded': 6,
                                             'lifetimeDollarsPurchased': 7,
-                                            'userStatus': 4})
+                                            'userStatus': 4,
+                                            'refundPreference': 3})
 
         consumptionRequest = ConsumptionRequest(
             customerConsented=True,
@@ -322,7 +324,8 @@ class DecodedPayloads(unittest.TestCase):
             playTime=PlayTime.ONE_DAY_TO_FOUR_DAYS,
             lifetimeDollarsRefunded=LifetimeDollarsRefunded.ONE_THOUSAND_DOLLARS_TO_ONE_THOUSAND_NINE_HUNDRED_NINETY_NINE_DOLLARS_AND_NINETY_NINE_CENTS,
             lifetimeDollarsPurchased=LifetimeDollarsPurchased.TWO_THOUSAND_DOLLARS_OR_GREATER,
-            userStatus=UserStatus.LIMITED_ACCESS
+            userStatus=UserStatus.LIMITED_ACCESS,
+            refundPreference=RefundPreference.NO_PREFERENCE
         )
 
         client.send_consumption_data('49571273', consumptionRequest)

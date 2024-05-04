@@ -6,7 +6,7 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
 class NotificationTypeV2(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    A notification type value that App Store Server Notifications V2 uses.
+    The type that describes the in-app purchase or external purchase event for which the App Store sends the version 2 notification.
     
     https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
     """

@@ -32,4 +32,5 @@ class NotificationHistoryResponse:
     """
     An array of App Store server notification history records.
     
+    https://developer.apple.com/documentation/appstoreserverapi/notificationhistoryresponseitem
     """

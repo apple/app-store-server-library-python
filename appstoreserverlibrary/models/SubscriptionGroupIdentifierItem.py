@@ -24,4 +24,6 @@ class SubscriptionGroupIdentifierItem:
     lastTransactions: Optional[List[LastTransactionsItem]] = attr.ib(default=None)
     """
     An array of the most recent App Store-signed transaction information and App Store-signed renewal information for all auto-renewable subscriptions in the subscription group.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/lasttransactionsitem
     """

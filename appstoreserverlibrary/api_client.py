@@ -472,8 +472,8 @@ class AppStoreServerAPIClient:
 
     def _make_request(self, path: str, method: str, queryParameters: Dict[str, Union[str, List[str]]], body, destination_class: Type[T]) -> T:
         url = self._base_url + path
-        c = _get_cattrs_converter(type(body)) if body != None else None
-        json = c.unstructure(body) if body != None else None
+        c = _get_cattrs_converter(type(body)) if body is not None else None
+        json = c.unstructure(body) if body is not None else None
         headers = {
             'User-Agent': "app-store-server-library/python/1.1.0",
             'Authorization': 'Bearer ' + self._generate_token(),
@@ -481,8 +481,8 @@ class AppStoreServerAPIClient:
         }
         
         response = self._execute_request(method, url, queryParameters, headers, json)
-        if response.status_code >= 200 and response.status_code < 300:
-            if destination_class == None:
+        if 200 <= response.status_code < 300:
+            if destination_class is None:
                 return
             c = _get_cattrs_converter(destination_class)
             response_body = response.json()
@@ -536,7 +536,7 @@ class AppStoreServerAPIClient:
         :throws APIException: If a response was returned indicating the request could not be processed
         """
         queryParameters: Dict[str, List[str]] = dict()
-        if status != None:
+        if status is not None:
             queryParameters["status"] = [s.value for s in status]
         
         return self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse)
@@ -547,13 +547,13 @@ class AppStoreServerAPIClient:
         https://developer.apple.com/documentation/appstoreserverapi/get_refund_history
 
         :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
-        :param revision:              A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous RefundHistoryResponse.
+        :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous RefundHistoryResponse.
         :return: A response that contains status information for all of a customer's auto-renewable subscriptions in your app.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
 
         queryParameters: Dict[str, List[str]] = dict()
-        if revision != None:
+        if revision is not None:
             queryParameters["revision"] = [revision]
         
         return self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse)
@@ -564,7 +564,7 @@ class AppStoreServerAPIClient:
         https://developer.apple.com/documentation/appstoreserverapi/get_status_of_subscription_renewal_date_extensions
 
         :param request_identifier: The UUID that represents your request to the Extend Subscription Renewal Dates for All Active Subscribers endpoint.
-        :param product_id:         The product identifier of the auto-renewable subscription that you request a renewal-date extension for.
+        :param product_id: The product identifier of the auto-renewable subscription that you request a renewal-date extension for.
         :return: A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
@@ -592,7 +592,7 @@ class AppStoreServerAPIClient:
         :throws APIException: If a response was returned indicating the request could not be processed
         """
         queryParameters: Dict[str, List[str]] = dict()
-        if pagination_token != None:
+        if pagination_token is not None:
             queryParameters["paginationToken"] = [pagination_token]
         
         return self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse)
@@ -603,36 +603,37 @@ class AppStoreServerAPIClient:
         https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history
 
         :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
-        :param revision:              A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
+        :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
+        :param transaction_history_request: The request parameters that includes the startDate,endDate,productIds,productTypes and optional query constraints.
         :return: A response that contains the customer's transaction history for an app.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
         queryParameters: Dict[str, List[str]] = dict()
-        if revision != None:
+        if revision is not None:
             queryParameters["revision"] = [revision]
         
-        if transaction_history_request.startDate != None:
+        if transaction_history_request.startDate is not None:
             queryParameters["startDate"] = [str(transaction_history_request.startDate)]
         
-        if transaction_history_request.endDate != None:
+        if transaction_history_request.endDate is not None:
             queryParameters["endDate"] = [str(transaction_history_request.endDate)]
         
-        if transaction_history_request.productIds != None:
+        if transaction_history_request.productIds is not None:
             queryParameters["productId"] = transaction_history_request.productIds
         
-        if transaction_history_request.productTypes != None:
+        if transaction_history_request.productTypes is not None:
             queryParameters["productType"] = [product_type.value for product_type in transaction_history_request.productTypes]
         
-        if transaction_history_request.sort != None:
+        if transaction_history_request.sort is not None:
             queryParameters["sort"] = [transaction_history_request.sort.value]
         
-        if transaction_history_request.subscriptionGroupIdentifiers != None:
+        if transaction_history_request.subscriptionGroupIdentifiers is not None:
             queryParameters["subscriptionGroupIdentifier"] = transaction_history_request.subscriptionGroupIdentifiers
         
-        if transaction_history_request.inAppOwnershipType != None:
+        if transaction_history_request.inAppOwnershipType is not None:
             queryParameters["inAppOwnershipType"] = [transaction_history_request.inAppOwnershipType.value]
         
-        if transaction_history_request.revoked != None:
+        if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
         return self._make_request("/inApps/v1/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse)

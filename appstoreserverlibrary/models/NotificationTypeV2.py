@@ -8,7 +8,7 @@ class NotificationTypeV2(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     A notification type value that App Store Server Notifications V2 uses.
     
-    https://developer.apple.com/documentation/appstoreserverapi/notificationtype
+    https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
     """
     SUBSCRIBED = "SUBSCRIBED"
     DID_CHANGE_RENEWAL_PREF = "DID_CHANGE_RENEWAL_PREF"

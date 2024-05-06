@@ -4,6 +4,7 @@ from typing import Optional
 from attr import define
 import attr
 
+from .ConsumptionRequestReason import ConsumptionRequestReason
 from .Environment import Environment
 from .Status import Status
 from .LibraryUtility import AttrsRawValueAware
@@ -71,4 +72,16 @@ class Data(AttrsRawValueAware):
     rawStatus: Optional[int] = Status.create_raw_attr('status')
     """
     See status
+    """
+
+    consumptionRequestReason: Optional[ConsumptionRequestReason] = ConsumptionRequestReason.create_main_attr('rawConsumptionRequestReason')
+    """
+    The reason the customer requested the refund.
+    
+    https://developer.apple.com/documentation/appstoreservernotifications/consumptionrequestreason
+    """
+
+    rawConsumptionRequestReason: Optional[str] = ConsumptionRequestReason.create_raw_attr('consumptionRequestReason')
+    """
+    See consumptionRequestReason
     """

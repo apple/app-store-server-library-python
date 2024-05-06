@@ -12,6 +12,7 @@ from .LifetimeDollarsPurchased import LifetimeDollarsPurchased
 from .LifetimeDollarsRefunded import LifetimeDollarsRefunded
 from .Platform import Platform
 from .PlayTime import PlayTime
+from .RefundPreference import RefundPreference
 from .UserStatus import UserStatus
 
 @define
@@ -137,4 +138,16 @@ class ConsumptionRequest(AttrsRawValueAware):
     rawUserStatus: Optional[int] = UserStatus.create_raw_attr('userStatus')
     """
     See userStatus
+    """
+
+    refundPreference: Optional[RefundPreference] =  RefundPreference.create_main_attr('rawRefundPreference')
+    """
+    A value that indicates your preference, based on your operational logic, as to whether Apple should grant the refund.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/refundpreference
+    """
+
+    rawRefundPreference: Optional[int] = RefundPreference.create_raw_attr('refundPreference')
+    """
+    See refundPreference
     """

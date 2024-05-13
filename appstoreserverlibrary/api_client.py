@@ -484,7 +484,7 @@ class AppStoreServerAPIClient:
         c = _get_cattrs_converter(type(body)) if body is not None else None
         json = c.unstructure(body) if body is not None else None
         headers = {
-            'User-Agent': "app-store-server-library/python/1.2.0",
+            'User-Agent': "app-store-server-library/python/1.2.1",
             'Authorization': 'Bearer ' + self._generate_token(),
             'Accept': 'application/json'
         }

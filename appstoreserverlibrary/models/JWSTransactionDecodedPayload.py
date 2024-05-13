@@ -156,7 +156,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     https://developer.apple.com/documentation/appstoreserverapi/isupgraded
     """
 
-    offerType: Optional[OfferType] = RevocationReason.create_main_attr('rawOfferType')
+    offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType')
     """
     A value that represents the promotional offer type.
     

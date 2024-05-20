@@ -1,6 +1,7 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from enum import EnumMeta
+from functools import lru_cache
 from typing import Any, List, Type, TypeVar
 
 from attr import Attribute, has, ib, fields
@@ -52,7 +53,8 @@ class AttrsRawValueAware:
             elif value is not None:
                 setattr(self, field, value)
 
-    
+
+@lru_cache(maxsize=None)
 def _get_cattrs_converter(destination_class: Type[T]) -> cattrs.Converter:
     c = cattrs.Converter()
     attributes: List[Attribute] = fields(destination_class)

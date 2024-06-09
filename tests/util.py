@@ -15,11 +15,11 @@ from appstoreserverlibrary.signed_data_verifier import SignedDataVerifier
 def create_signed_data_from_json(path: str) -> str:
     data = read_data_from_file(path)
     decoded_data = json.loads(data)
-    private_key = ec.generate_private_key(ec.SECP256R1).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+    private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
     return jwt.encode(payload=decoded_data, key=private_key, algorithm='ES256')
 
 def decode_json_from_signed_date(data: str) -> Dict[str, Any]:
-    public_key = ec.generate_private_key(ec.SECP256R1).public_key().public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo).decode()
+    public_key = ec.generate_private_key(ec.SECP256R1()).public_key().public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo).decode()
     return decode_complete(jwt=data, key=public_key, algorithms=['ES256'], options={"verify_signature": False})
 
 def read_data_from_file(path: str) -> str:

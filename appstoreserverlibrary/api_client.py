@@ -466,7 +466,7 @@ class AppStoreServerAPIClient:
         self._bundle_id = bundle_id
 
     def _generate_token(self) -> str:
-        future_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        future_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=5)
         return jwt.encode(
             {
                 "bid": self._bundle_id,

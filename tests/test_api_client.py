@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Union
 import unittest
 
 from requests import Response
-from appstoreserverlibrary.api_client import APIError, APIException, AppStoreServerAPIClient
+from appstoreserverlibrary.api_client import APIError, APIException, AppStoreServerAPIClient, GetTransactionHistoryVersion
 from appstoreserverlibrary.models.AccountTenure import AccountTenure
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
 from appstoreserverlibrary.models.ConsumptionRequest import ConsumptionRequest
@@ -220,7 +220,7 @@ class DecodedPayloads(unittest.TestCase):
         ]
         self.assertEqual(expected_notification_history, notification_history_response.notificationHistory)
 
-    def test_get_transaction_history(self):
+    def test_get_transaction_history_v1(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
                                            'GET',
                                            'https://local-testing-base-url/inApps/v1/history/1234', 
@@ -246,7 +246,44 @@ class DecodedPayloads(unittest.TestCase):
             subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
         )
 
-        history_response = client.get_transaction_history('1234', 'revision_input', request)
+        history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V1)
+
+        self.assertIsNotNone(history_response)
+        self.assertEqual('revision_output', history_response.revision)
+        self.assertTrue(history_response.hasMore)
+        self.assertEqual('com.example', history_response.bundleId)
+        self.assertEqual(323232, history_response.appAppleId)
+        self.assertEqual(Environment.LOCAL_TESTING, history_response.environment)
+        self.assertEqual('LocalTesting', history_response.rawEnvironment)
+        self.assertEqual(['signed_transaction_value', 'signed_transaction_value2'], history_response.signedTransactions)
+
+    def test_get_transaction_history_v2(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v2/history/1234', 
+                                           {'revision': ['revision_input'],
+                                            'startDate': ['123455'],
+                                            'endDate': ['123456'],
+                                            'productId': ['com.example.1', 'com.example.2'],
+                                            'productType': ['CONSUMABLE', 'AUTO_RENEWABLE'],
+                                            'sort': ['ASCENDING'],
+                                            'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
+                                            'inAppOwnershipType': ['FAMILY_SHARED'],
+                                            'revoked': ['False']},
+                                            None)
+
+        request = TransactionHistoryRequest(
+            sort=Order.ASCENDING,
+            productTypes=[ProductType.CONSUMABLE, ProductType.AUTO_RENEWABLE],
+            endDate=123456,
+            startDate=123455,
+            revoked=False,
+            inAppOwnershipType=InAppOwnershipType.FAMILY_SHARED,
+            productIds=['com.example.1', 'com.example.2'],
+            subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
+        )
+
+        history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V2)
 
         self.assertIsNotNone(history_response)
         self.assertEqual('revision_output', history_response.revision)
@@ -397,7 +434,7 @@ class DecodedPayloads(unittest.TestCase):
     def test_get_transaction_history_with_unknown_environment(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponseWithMalformedEnvironment.json',
                                            'GET',
-                                           'https://local-testing-base-url/inApps/v1/history/1234', 
+                                           'https://local-testing-base-url/inApps/v2/history/1234', 
                                            {'revision': ['revision_input'],
                                             'startDate': ['123455'],
                                             'endDate': ['123456'],
@@ -420,7 +457,7 @@ class DecodedPayloads(unittest.TestCase):
             subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
         )
 
-        history_response = client.get_transaction_history('1234', 'revision_input', request)
+        history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V2)
 
         self.assertIsNone(history_response.environment)
         self.assertEqual("LocalTestingxxx", history_response.rawEnvironment)

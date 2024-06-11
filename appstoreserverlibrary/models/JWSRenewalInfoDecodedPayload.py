@@ -10,6 +10,7 @@ from .ExpirationIntent import ExpirationIntent
 from .LibraryUtility import AttrsRawValueAware
 from .OfferType import OfferType
 from .PriceIncreaseStatus import PriceIncreaseStatus
+from .OfferDiscountType import OfferDiscountType
 
 @define
 class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
@@ -140,4 +141,30 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     The UNIX time, in milliseconds, that the most recent auto-renewable subscription purchase expires.
     
     https://developer.apple.com/documentation/appstoreserverapi/renewaldate
+    """
+
+    currency: Optional[str] = attr.ib(default=None)
+    """
+    The currency code for the renewalPrice of the subscription.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/currency
+    """
+
+    renewalPrice: Optional[int] = attr.ib(default=None)
+    """
+    The renewal price, in milliunits, of the auto-renewable subscription that renews at the next billing period.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/renewalprice
+    """
+
+    offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType')
+    """
+    The payment mode of the discount offer.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype
+    """
+
+    rawOfferDiscountType: Optional[str] = OfferDiscountType.create_raw_attr('offerDiscountType')
+    """
+    See offerDiscountType
     """

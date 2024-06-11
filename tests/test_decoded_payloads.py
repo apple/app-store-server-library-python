@@ -107,6 +107,10 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("LocalTesting", renewal_info.rawEnvironment)
         self.assertEqual(1698148800000, renewal_info.recentSubscriptionStartDate)
         self.assertEqual(1698148850000, renewal_info.renewalDate)
+        self.assertEqual(9990, renewal_info.renewalPrice)
+        self.assertEqual("USD", renewal_info.currency)
+        self.assertEqual(OfferDiscountType.PAY_AS_YOU_GO, renewal_info.offerDiscountType)
+        self.assertEqual("PAY_AS_YOU_GO", renewal_info.rawOfferDiscountType)
 
     def test_notification_decoding(self):
         signed_notification = create_signed_data_from_json('tests/resources/models/signedNotification.json')

@@ -2,7 +2,7 @@
 
 import calendar
 import datetime
-from enum import IntEnum
+from enum import IntEnum, Enum
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 from attr import define
 import requests
@@ -450,6 +450,14 @@ class APIException(Exception):
         except ValueError:
             pass
 
+class GetTransactionHistoryVersion(str, Enum):
+    V1 = "v1"
+    """
+    .. deprecated:: 1.3.0
+    """
+
+    V2 = "v2"
+
 class AppStoreServerAPIClient:
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
         if environment == Environment.XCODE:
@@ -606,7 +614,7 @@ class AppStoreServerAPIClient:
         
         return self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse)
 
-    def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest) -> HistoryResponse:
+    def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
         """
         Get a customer's in-app purchase transaction history for your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history
@@ -614,6 +622,7 @@ class AppStoreServerAPIClient:
         :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
         :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
         :param transaction_history_request: The request parameters that includes the startDate,endDate,productIds,productTypes and optional query constraints.
+        :param version: The version of the Get Transaction History endpoint to use. V2 is recommended.
         :return: A response that contains the customer's transaction history for an app.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
@@ -645,7 +654,7 @@ class AppStoreServerAPIClient:
         if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
-        return self._make_request("/inApps/v1/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse)
+        return self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse)
     
     def get_transaction_info(self, transaction_id: str) -> TransactionInfoResponse:
         """

@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.3.0
+- Incorporate changes for App Store Server API v1.12 and App Store Server Notifications v2.12 [https://github.com/apple/app-store-server-library-python/pull/95]
+- Fix deprecation warnings from cryptography [https://github.com/apple/app-store-server-library-python/pull/94] from @WFT
+- Replace use of deprecated datetime.utcnow() [https://github.com/apple/app-store-server-library-python/pull/93] from @WFT
+- Cache cattrs values to prevent memory leak [https://github.com/apple/app-store-server-library-python/pull/92] from @Reskov
+
 ## Version 1.2.1
 - Fix issue with OfferType in JWSTransactionDecodedPayload [https://github.com/apple/app-store-server-library-python/pull/88] from @devinwang
 

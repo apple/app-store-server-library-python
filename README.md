@@ -80,7 +80,7 @@ except VerificationException as e:
 ### Receipt Usage
 
 ```python
-from appstoreserverlibrary.api_client import AppStoreServerAPIClient, APIException
+from appstoreserverlibrary.api_client import AppStoreServerAPIClient, APIException, GetTransactionHistoryVersion
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.receipt_utility import ReceiptUtility
 from appstoreserverlibrary.models.HistoryResponse import HistoryResponse
@@ -109,7 +109,7 @@ try:
         )
         while response == None or response.hasMore:
             revision = response.revision if response != None else None
-            response = client.get_transaction_history(transaction_id, revision, request)
+            response = client.get_transaction_history(transaction_id, revision, request, GetTransactionHistoryVersion.V2)
             for transaction in response.signedTransactions:
                 transactions.append(transaction)
         print(transactions)

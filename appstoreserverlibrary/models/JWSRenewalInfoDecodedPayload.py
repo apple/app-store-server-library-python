@@ -1,5 +1,5 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
-from typing import Optional
+from typing import List, Optional
 
 from attr import define
 import attr
@@ -167,4 +167,11 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     rawOfferDiscountType: Optional[str] = OfferDiscountType.create_raw_attr('offerDiscountType')
     """
     See offerDiscountType
+    """
+
+    eligibleWinBackOfferIds: Optional[List[str]] = attr.ib(default=None)
+    """
+    An array of win-back offer identifiers that a customer is eligible to redeem, which sorts the identifiers to present the better offers first.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/eligiblewinbackofferids
     """

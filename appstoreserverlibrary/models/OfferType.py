@@ -13,3 +13,4 @@ class OfferType(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     INTRODUCTORY_OFFER = 1
     PROMOTIONAL_OFFER = 2
     SUBSCRIPTION_OFFER_CODE = 3
+    WIN_BACK_OFFER = 4

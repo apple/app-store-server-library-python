@@ -11,7 +11,7 @@ The Python server library for the [App Store Server API](https://developer.apple
 
 #### Requirements
 
-- Python 3.7+
+- Python 3.8+
 
 ### pip
 ```sh

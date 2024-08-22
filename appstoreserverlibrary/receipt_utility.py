@@ -10,6 +10,7 @@ import re
 PKCS7_OID = "1.2.840.113549.1.7.2"
 IN_APP_ARRAY = 17
 TRANSACTION_IDENTIFIER = 1703
+ORIGINAL_TRANSACTION_IDENTIFIER = 1705
 
 class ReceiptUtility:
     def extract_transaction_id_from_app_receipt(self, app_receipt: str) -> Optional[str]:
@@ -71,7 +72,7 @@ class ReceiptUtility:
                     if (
                         tag.typ == asn1.Types.Primitive
                         and tag.nr == asn1.Numbers.Integer
-                        and value == TRANSACTION_IDENTIFIER
+                        and (value == TRANSACTION_IDENTIFIER or value == ORIGINAL_TRANSACTION_IDENTIFIER)
                     ):
                         inapp_decoder.read()
                         tag, value = inapp_decoder.read()

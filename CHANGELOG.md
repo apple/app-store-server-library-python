@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.5.0
+- Add an async client built on httpx [https://github.com/apple/app-store-server-library-python/pull/105]
+- Drop Python 3.7 support [https://github.com/apple/app-store-server-library-python/pull/106]
+- Add check for original transaction id in legacy receipts [https://github.com/apple/app-store-server-library-python/pull/104] from @willhnation
+
 ## Version 1.4.0
 - Incorporate changes for App Store Server API v1.13 and App Store Server Notifications v2.13 [https://github.com/apple/app-store-server-library-python/pull/102]
 - Remove the upper limit on libraries that are unlikely to break upon upgrade [https://github.com/apple/app-store-server-library-python/pull/101]

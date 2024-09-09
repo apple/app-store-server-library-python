@@ -139,6 +139,38 @@ timestamp = round(time.time()*1000)
 base64_encoded_signature = promotion_code_signature_generator.create_signature(product_id, subscription_offer_id, application_username, nonce, timestamp)
 ```
 
+### Async HTTPX Support
+
+#### Pip
+Include the optional async dependency
+```sh
+pip install app-store-server-library[async]
+```
+
+#### API Usage
+```python
+from appstoreserverlibrary.api_client import AsyncAppStoreServerAPIClient, APIException
+from appstoreserverlibrary.models.Environment import Environment
+
+private_key = read_private_key("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8") # Implementation will vary
+
+key_id = "ABCDEFGHIJ"
+issuer_id = "99b16628-15e4-4668-972b-eeff55eeff55"
+bundle_id = "com.example"
+environment = Environment.SANDBOX
+
+client = AsyncAppStoreServerAPIClient(private_key, key_id, issuer_id, bundle_id, environment)
+
+try:    
+    response = await client.request_test_notification()
+    print(response)
+except APIException as e:
+    print(e)
+
+# Once client use is finished
+await client.async_close()
+```
+
 ## Support
 
 Only the latest major version of the library will receive updates, including security updates. Therefore, it is recommended to update to new major versions.

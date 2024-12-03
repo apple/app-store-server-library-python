@@ -71,9 +71,9 @@ class SignedDataVerifier:
         decoded_transaction_info = _get_cattrs_converter(JWSTransactionDecodedPayload).structure(self._decode_signed_object(signed_transaction), JWSTransactionDecodedPayload)
         if (
             decoded_transaction_info.bundleId != self._bundle_id
-            and decoded_transaction_info.BundleId is not None
+            and decoded_transaction_info.bundleId is not None
         ):
-            assert decoded_transaction_info.BundleId
+            assert decoded_transaction_info.bundleId
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if decoded_transaction_info.environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)

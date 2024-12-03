@@ -53,7 +53,7 @@ class SignedDataVerifier:
         :return: The decoded renewal info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        
+
         decoded_renewal_info = _get_cattrs_converter(JWSRenewalInfoDecodedPayload).structure(self._decode_signed_object(signed_renewal_info), JWSRenewalInfoDecodedPayload)
         if decoded_renewal_info.environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
@@ -69,7 +69,11 @@ class SignedDataVerifier:
         :throws VerificationException: Thrown if the data could not be verified
         """
         decoded_transaction_info = _get_cattrs_converter(JWSTransactionDecodedPayload).structure(self._decode_signed_object(signed_transaction), JWSTransactionDecodedPayload)
-        if decoded_transaction_info.bundleId != self._bundle_id:
+        if (
+            decoded_transaction_info.bundleId != self._bundle_id
+            and decoded_transaction_info.BundleId is not None
+        ):
+            assert decoded_transaction_info.BundleId
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if decoded_transaction_info.environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)

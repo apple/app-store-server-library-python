@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.6.0
+- Update README to improve Dependabot link discovery [https://github.com/apple/app-store-server-library-python/pull/119]
+
 ## Version 1.5.0
 - Add an async client built on httpx [https://github.com/apple/app-store-server-library-python/pull/105]
 - Drop Python 3.7 support [https://github.com/apple/app-store-server-library-python/pull/106]

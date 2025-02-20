@@ -1,6 +1,6 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 from base64 import b64decode
 from enum import IntEnum
 import time
@@ -155,11 +155,25 @@ class SignedDataVerifier:
             raise VerificationException(VerificationStatus.VERIFICATION_FAILURE) from e
 
 class _ChainVerifier:
+    MAXIMUM_CACHE_SIZE = 32 # There are unlikely to be more than a couple keys at once
+    CACHE_TIME_LIMIT = 15 * 60 # 15 minutes
+
     def __init__(self, root_certificates: List[bytes], enable_strict_checks=True):
         self.enable_strict_checks = enable_strict_checks
         self.root_certificates = root_certificates
+        self.verified_certificates_cache: Dict[tuple[str, ...], (str, int)] = {}
 
     def verify_chain(self, certificates: List[str], perform_online_checks: bool, effective_date: int) -> str:
+        if perform_online_checks and len(certificates) > 0:
+            cached_public_key = self.get_cached_public_key(certificates)
+            if cached_public_key is not None:
+                return cached_public_key
+        verified_public_key = self._verify_chain_without_caching(certificates=certificates, perform_online_checks=perform_online_checks, effective_date=effective_date)
+        if perform_online_checks:
+            self.put_verified_public_key(certificates, verified_public_key)
+        return verified_public_key
+    
+    def _verify_chain_without_caching(self, certificates: List[str], perform_online_checks: bool, effective_date: int) -> str:
         if len(self.root_certificates) == 0:
             raise VerificationException(VerificationStatus.INVALID_CERTIFICATE)
         if len(certificates) != 3:
@@ -295,7 +309,22 @@ class _ChainVerifier:
                             return
 
         raise VerificationException(VerificationStatus.VERIFICATION_FAILURE)
+    
+    def get_cached_public_key(self, certificates: List[str]) -> Optional[str]:
+        verified_public_key = self.verified_certificates_cache.get(tuple(certificates))
+        if verified_public_key is None:
+            return None
+        if verified_public_key[1] <= time.time():
+            return None
+        return verified_public_key[0]
 
+    def put_verified_public_key(self, certificates: List[str], verified_public_key: str):
+        cache_expiration = time.time() + _ChainVerifier.CACHE_TIME_LIMIT
+        self.verified_certificates_cache[tuple(certificates)] = (verified_public_key, cache_expiration)
+        if len(self.verified_certificates_cache) > _ChainVerifier.MAXIMUM_CACHE_SIZE:
+            for k, v in list(self.verified_certificates_cache.items()):
+                if v[1] <= time.time():
+                    del self.verified_certificates_cache[k]
 
 class VerificationStatus(IntEnum):
     OK = 0

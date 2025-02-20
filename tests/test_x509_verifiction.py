@@ -1,6 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 import unittest
+from unittest import mock
+from unittest.mock import MagicMock, patch
 
 from appstoreserverlibrary.signed_data_verifier import _ChainVerifier, VerificationException, VerificationStatus
 from base64 import b64decode, b64encode
@@ -20,6 +22,7 @@ REAL_APPLE_INTERMEDIATE_BASE64_ENCODED = "MIIDFjCCApygAwIBAgIUIsGhRwp0c2nvU4YSyc
 REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED = "MIIEMDCCA7agAwIBAgIQaPoPldvpSoEH0lBrjDPv9jAKBggqhkjOPQQDAzB1MUQwQgYDVQQDDDtBcHBsZSBXb3JsZHdpZGUgRGV2ZWxvcGVyIFJlbGF0aW9ucyBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTELMAkGA1UECwwCRzYxEzARBgNVBAoMCkFwcGxlIEluYy4xCzAJBgNVBAYTAlVTMB4XDTIxMDgyNTAyNTAzNFoXDTIzMDkyNDAyNTAzM1owgZIxQDA+BgNVBAMMN1Byb2QgRUNDIE1hYyBBcHAgU3RvcmUgYW5kIGlUdW5lcyBTdG9yZSBSZWNlaXB0IFNpZ25pbmcxLDAqBgNVBAsMI0FwcGxlIFdvcmxkd2lkZSBEZXZlbG9wZXIgUmVsYXRpb25zMRMwEQYDVQQKDApBcHBsZSBJbmMuMQswCQYDVQQGEwJVUzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABOoTcaPcpeipNL9eQ06tCu7pUcwdCXdN8vGqaUjd58Z8tLxiUC0dBeA+euMYggh1/5iAk+FMxUFmA2a1r4aCZ8SjggIIMIICBDAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFD8vlCNR01DJmig97bB85c+lkGKZMHAGCCsGAQUFBwEBBGQwYjAtBggrBgEFBQcwAoYhaHR0cDovL2NlcnRzLmFwcGxlLmNvbS93d2RyZzYuZGVyMDEGCCsGAQUFBzABhiVodHRwOi8vb2NzcC5hcHBsZS5jb20vb2NzcDAzLXd3ZHJnNjAyMIIBHgYDVR0gBIIBFTCCAREwggENBgoqhkiG92NkBQYBMIH+MIHDBggrBgEFBQcCAjCBtgyBs1JlbGlhbmNlIG9uIHRoaXMgY2VydGlmaWNhdGUgYnkgYW55IHBhcnR5IGFzc3VtZXMgYWNjZXB0YW5jZSBvZiB0aGUgdGhlbiBhcHBsaWNhYmxlIHN0YW5kYXJkIHRlcm1zIGFuZCBjb25kaXRpb25zIG9mIHVzZSwgY2VydGlmaWNhdGUgcG9saWN5IGFuZCBjZXJ0aWZpY2F0aW9uIHByYWN0aWNlIHN0YXRlbWVudHMuMDYGCCsGAQUFBwIBFipodHRwOi8vd3d3LmFwcGxlLmNvbS9jZXJ0aWZpY2F0ZWF1dGhvcml0eS8wHQYDVR0OBBYEFCOCmMBq//1L5imvVmqX1oCYeqrMMA4GA1UdDwEB/wQEAwIHgDAQBgoqhkiG92NkBgsBBAIFADAKBggqhkjOPQQDAwNoADBlAjEAl4JB9GJHixP2nuibyU1k3wri5psGIxPME05sFKq7hQuzvbeyBu82FozzxmbzpogoAjBLSFl0dZWIYl2ejPV+Di5fBnKPu8mymBQtoE/H2bES0qAs8bNueU3CBjjh1lwnDsI="
 
 EFFECTIVE_DATE = 1681312846
+CLOCK_DATE = 41231
 
 class X509Verification(unittest.TestCase):
     def test_valid_chain_without_ocsp(self):
@@ -114,6 +117,82 @@ class X509Verification(unittest.TestCase):
             REAL_APPLE_INTERMEDIATE_BASE64_ENCODED,
             REAL_APPLE_ROOT_BASE64_ENCODED
         ], True, EFFECTIVE_DATE)
+
+    def test_ocsp_response_caching(self):
+        verifier = _ChainVerifier([b64decode(REAL_APPLE_ROOT_BASE64_ENCODED)])
+        magic_mock = MagicMock(return_value=LEAF_CERT_BASE64_ENCODED)
+        verifier._verify_chain_without_caching = magic_mock
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)):
+            verifier.verify_chain([
+                REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED,
+                REAL_APPLE_INTERMEDIATE_BASE64_ENCODED,
+                REAL_APPLE_ROOT_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(1, magic_mock.call_count)
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE + 1)): # 1 second
+            verifier.verify_chain([
+                REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED,
+                REAL_APPLE_INTERMEDIATE_BASE64_ENCODED,
+                REAL_APPLE_ROOT_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(1, magic_mock.call_count)
+
+    def test_ocsp_response_caching_has_expiration(self):
+        verifier = _ChainVerifier([b64decode(REAL_APPLE_ROOT_BASE64_ENCODED)])
+        magic_mock = MagicMock(return_value=LEAF_CERT_BASE64_ENCODED)
+        verifier._verify_chain_without_caching = magic_mock
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)):
+            verifier.verify_chain([
+                REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED,
+                REAL_APPLE_INTERMEDIATE_BASE64_ENCODED,
+                REAL_APPLE_ROOT_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(1, magic_mock.call_count)
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE + 900)): # 15 minutes
+            verifier.verify_chain([
+                REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED,
+                REAL_APPLE_INTERMEDIATE_BASE64_ENCODED,
+                REAL_APPLE_ROOT_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(2, magic_mock.call_count)
+
+    def test_ocsp_response_caching_with_different_chain(self):
+        verifier = _ChainVerifier([b64decode(REAL_APPLE_ROOT_BASE64_ENCODED)])
+        magic_mock = MagicMock(return_value=LEAF_CERT_BASE64_ENCODED)
+        verifier._verify_chain_without_caching = magic_mock
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)):
+            verifier.verify_chain([
+                LEAF_CERT_BASE64_ENCODED,
+                INTERMEDIATE_CA_BASE64_ENCODED,
+                ROOT_CA_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(1, magic_mock.call_count)
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)): # Same
+            verifier.verify_chain([
+                REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED,
+                REAL_APPLE_INTERMEDIATE_BASE64_ENCODED,
+                REAL_APPLE_ROOT_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(2, magic_mock.call_count)
+
+    def test_ocsp_response_caching_with_slightly_different_chain(self):
+        verifier = _ChainVerifier([b64decode(REAL_APPLE_ROOT_BASE64_ENCODED)])
+        magic_mock = MagicMock(return_value=LEAF_CERT_BASE64_ENCODED)
+        verifier._verify_chain_without_caching = magic_mock
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)):
+            verifier.verify_chain([
+                LEAF_CERT_BASE64_ENCODED,
+                INTERMEDIATE_CA_BASE64_ENCODED,
+                ROOT_CA_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(1, magic_mock.call_count)
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)): # Same
+            verifier.verify_chain([
+                LEAF_CERT_BASE64_ENCODED,
+                INTERMEDIATE_CA_BASE64_ENCODED,
+                REAL_APPLE_ROOT_BASE64_ENCODED
+            ], True, EFFECTIVE_DATE)
+        self.assertEqual(2, magic_mock.call_count)
 
 
 if __name__ == '__main__':

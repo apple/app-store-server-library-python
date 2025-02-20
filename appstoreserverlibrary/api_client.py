@@ -466,8 +466,10 @@ class BaseAppStoreServerAPIClient:
             self._base_url = "https://api.storekit.itunes.apple.com"
         elif environment == Environment.LOCAL_TESTING:
             self._base_url = "https://local-testing-base-url"
-        else:
+        elif environment == Environment.SANDBOX:
             self._base_url = "https://api.storekit-sandbox.itunes.apple.com"
+        else:
+            raise ValueError("Invalid environment provided")
         self._signing_key = serialization.load_pem_private_key(signing_key, password=None, backend=default_backend())
         self._key_id = key_id
         self._issuer_id = issuer_id

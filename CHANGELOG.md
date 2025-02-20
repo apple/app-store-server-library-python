@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.7.0
+- Update the SignedDataVerifier to cache verified certificate chains, improving performance [https://github.com/apple/app-store-server-library-python/pull/122]
+
 ## Version 1.6.0
 - Update README to improve Dependabot link discovery [https://github.com/apple/app-store-server-library-python/pull/119]
 

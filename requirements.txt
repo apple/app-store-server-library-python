@@ -5,4 +5,4 @@ cryptography >= 40.0.0
 pyOpenSSL >= 23.1.1
 asn1==2.8.0
 cattrs >= 23.1.2
-httpx==0.27.0
+httpx==0.28.1

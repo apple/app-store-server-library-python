@@ -319,6 +319,13 @@ class APIError(IntEnum):
     https://developer.apple.com/documentation/appstoreserverapi/invalidtransactiontypenotsupportederror
     """
 
+    APP_TRANSACTION_ID_NOT_SUPPORTED_ERROR = 4000048
+    """
+    An error that indicates the endpoint doesn't support an app transaction ID.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/apptransactionidnotsupportederror
+    """
+
     SUBSCRIPTION_EXTENSION_INELIGIBLE = 4030004
     """
     An error that indicates the subscription doesn't qualify for a renewal-date extension due to its subscription state.

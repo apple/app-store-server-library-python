@@ -7,6 +7,7 @@ import attr
 from .LibraryUtility import AttrsRawValueAware
 
 from .Environment import Environment
+from .PurchasePlatform import PurchasePlatform
 
 @define
 class AppTransaction(AttrsRawValueAware):
@@ -96,4 +97,23 @@ class AppTransaction(AttrsRawValueAware):
     The date the customer placed an order for the app before it's available in the App Store.
     
     https://developer.apple.com/documentation/storekit/apptransaction/4013175-preorderdate
+    """
+
+    appTransactionId: Optional[str] = attr.ib(default=None)
+    """
+    The unique identifier of the app download transaction.
+    
+    https://developer.apple.com/documentation/storekit/apptransaction/apptransactionid
+    """
+
+    originalPlatform: Optional[PurchasePlatform] = PurchasePlatform.create_main_attr('rawOriginalPlatform')
+    """
+    The platform on which the customer originally purchased the app.
+    
+    https://developer.apple.com/documentation/storekit/apptransaction/originalplatform-4mogz
+    """
+
+    rawOriginalPlatform: Optional[str] = PurchasePlatform.create_raw_attr('originalPlatform')
+    """
+    See originalPlatform
     """

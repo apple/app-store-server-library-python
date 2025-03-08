@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 1.8.0
+- Incorporate changes for App Store Server API v1.15 and App Store Server Notifications v2.15 [https://github.com/apple/app-store-server-library-python/pull/134]
+
 ## Version 1.7.0
 - Update the SignedDataVerifier to cache verified certificate chains, improving performance [https://github.com/apple/app-store-server-library-python/pull/122]
 

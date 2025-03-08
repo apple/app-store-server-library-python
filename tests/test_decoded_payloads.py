@@ -11,6 +11,7 @@ from appstoreserverlibrary.models.NotificationTypeV2 import NotificationTypeV2
 from appstoreserverlibrary.models.OfferDiscountType import OfferDiscountType
 from appstoreserverlibrary.models.OfferType import OfferType
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
+from appstoreserverlibrary.models.PurchasePlatform import PurchasePlatform
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.Status import Status
 from appstoreserverlibrary.models.Subtype import Subtype
@@ -38,6 +39,9 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("device_verification_value", app_transaction.deviceVerification)
         self.assertEqual("48ccfa42-7431-4f22-9908-7e88983e105a", app_transaction.deviceVerificationNonce)
         self.assertEqual(1698148700000, app_transaction.preorderDate)
+        self.assertEqual("71134", app_transaction.appTransactionId)
+        self.assertEqual(PurchasePlatform.IOS, app_transaction.originalPlatform)
+        self.assertEqual("iOS", app_transaction.rawOriginalPlatform)
 
     def test_transaction_decoding(self):
         signed_transaction = create_signed_data_from_json('tests/resources/models/signedTransaction.json')
@@ -79,6 +83,8 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("USD", transaction.currency)
         self.assertEqual(OfferDiscountType.PAY_AS_YOU_GO, transaction.offerDiscountType)
         self.assertEqual("PAY_AS_YOU_GO", transaction.rawOfferDiscountType)
+        self.assertEqual("71134", transaction.appTransactionId)
+        self.assertEqual("P1Y", transaction.offerPeriod)
 
     
     def test_renewal_info_decoding(self):
@@ -112,6 +118,9 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(OfferDiscountType.PAY_AS_YOU_GO, renewal_info.offerDiscountType)
         self.assertEqual("PAY_AS_YOU_GO", renewal_info.rawOfferDiscountType)
         self.assertEqual(['eligible1', 'eligible2'], renewal_info.eligibleWinBackOfferIds)
+        self.assertEqual("71134", renewal_info.appTransactionId)
+        self.assertEqual("P1Y", renewal_info.offerPeriod)
+        self.assertEqual("7e3fb20b-4cdb-47cc-936d-99d65f608138", renewal_info.appAccountToken)
 
     def test_notification_decoding(self):
         signed_notification = create_signed_data_from_json('tests/resources/models/signedNotification.json')

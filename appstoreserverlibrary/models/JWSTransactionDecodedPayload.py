@@ -238,3 +238,17 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     """
     See offerDiscountType
     """
+
+    appTransactionId: Optional[str] = attr.ib(default=None)
+    """
+    The unique identifier of the app download transaction.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/appTransactionId
+    """
+
+    offerPeriod: Optional[str] = attr.ib(default=None)
+    """
+    The duration of the offer.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/offerPeriod
+    """

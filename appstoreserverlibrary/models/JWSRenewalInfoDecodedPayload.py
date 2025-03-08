@@ -175,3 +175,24 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     
     https://developer.apple.com/documentation/appstoreserverapi/eligiblewinbackofferids
     """
+
+    appAccountToken: Optional[str] = attr.ib(default=None)
+    """
+    The UUID that an app optionally generates to map a customer's in-app purchase with its resulting App Store transaction.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken
+    """
+
+    appTransactionId: Optional[str] = attr.ib(default=None)
+    """
+    The unique identifier of the app download transaction.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/appTransactionId
+    """
+
+    offerPeriod: Optional[str] = attr.ib(default=None)
+    """
+    The duration of the offer.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/offerPeriod
+    """

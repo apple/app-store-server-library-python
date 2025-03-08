@@ -501,7 +501,7 @@ class BaseAppStoreServerAPIClient:
     
     def _get_headers(self) -> Dict[str, str]:
         return {
-            'User-Agent': "app-store-server-library/python/1.7.0",
+            'User-Agent': "app-store-server-library/python/1.8.0",
             'Authorization': 'Bearer ' + self._generate_token(),
             'Accept': 'application/json'
         }

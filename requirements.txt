@@ -6,3 +6,4 @@ pyOpenSSL >= 23.1.1
 asn1==2.8.0
 cattrs >= 23.1.2
 httpx==0.28.1
+coverage

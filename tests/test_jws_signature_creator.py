@@ -126,3 +126,8 @@ class JWSSignatureCreatorTest(unittest.TestCase):
         signature_creator = AdvancedCommerceAPIInAppSignatureCreator(signing_key, 'keyId', 'issuerId', 'bundleId')
         with self.assertRaises(ValueError):
             signature_creator.create_signature(None)
+
+    def test_advanced_commerce_api_in_app_request(self):
+        # Test the constructor of the base class
+        request = AdvancedCommerceAPIInAppRequest()
+        self.assertIsNotNone(request)

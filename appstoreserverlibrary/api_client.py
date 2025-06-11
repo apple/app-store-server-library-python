@@ -31,6 +31,7 @@ from .models.Status import Status
 from .models.StatusResponse import StatusResponse
 from .models.TransactionHistoryRequest import TransactionHistoryRequest
 from .models.TransactionInfoResponse import TransactionInfoResponse
+from .models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 
 T = TypeVar('T')
 
@@ -324,6 +325,28 @@ class APIError(IntEnum):
     An error that indicates the endpoint doesn't support an app transaction ID.
     
     https://developer.apple.com/documentation/appstoreserverapi/apptransactionidnotsupportederror
+    """
+
+    INVALID_APP_ACCOUNT_TOKEN_UUID_ERROR = 4000183
+    """
+    An error that indicates the app account token value is not a valid UUID.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/invalidappaccounttokenuuiderror
+    """
+
+    FAMILY_TRANSACTION_NOT_SUPPORTED_ERROR = 4000185
+    """
+    An error that indicates the transaction is for a product the customer obtains through Family Sharing, 
+    which the endpoint doesn’t support.
+
+    https://developer.apple.com/documentation/appstoreserverapi/familytransactionnotsupportederror
+    """
+
+    TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID_ERROR = 4000187
+    """
+    An error that indicates the endpoint expects an original transaction identifier.
+
+    https://developer.apple.com/documentation/appstoreserverapi/transactionidisnotoriginaltransactioniderror
     """
 
     SUBSCRIPTION_EXTENSION_INELIGIBLE = 4030004
@@ -724,6 +747,16 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None)
 
+    def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
+        """
+        Sets the app account token value for a purchase the customer makes outside your app, or updates its value in an existing transaction.
+        https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token
+
+        :param original_transaction_id The original transaction identifier of the transaction to receive the app account token update.
+        :param update_app_account_token_request The request body that contains a valid app account token value.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None)
 
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
@@ -926,3 +959,14 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :raises APIException: If a response was returned indicating the request could not be processed
         """
         await self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None)
+
+    async def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
+        """
+        Sets the app account token value for a purchase the customer makes outside your app, or updates its value in an existing transaction.
+        https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token
+
+        :param original_transaction_id The original transaction identifier of the transaction to receive the app account token update.
+        :param update_app_account_token_request The request body that contains a valid app account token value.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None)

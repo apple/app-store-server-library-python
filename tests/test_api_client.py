@@ -26,17 +26,14 @@ from appstoreserverlibrary.models.OfferType import OfferType
 from appstoreserverlibrary.models.OrderLookupStatus import OrderLookupStatus
 from appstoreserverlibrary.models.Platform import Platform
 from appstoreserverlibrary.models.PlayTime import PlayTime
-from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
 from appstoreserverlibrary.models.RefundPreference import RefundPreference
-from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.SendAttemptItem import SendAttemptItem
 from appstoreserverlibrary.models.SendAttemptResult import SendAttemptResult
 from appstoreserverlibrary.models.Status import Status
 from appstoreserverlibrary.models.SubscriptionGroupIdentifierItem import SubscriptionGroupIdentifierItem
 from appstoreserverlibrary.models.Subtype import Subtype
 from appstoreserverlibrary.models.TransactionHistoryRequest import Order, ProductType, TransactionHistoryRequest
-from appstoreserverlibrary.models.TransactionReason import TransactionReason
-from appstoreserverlibrary.models.Type import Type
+from appstoreserverlibrary.models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 from appstoreserverlibrary.models.UserStatus import UserStatus
 
 from tests.util import decode_json_from_signed_date, read_data_from_binary_file, read_data_from_file
@@ -494,6 +491,75 @@ class DecodedPayloads(unittest.TestCase):
             return
         
         self.assertFalse(True)
+
+    def test_set_app_account_token(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/transactions/49571273/appAccountToken',
+                                           {},
+                                           {
+                                               'appAccountToken': '7389a31a-fb6d-4569-a2a6-db7d85d84813'
+                                           })
+        update_app_account_token_request = UpdateAppAccountTokenRequest(appAccountToken='7389a31a-fb6d-4569-a2a6-db7d85d84813')
+        client.set_app_account_token('49571273', update_app_account_token_request)
+
+    def test_invalid_app_account_token_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/invalidAppAccountTokenUUIDError.json',
+                                                     'PUT',
+                                                     'https://local-testing-base-url/inApps/v1/transactions/49571273/appAccountToken',
+                                                     {},
+                                                     None,
+                                                     400)
+        try:
+            client.set_app_account_token('49571273', None)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000183, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_APP_ACCOUNT_TOKEN_UUID_ERROR, e.api_error)
+            self.assertEqual("Invalid request. The app account token field must be a valid UUID.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_family_transaction_not_supported_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/familyTransactionNotSupportedError.json',
+                                                     'PUT',
+                                                     'https://local-testing-base-url/inApps/v1/transactions/1234'
+                                                     '/appAccountToken',
+                                                     {},
+                                                     None,
+                                                     400)
+        try:
+            client.set_app_account_token('1234', None)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000185, e.raw_api_error)
+            self.assertEqual(APIError.FAMILY_TRANSACTION_NOT_SUPPORTED_ERROR, e.api_error)
+            self.assertEqual("Invalid request. Family Sharing transactions aren't supported by this endpoint.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_transaction_id_not_original_transaction_id_error(self):
+        client = self.get_client_with_body_from_file(
+            'tests/resources/models/transactionIdNotOriginalTransactionId.json',
+            'PUT',
+            'https://local-testing-base-url/inApps/v1/transactions/1234'
+            '/appAccountToken',
+            {},
+            None,
+            400)
+        try:
+            client.set_app_account_token('1234', None)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000187, e.raw_api_error)
+            self.assertEqual(APIError.TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID_ERROR, e.api_error)
+            self.assertEqual("Invalid request. The transaction ID provided is not an original transaction ID.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
 
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')

@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.9.0
+- Incorporate changes for App Store Server API v1.16 [https://github.com/apple/app-store-server-library-python/pull/141] from @riyazpanjwani
+- Fix SyntaxWarning in regex pattern string [https://github.com/apple/app-store-server-library-python/pull/138] from @krepe90
+
 ## Version 1.8.0
 - Incorporate changes for App Store Server API v1.15 and App Store Server Notifications v2.15 [https://github.com/apple/app-store-server-library-python/pull/134]
 

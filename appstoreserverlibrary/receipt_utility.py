@@ -92,10 +92,10 @@ class ReceiptUtility:
         :return: A transaction id, or null if no transactionId is found in the receipt
         """
         decoded_top_level = base64.b64decode(transaction_receipt).decode('utf-8')
-        matching_result = re.search('"purchase-info"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_top_level)
+        matching_result = re.search(r'"purchase-info"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_top_level)
         if matching_result:
             decoded_inner_level = base64.b64decode(matching_result.group(1)).decode('utf-8')
-            inner_matching_result = re.search('"transaction-id"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_inner_level)
+            inner_matching_result = re.search(r'"transaction-id"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_inner_level)
             if inner_matching_result:
                 return inner_matching_result.group(1)
         return None

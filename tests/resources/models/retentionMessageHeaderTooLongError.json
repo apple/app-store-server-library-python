@@ -1,0 +1,4 @@
+{
+  "errorCode": 4000101,
+  "errorMessage": "An error that indicates the message header exceeds 66 characters."
+}

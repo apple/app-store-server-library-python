@@ -35,6 +35,9 @@ from appstoreserverlibrary.models.Subtype import Subtype
 from appstoreserverlibrary.models.TransactionHistoryRequest import Order, ProductType, TransactionHistoryRequest
 from appstoreserverlibrary.models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 from appstoreserverlibrary.models.UserStatus import UserStatus
+from appstoreserverlibrary.models.UploadMessageRequestBody import UploadMessageRequestBody
+from appstoreserverlibrary.models.UploadMessageImage import UploadMessageImage
+from appstoreserverlibrary.models.RetentionMessageState import RetentionMessageState
 
 from tests.util import decode_json_from_signed_date, read_data_from_binary_file, read_data_from_file
 
@@ -593,3 +596,125 @@ class DecodedPayloads(unittest.TestCase):
     def get_client_with_body_from_file(self, path: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200):
         body = read_data_from_binary_file(path)
         return self.get_client_with_body(body, expected_method, expected_url, expected_params, expected_json, status_code)
+
+    def test_upload_retention_message(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/messaging/message/test-message-id',
+                                           {},
+                                           {'header': 'Test Header', 'body': 'Test message body', 'image': None})
+
+        retention_message_request = UploadMessageRequestBody(
+            header='Test Header',
+            body='Test message body'
+        )
+
+        # Should not raise exception for successful upload
+        client.upload_retention_message('test-message-id', retention_message_request)
+
+    def test_upload_retention_message_with_image(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/messaging/message/test-message-id',
+                                           {},
+                                           {
+                                               'header': 'Test Header',
+                                               'body': 'Test message body',
+                                               'image': {
+                                                   'imageIdentifier': 'test-image-id',
+                                                   'altText': 'Test image'
+                                               }
+                                           })
+
+        retention_message_request = UploadMessageRequestBody(
+            header='Test Header',
+            body='Test message body',
+            image=UploadMessageImage(
+                imageIdentifier='test-image-id',
+                altText='Test image'
+            )
+        )
+
+        # Should not raise exception for successful upload
+        client.upload_retention_message('test-message-id', retention_message_request)
+
+    def test_get_retention_message_list(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getRetentionMessageListResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/message/list',
+                                           {},
+                                           None)
+
+        response = client.get_retention_message_list()
+
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response.messageIdentifiers)
+        self.assertEqual(3, len(response.messageIdentifiers))
+
+        # Check first message
+        message1 = response.messageIdentifiers[0]
+        self.assertEqual('test-message-1', message1.messageIdentifier)
+        self.assertEqual(RetentionMessageState.APPROVED, message1.messageState)
+
+        # Check second message
+        message2 = response.messageIdentifiers[1]
+        self.assertEqual('test-message-2', message2.messageIdentifier)
+        self.assertEqual(RetentionMessageState.PENDING, message2.messageState)
+
+        # Check third message
+        message3 = response.messageIdentifiers[2]
+        self.assertEqual('test-message-3', message3.messageIdentifier)
+        self.assertEqual(RetentionMessageState.REJECTED, message3.messageState)
+
+    def test_delete_retention_message(self):
+        client = self.get_client_with_body(b'',
+                                           'DELETE',
+                                           'https://local-testing-base-url/inApps/v1/messaging/message/test-message-id',
+                                           {},
+                                           None)
+
+        # Should not raise exception for successful deletion
+        client.delete_retention_message('test-message-id')
+
+    def test_upload_retention_message_already_exists_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/retentionMessageAlreadyExistsError.json',
+                                                     'PUT',
+                                                     'https://local-testing-base-url/inApps/v1/messaging/message/test-message-id',
+                                                     {},
+                                                     {'header': 'Test Header', 'body': 'Test message body', 'image': None},
+                                                     409)
+
+        retention_message_request = UploadMessageRequestBody(
+            header='Test Header',
+            body='Test message body'
+        )
+
+        try:
+            client.upload_retention_message('test-message-id', retention_message_request)
+        except APIException as e:
+            self.assertEqual(409, e.http_status_code)
+            self.assertEqual(4090001, e.raw_api_error)
+            self.assertEqual(APIError.MESSAGE_ALREADY_EXISTS_ERROR, e.api_error)
+            self.assertEqual("An error that indicates the message identifier already exists.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_delete_retention_message_not_found_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/retentionMessageNotFoundError.json',
+                                                     'DELETE',
+                                                     'https://local-testing-base-url/inApps/v1/messaging/message/nonexistent-message-id',
+                                                     {},
+                                                     None,
+                                                     404)
+
+        try:
+            client.delete_retention_message('nonexistent-message-id')
+        except APIException as e:
+            self.assertEqual(404, e.http_status_code)
+            self.assertEqual(4040001, e.raw_api_error)
+            self.assertEqual(APIError.MESSAGE_NOT_FOUND_ERROR, e.api_error)
+            self.assertEqual("An error that indicates the specified message was not found.", e.error_message)
+            return
+
+        self.assertFalse(True)

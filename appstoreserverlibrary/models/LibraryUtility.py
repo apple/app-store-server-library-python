@@ -4,6 +4,7 @@ from enum import EnumMeta
 from functools import lru_cache
 from typing import Any, List, Type, TypeVar
 
+import attr
 from attr import Attribute, has, ib, fields
 from cattr import override
 from cattrs.gen import make_dict_structure_fn, make_dict_unstructure_fn, override
@@ -68,4 +69,23 @@ def _get_cattrs_converter(destination_class: Type[T]) -> cattrs.Converter:
                 cattrs_overrides[raw_field] = override(rename=matching_name)
     c.register_structure_hook_factory(has, lambda cl: make_dict_structure_fn(cl, c, **cattrs_overrides))
     c.register_unstructure_hook_factory(has, lambda cl: make_dict_unstructure_fn(cl, c, **cattrs_overrides))
+    return c
+
+
+@lru_cache(maxsize=None)
+def _get_retention_response_converter() -> cattrs.Converter:
+    """
+    Special converter for retention messaging responses that omits None/default values.
+    This is needed for RealtimeResponseBody where fields are mutually exclusive.
+    """
+    c = cattrs.Converter()
+
+    # For any attrs class, configure to omit fields with default values
+    c.register_unstructure_hook_factory(
+        has,
+        lambda cls: make_dict_unstructure_fn(
+            cls, c, _cattrs_omit_if_default=True
+        )
+    )
+
     return c

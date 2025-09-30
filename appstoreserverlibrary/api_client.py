@@ -32,6 +32,8 @@ from .models.StatusResponse import StatusResponse
 from .models.TransactionHistoryRequest import TransactionHistoryRequest
 from .models.TransactionInfoResponse import TransactionInfoResponse
 from .models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
+from .models.UploadMessageRequestBody import UploadMessageRequestBody
+from .models.GetMessageListResponse import GetMessageListResponse
 
 T = TypeVar('T')
 
@@ -457,8 +459,51 @@ class APIError(IntEnum):
     GENERAL_INTERNAL_RETRYABLE = 5000001
     """
     An error response that indicates an unknown error occurred, but you can try again.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/generalinternalretryableerror
+    """
+
+    # Retention Messaging specific errors
+    HEADER_TOO_LONG_ERROR = 4000101
+    """
+    An error that indicates the message header exceeds 66 characters.
+
+    https://developer.apple.com/documentation/retentionmessaging/headertoolongerror
+    """
+
+    BODY_TOO_LONG_ERROR = 4000102
+    """
+    An error that indicates the message body exceeds 144 characters.
+
+    https://developer.apple.com/documentation/retentionmessaging/bodytoolongerror
+    """
+
+    ALT_TEXT_TOO_LONG_ERROR = 4000103
+    """
+    An error that indicates the alt text exceeds 150 characters.
+
+    https://developer.apple.com/documentation/retentionmessaging/alttexttoolongerror
+    """
+
+    MAXIMUM_NUMBER_OF_MESSAGES_REACHED_ERROR = 4030001
+    """
+    An error that indicates the maximum number of retention messages (2000) has been reached.
+
+    https://developer.apple.com/documentation/retentionmessaging/maximumnumberofmessagesreachederror
+    """
+
+    MESSAGE_NOT_FOUND_ERROR = 4040001
+    """
+    An error that indicates the specified message was not found.
+
+    https://developer.apple.com/documentation/retentionmessaging/messagenotfounderror
+    """
+
+    MESSAGE_ALREADY_EXISTS_ERROR = 4090001
+    """
+    An error that indicates the message identifier already exists.
+
+    https://developer.apple.com/documentation/retentionmessaging/messagealreadyexistserror
     """
 
 
@@ -758,6 +803,37 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None)
 
+    def upload_retention_message(self, message_identifier: str, retention_message_request: UploadMessageRequestBody) -> None:
+        """
+        Upload a message to use for retention messaging.
+        https://developer.apple.com/documentation/retentionmessaging/upload-message
+
+        :param message_identifier: A UUID you provide to uniquely identify the message you upload.
+        :param retention_message_request: The request body containing the message text and optional image reference.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request("/inApps/v1/messaging/message/" + message_identifier, "PUT", {}, retention_message_request, None)
+
+    def get_retention_message_list(self) -> GetMessageListResponse:
+        """
+        Get the message identifier and state of all uploaded messages.
+        https://developer.apple.com/documentation/retentionmessaging/get-message-list
+
+        :return: A response that contains status information for all messages.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        return self._make_request("/inApps/v1/messaging/message/list", "GET", {}, None, GetMessageListResponse)
+
+    def delete_retention_message(self, message_identifier: str) -> None:
+        """
+        Delete a previously uploaded message.
+        https://developer.apple.com/documentation/retentionmessaging/delete-message
+
+        :param message_identifier: The identifier of the message to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request("/inApps/v1/messaging/message/" + message_identifier, "DELETE", {}, None, None)
+
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
         super().__init__(signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id, environment=environment)
@@ -970,3 +1046,34 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :raises APIException: If a response was returned indicating the request could not be processed
         """
         await self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None)
+
+    async def upload_retention_message(self, message_identifier: str, retention_message_request: UploadMessageRequestBody) -> None:
+        """
+        Upload a message to use for retention messaging.
+        https://developer.apple.com/documentation/retentionmessaging/upload-message
+
+        :param message_identifier: A UUID you provide to uniquely identify the message you upload.
+        :param retention_message_request: The request body containing the message text and optional image reference.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request("/inApps/v1/messaging/message/" + message_identifier, "PUT", {}, retention_message_request, None)
+
+    async def get_retention_message_list(self) -> GetMessageListResponse:
+        """
+        Get the message identifier and state of all uploaded messages.
+        https://developer.apple.com/documentation/retentionmessaging/get-message-list
+
+        :return: A response that contains status information for all messages.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        return await self._make_request("/inApps/v1/messaging/message/list", "GET", {}, None, GetMessageListResponse)
+
+    async def delete_retention_message(self, message_identifier: str) -> None:
+        """
+        Delete a previously uploaded message.
+        https://developer.apple.com/documentation/retentionmessaging/delete-message
+
+        :param message_identifier: The identifier of the message to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request("/inApps/v1/messaging/message/" + message_identifier, "DELETE", {}, None, None)

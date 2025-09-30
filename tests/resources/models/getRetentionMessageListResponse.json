@@ -1,0 +1,16 @@
+{
+  "messageIdentifiers": [
+    {
+      "messageIdentifier": "test-message-1",
+      "messageState": "APPROVED"
+    },
+    {
+      "messageIdentifier": "test-message-2",
+      "messageState": "PENDING"
+    },
+    {
+      "messageIdentifier": "test-message-3",
+      "messageState": "REJECTED"
+    }
+  ]
+}

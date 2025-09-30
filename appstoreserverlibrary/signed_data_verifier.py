@@ -131,6 +131,30 @@ class SignedDataVerifier:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
         return decoded_app_transaction
 
+    def verify_and_decode_retention_request(self, signed_payload: str):
+        """
+        Verifies and decodes a retention messaging request from the App Store.
+        Uses the same x509 certificate chain verification as other Apple notifications.
+
+        :param signed_payload: The signedPayload field from the retention request
+        :return: The decoded retention request after verification
+        :throws VerificationException: Thrown if the data could not be verified
+        """
+        from .models.DecodedRealtimeRequestBody import DecodedRealtimeRequestBody
+
+        decoded_dict = self._decode_signed_object(signed_payload)
+        decoded_request = _get_cattrs_converter(DecodedRealtimeRequestBody).structure(
+            decoded_dict, DecodedRealtimeRequestBody
+        )
+
+        if self._app_apple_id is not None and decoded_request.appAppleId != self._app_apple_id:
+            raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
+
+        if decoded_request.environment != self._environment:
+            raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
+
+        return decoded_request
+
     def _decode_signed_object(self, signed_obj: str) -> dict:
         try:
             decoded_jwt = jwt.decode(signed_obj, options={"verify_signature": False})

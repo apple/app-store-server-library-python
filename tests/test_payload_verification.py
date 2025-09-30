@@ -68,5 +68,25 @@ class PayloadVerification(unittest.TestCase):
             verifier.verify_and_decode_notification("a.b.c")
         self.assertEqual(context.exception.status, VerificationStatus.VERIFICATION_FAILURE)
 
+    def test_retention_request_decoding(self):
+        verifier = get_signed_data_verifier(Environment.LOCAL_TESTING, "com.example")
+        retention_request = read_data_from_file('tests/resources/mock_signed_data/retentionRequest')
+        decoded_request = verifier.verify_and_decode_retention_request(retention_request)
+        self.assertEqual(decoded_request.originalTransactionId, "1000000000000001")
+        self.assertEqual(decoded_request.appAppleId, 1234)
+        self.assertEqual(decoded_request.productId, "com.example.subscription")
+        self.assertEqual(decoded_request.locale, "en_US")
+        self.assertEqual(decoded_request.requestIdentifier, "550e8400-e29b-41d4-a716-446655440000")
+        self.assertEqual(decoded_request.environment, Environment.LOCAL_TESTING)
+        self.assertEqual(decoded_request.signedDate, 1681314324000)
+
+
+    def test_retention_request_wrong_app_id(self):
+        verifier = get_signed_data_verifier(Environment.LOCAL_TESTING, "com.example", 5678)
+        retention_request = read_data_from_file('tests/resources/mock_signed_data/retentionRequest')
+        with self.assertRaises(VerificationException) as context:
+            verifier.verify_and_decode_retention_request(retention_request)
+        self.assertEqual(context.exception.status, VerificationStatus.INVALID_APP_IDENTIFIER)
+
 if __name__ == '__main__':
     unittest.main()

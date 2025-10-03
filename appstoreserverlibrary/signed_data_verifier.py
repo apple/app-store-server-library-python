@@ -23,6 +23,7 @@ from .models.Environment import Environment
 from .models.ResponseBodyV2DecodedPayload import ResponseBodyV2DecodedPayload
 from .models.JWSTransactionDecodedPayload import JWSTransactionDecodedPayload
 from .models.JWSRenewalInfoDecodedPayload import JWSRenewalInfoDecodedPayload
+from .models.DecodedRealtimeRequestBody import DecodedRealtimeRequestBody
 
 class SignedDataVerifier:
     """
@@ -131,7 +132,7 @@ class SignedDataVerifier:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
         return decoded_app_transaction
 
-    def verify_and_decode_retention_request(self, signed_payload: str):
+    def verify_and_decode_retention_request(self, signed_payload: str) -> DecodedRealtimeRequestBody:
         """
         Verifies and decodes a retention messaging request from the App Store.
         Uses the same x509 certificate chain verification as other Apple notifications.
@@ -140,8 +141,6 @@ class SignedDataVerifier:
         :return: The decoded retention request after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        from .models.DecodedRealtimeRequestBody import DecodedRealtimeRequestBody
-
         decoded_dict = self._decode_signed_object(signed_payload)
         decoded_request = _get_cattrs_converter(DecodedRealtimeRequestBody).structure(
             decoded_dict, DecodedRealtimeRequestBody

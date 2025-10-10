@@ -270,7 +270,7 @@ def delete_message(args) -> None:
 
 
 def set_default_message(args) -> None:
-    """Set a retention message as the default for a product and locale."""
+    """Set a retention message as the default for one or more products and a locale."""
     if not args.message_id:
         print("Error: --message-id is required for set-default action")
         sys.exit(1)
@@ -286,61 +286,57 @@ def set_default_message(args) -> None:
         messageIdentifier=args.message_id
     )
 
-    try:
-        client.configure_default_retention_message(args.product_id, locale, request_body)
+    # args.product_id is a list due to action='append'
+    product_ids = args.product_id
+    successes = []
+    failures = []
 
-        if args.json:
-            print(json.dumps({
-                "status": "success",
-                "message_id": args.message_id,
-                "product_id": args.product_id,
-                "locale": locale,
-                "action": "set_as_default",
-                "environment": args.environment
-            }))
-        else:
-            print(f"✓ Default message configured successfully!")
+    for product_id in product_ids:
+        try:
+            client.configure_default_retention_message(product_id, locale, request_body)
+            successes.append(product_id)
+        except APIException as e:
+            error_msg = f"API Error {e.http_status_code}"
+            if e.api_error:
+                error_msg += f" ({e.api_error.name})"
+            if e.error_message:
+                error_msg += f": {e.error_message}"
+            failures.append({"product_id": product_id, "error": error_msg})
+        except Exception as e:
+            failures.append({"product_id": product_id, "error": str(e)})
+
+    # Output results
+    if args.json:
+        print(json.dumps({
+            "status": "completed" if len(failures) == 0 else "partial",
+            "message_id": args.message_id,
+            "locale": locale,
+            "environment": args.environment,
+            "total_products": len(product_ids),
+            "successes": successes,
+            "failures": failures
+        }))
+    else:
+        if successes:
+            print(f"✓ Default message configured successfully for {len(successes)} product(s)!")
             print(f"  Environment: {args.environment}")
             print(f"  Message ID: {args.message_id}")
-            print(f"  Product ID: {args.product_id}")
             print(f"  Locale:     {locale}")
+            print(f"  Products:   {', '.join(successes)}")
 
-    except APIException as e:
-        error_msg = f"API Error {e.http_status_code}"
-        if e.api_error:
-            error_msg += f" ({e.api_error.name})"
-        if e.error_message:
-            error_msg += f": {e.error_message}"
+        if failures:
+            print()
+            print(f"✗ Failed to configure {len(failures)} product(s):")
+            for failure in failures:
+                print(f"  - {failure['product_id']}: {failure['error']}")
 
-        if args.json:
-            print(json.dumps({
-                "status": "error",
-                "error": error_msg,
-                "http_status": e.http_status_code,
-                "message_id": args.message_id,
-                "product_id": args.product_id,
-                "locale": locale
-            }))
-        else:
-            print(f"✗ {error_msg}")
-
-        sys.exit(1)
-    except Exception as e:
-        if args.json:
-            print(json.dumps({
-                "status": "error",
-                "error": str(e),
-                "message_id": args.message_id,
-                "product_id": args.product_id,
-                "locale": locale
-            }))
-        else:
-            print(f"✗ Unexpected error: {e}")
+    # Exit with error if any failures occurred
+    if failures:
         sys.exit(1)
 
 
 def delete_default_message(args) -> None:
-    """Delete a default message configuration for a product and locale."""
+    """Delete default message configuration for one or more products and a locale."""
     if not args.product_id:
         print("Error: --product-id is required for delete-default action")
         sys.exit(1)
@@ -348,52 +344,51 @@ def delete_default_message(args) -> None:
     client = create_api_client(args)
     locale = args.locale if args.locale else "en-US"
 
-    try:
-        client.delete_default_retention_message(args.product_id, locale)
+    # args.product_id is a list due to action='append'
+    product_ids = args.product_id
+    successes = []
+    failures = []
 
-        if args.json:
-            print(json.dumps({
-                "status": "success",
-                "product_id": args.product_id,
-                "locale": locale,
-                "action": "deleted_default",
-                "environment": args.environment
-            }))
-        else:
-            print(f"✓ Default message configuration deleted successfully!")
+    for product_id in product_ids:
+        try:
+            client.delete_default_retention_message(product_id, locale)
+            successes.append(product_id)
+        except APIException as e:
+            error_msg = f"API Error {e.http_status_code}"
+            if e.api_error:
+                error_msg += f" ({e.api_error.name})"
+            if e.error_message:
+                error_msg += f": {e.error_message}"
+            failures.append({"product_id": product_id, "error": error_msg})
+        except Exception as e:
+            failures.append({"product_id": product_id, "error": str(e)})
+
+    # Output results
+    if args.json:
+        print(json.dumps({
+            "status": "completed" if len(failures) == 0 else "partial",
+            "locale": locale,
+            "environment": args.environment,
+            "action": "deleted_default",
+            "total_products": len(product_ids),
+            "successes": successes,
+            "failures": failures
+        }))
+    else:
+        if successes:
+            print(f"✓ Default message configuration deleted for {len(successes)} product(s)!")
             print(f"  Environment: {args.environment}")
-            print(f"  Product ID: {args.product_id}")
             print(f"  Locale:     {locale}")
+            print(f"  Products:   {', '.join(successes)}")
 
-    except APIException as e:
-        error_msg = f"API Error {e.http_status_code}"
-        if e.api_error:
-            error_msg += f" ({e.api_error.name})"
-        if e.error_message:
-            error_msg += f": {e.error_message}"
+        if failures:
+            print()
+            print(f"✗ Failed to delete configuration for {len(failures)} product(s):")
+            for failure in failures:
+                print(f"  - {failure['product_id']}: {failure['error']}")
 
-        if args.json:
-            print(json.dumps({
-                "status": "error",
-                "error": error_msg,
-                "http_status": e.http_status_code,
-                "product_id": args.product_id,
-                "locale": locale
-            }))
-        else:
-            print(f"✗ {error_msg}")
-
-        sys.exit(1)
-    except Exception as e:
-        if args.json:
-            print(json.dumps({
-                "status": "error",
-                "error": str(e),
-                "product_id": args.product_id,
-                "locale": locale
-            }))
-        else:
-            print(f"✗ Unexpected error: {e}")
+    # Exit with error if any failures occurred
+    if failures:
         sys.exit(1)
 
 
@@ -422,14 +417,21 @@ Examples:
   %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
            --p8-file key.p8 --action delete --message-id my-msg-001
 
-  # Set a message as default for a product and locale
+  # Set a message as default for a single product and locale
   %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
            --p8-file key.p8 --action set-default --message-id my-msg-001 \\
            --product-id com.example.premium --locale en-US
 
-  # Delete default message configuration
+  # Set a message as default for multiple products
   %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
-           --p8-file key.p8 --action delete-default --product-id com.example.premium \\
+           --p8-file key.p8 --action set-default --message-id my-msg-001 \\
+           --product-id com.example.premium --product-id com.example.basic \\
+           --locale en-US
+
+  # Delete default message configuration for multiple products
+  %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
+           --p8-file key.p8 --action delete-default \\
+           --product-id com.example.premium --product-id com.example.basic \\
            --locale en-US
 
   # Production environment
@@ -508,7 +510,8 @@ Error Codes:
     default_group = parser.add_argument_group('default message configuration (set-default and delete-default)')
     default_group.add_argument(
         '--product-id',
-        help='Product identifier (e.g., subscription product ID)'
+        action='append',
+        help='Product identifier (e.g., subscription product ID). Can be specified multiple times for bulk operations.'
     )
     default_group.add_argument(
         '--locale',

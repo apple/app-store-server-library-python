@@ -38,6 +38,7 @@ from appstoreserverlibrary.models.UserStatus import UserStatus
 from appstoreserverlibrary.models.UploadMessageRequestBody import UploadMessageRequestBody
 from appstoreserverlibrary.models.UploadMessageImage import UploadMessageImage
 from appstoreserverlibrary.models.RetentionMessageState import RetentionMessageState
+from appstoreserverlibrary.models.DefaultConfigurationRequest import DefaultConfigurationRequest
 
 from tests.util import decode_json_from_signed_date, read_data_from_binary_file, read_data_from_file
 
@@ -562,6 +563,76 @@ class DecodedPayloads(unittest.TestCase):
             return
 
         self.assertFalse(True)
+
+    def test_configure_default_retention_message(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/messaging/default/com.example.product/en-US',
+                                           {},
+                                           {'messageIdentifier': 'test-message-id'})
+
+        request = DefaultConfigurationRequest(
+            messageIdentifier='test-message-id'
+        )
+
+        # Should not raise exception for successful configuration
+        client.configure_default_retention_message('com.example.product', 'en-US', request)
+
+    def test_configure_default_retention_message_invalid_locale_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/invalidLocaleError.json',
+                                                     'PUT',
+                                                     'https://local-testing-base-url/inApps/v1/messaging/default/com.example.product/invalid',
+                                                     {},
+                                                     {'messageIdentifier': 'test-message-id'},
+                                                     400)
+
+        request = DefaultConfigurationRequest(
+            messageIdentifier='test-message-id'
+        )
+
+        try:
+            client.configure_default_retention_message('com.example.product', 'invalid', request)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000164, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_LOCALE_ERROR, e.api_error)
+            self.assertEqual("Invalid request. Locale is invalid.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_configure_default_retention_message_not_approved_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/messageNotApprovedError.json',
+                                                     'PUT',
+                                                     'https://local-testing-base-url/inApps/v1/messaging/default/com.example.product/en-US',
+                                                     {},
+                                                     {'messageIdentifier': 'test-message-id'},
+                                                     403)
+
+        request = DefaultConfigurationRequest(
+            messageIdentifier='test-message-id'
+        )
+
+        try:
+            client.configure_default_retention_message('com.example.product', 'en-US', request)
+        except APIException as e:
+            self.assertEqual(403, e.http_status_code)
+            self.assertEqual(4030017, e.raw_api_error)
+            self.assertEqual(APIError.MESSAGE_NOT_APPROVED_ERROR, e.api_error)
+            self.assertEqual("The message isn't approved.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_delete_default_retention_message(self):
+        client = self.get_client_with_body(b'',
+                                           'DELETE',
+                                           'https://local-testing-base-url/inApps/v1/messaging/default/com.example.product/en-US',
+                                           {},
+                                           None)
+
+        # Should not raise exception for successful deletion
+        client.delete_default_retention_message('com.example.product', 'en-US')
 
 
     def get_signing_key(self):

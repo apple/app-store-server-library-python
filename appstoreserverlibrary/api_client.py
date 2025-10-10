@@ -34,6 +34,7 @@ from .models.TransactionInfoResponse import TransactionInfoResponse
 from .models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 from .models.UploadMessageRequestBody import UploadMessageRequestBody
 from .models.GetMessageListResponse import GetMessageListResponse
+from .models.DefaultConfigurationRequest import DefaultConfigurationRequest
 
 T = TypeVar('T')
 
@@ -506,6 +507,27 @@ class APIError(IntEnum):
     https://developer.apple.com/documentation/retentionmessaging/messagealreadyexistserror
     """
 
+    INVALID_LOCALE_ERROR = 4000164
+    """
+    An error that indicates the locale is invalid.
+
+    https://developer.apple.com/documentation/retentionmessaging/invalidlocaleerror
+    """
+
+    MESSAGE_NOT_APPROVED_ERROR = 4030017
+    """
+    An error that indicates the message isn't in the approved state, so you can't configure it as a default message.
+
+    https://developer.apple.com/documentation/retentionmessaging/messagenotapprovederror
+    """
+
+    IMAGE_NOT_APPROVED_ERROR = 4030018
+    """
+    An error that indicates the image isn't in the approved state, so you can't configure it as part of a default message.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagenotapprovederror
+    """
+
 
 @define
 class APIException(Exception):
@@ -834,6 +856,29 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         self._make_request("/inApps/v1/messaging/message/" + message_identifier, "DELETE", {}, None, None)
 
+    def configure_default_retention_message(self, product_id: str, locale: str, default_configuration_request: DefaultConfigurationRequest) -> None:
+        """
+        Configure a default message for a specific product in a specific locale.
+        https://developer.apple.com/documentation/retentionmessaging/configure-default-message
+
+        :param product_id: The product identifier for the default configuration.
+        :param locale: The locale for the default configuration (e.g., "en-US").
+        :param default_configuration_request: The request body containing the message identifier to configure as the default message.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request("/inApps/v1/messaging/default/" + product_id + "/" + locale, "PUT", {}, default_configuration_request, None)
+
+    def delete_default_retention_message(self, product_id: str, locale: str) -> None:
+        """
+        Delete a default message for a product in a locale.
+        https://developer.apple.com/documentation/retentionmessaging/delete-default-message
+
+        :param product_id: The product ID of the default message configuration.
+        :param locale: The locale of the default message configuration (e.g., "en-US").
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request("/inApps/v1/messaging/default/" + product_id + "/" + locale, "DELETE", {}, None, None)
+
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
         super().__init__(signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id, environment=environment)
@@ -1077,3 +1122,26 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :raises APIException: If a response was returned indicating the request could not be processed
         """
         await self._make_request("/inApps/v1/messaging/message/" + message_identifier, "DELETE", {}, None, None)
+
+    async def configure_default_retention_message(self, product_id: str, locale: str, default_configuration_request: DefaultConfigurationRequest) -> None:
+        """
+        Configure a default message for a specific product in a specific locale.
+        https://developer.apple.com/documentation/retentionmessaging/configure-default-message
+
+        :param product_id: The product identifier for the default configuration.
+        :param locale: The locale for the default configuration (e.g., "en-US").
+        :param default_configuration_request: The request body containing the message identifier to configure as the default message.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request("/inApps/v1/messaging/default/" + product_id + "/" + locale, "PUT", {}, default_configuration_request, None)
+
+    async def delete_default_retention_message(self, product_id: str, locale: str) -> None:
+        """
+        Delete a default message for a product in a locale.
+        https://developer.apple.com/documentation/retentionmessaging/delete-default-message
+
+        :param product_id: The product ID of the default message configuration.
+        :param locale: The locale of the default message configuration (e.g., "en-US").
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request("/inApps/v1/messaging/default/" + product_id + "/" + locale, "DELETE", {}, None, None)

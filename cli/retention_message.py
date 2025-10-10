@@ -38,6 +38,7 @@ from appstoreserverlibrary.api_client import AppStoreServerAPIClient, APIExcepti
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.UploadMessageRequestBody import UploadMessageRequestBody
 from appstoreserverlibrary.models.UploadMessageImage import UploadMessageImage
+from appstoreserverlibrary.models.DefaultConfigurationRequest import DefaultConfigurationRequest
 
 
 def load_private_key(p8_file_path: str) -> bytes:
@@ -268,6 +269,134 @@ def delete_message(args) -> None:
         sys.exit(1)
 
 
+def set_default_message(args) -> None:
+    """Set a retention message as the default for a product and locale."""
+    if not args.message_id:
+        print("Error: --message-id is required for set-default action")
+        sys.exit(1)
+    if not args.product_id:
+        print("Error: --product-id is required for set-default action")
+        sys.exit(1)
+
+    client = create_api_client(args)
+    locale = args.locale if args.locale else "en-US"
+
+    # Create request body
+    request_body = DefaultConfigurationRequest(
+        messageIdentifier=args.message_id
+    )
+
+    try:
+        client.configure_default_retention_message(args.product_id, locale, request_body)
+
+        if args.json:
+            print(json.dumps({
+                "status": "success",
+                "message_id": args.message_id,
+                "product_id": args.product_id,
+                "locale": locale,
+                "action": "set_as_default",
+                "environment": args.environment
+            }))
+        else:
+            print(f"✓ Default message configured successfully!")
+            print(f"  Environment: {args.environment}")
+            print(f"  Message ID: {args.message_id}")
+            print(f"  Product ID: {args.product_id}")
+            print(f"  Locale:     {locale}")
+
+    except APIException as e:
+        error_msg = f"API Error {e.http_status_code}"
+        if e.api_error:
+            error_msg += f" ({e.api_error.name})"
+        if e.error_message:
+            error_msg += f": {e.error_message}"
+
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": error_msg,
+                "http_status": e.http_status_code,
+                "message_id": args.message_id,
+                "product_id": args.product_id,
+                "locale": locale
+            }))
+        else:
+            print(f"✗ {error_msg}")
+
+        sys.exit(1)
+    except Exception as e:
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": str(e),
+                "message_id": args.message_id,
+                "product_id": args.product_id,
+                "locale": locale
+            }))
+        else:
+            print(f"✗ Unexpected error: {e}")
+        sys.exit(1)
+
+
+def delete_default_message(args) -> None:
+    """Delete a default message configuration for a product and locale."""
+    if not args.product_id:
+        print("Error: --product-id is required for delete-default action")
+        sys.exit(1)
+
+    client = create_api_client(args)
+    locale = args.locale if args.locale else "en-US"
+
+    try:
+        client.delete_default_retention_message(args.product_id, locale)
+
+        if args.json:
+            print(json.dumps({
+                "status": "success",
+                "product_id": args.product_id,
+                "locale": locale,
+                "action": "deleted_default",
+                "environment": args.environment
+            }))
+        else:
+            print(f"✓ Default message configuration deleted successfully!")
+            print(f"  Environment: {args.environment}")
+            print(f"  Product ID: {args.product_id}")
+            print(f"  Locale:     {locale}")
+
+    except APIException as e:
+        error_msg = f"API Error {e.http_status_code}"
+        if e.api_error:
+            error_msg += f" ({e.api_error.name})"
+        if e.error_message:
+            error_msg += f": {e.error_message}"
+
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": error_msg,
+                "http_status": e.http_status_code,
+                "product_id": args.product_id,
+                "locale": locale
+            }))
+        else:
+            print(f"✗ {error_msg}")
+
+        sys.exit(1)
+    except Exception as e:
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": str(e),
+                "product_id": args.product_id,
+                "locale": locale
+            }))
+        else:
+            print(f"✗ Unexpected error: {e}")
+        sys.exit(1)
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -293,15 +422,29 @@ Examples:
   %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
            --p8-file key.p8 --action delete --message-id my-msg-001
 
+  # Set a message as default for a product and locale
+  %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
+           --p8-file key.p8 --action set-default --message-id my-msg-001 \\
+           --product-id com.example.premium --locale en-US
+
+  # Delete default message configuration
+  %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
+           --p8-file key.p8 --action delete-default --product-id com.example.premium \\
+           --locale en-US
+
   # Production environment
   %(prog)s --key-id KEY123 --issuer-id ISS456 --bundle-id com.example.app \\
            --p8-file key.p8 --environment PRODUCTION --action list
 
 Error Codes:
+  4000164 - Invalid locale
+  4000023 - Invalid product ID
   4010001 - Header text too long (max 66 characters)
   4010002 - Body text too long (max 144 characters)
   4010003 - Alt text too long (max 150 characters)
   4010004 - Maximum number of messages reached
+  4030017 - Message not approved
+  4030018 - Image not approved
   4040001 - Message not found
   4090001 - Message with this ID already exists
         """
@@ -333,7 +476,7 @@ Error Codes:
     # Action selection
     parser.add_argument(
         '--action',
-        choices=['upload', 'list', 'delete'],
+        choices=['upload', 'list', 'delete', 'set-default', 'delete-default'],
         default='upload',
         help='Action to perform (default: upload)'
     )
@@ -361,6 +504,17 @@ Error Codes:
         help='Alternative text for image (max 150 characters)'
     )
 
+    # Default message configuration arguments
+    default_group = parser.add_argument_group('default message configuration (set-default and delete-default)')
+    default_group.add_argument(
+        '--product-id',
+        help='Product identifier (e.g., subscription product ID)'
+    )
+    default_group.add_argument(
+        '--locale',
+        help='Locale code (e.g., "en-US", "fr-FR"). Default: en-US'
+    )
+
     # Global options
     parser.add_argument(
         '--environment',
@@ -384,6 +538,13 @@ Error Codes:
     # Validate arguments based on action
     if args.action == 'delete' and not args.message_id:
         parser.error("--message-id is required for delete action")
+    if args.action == 'set-default':
+        if not args.message_id:
+            parser.error("--message-id is required for set-default action")
+        if not args.product_id:
+            parser.error("--product-id is required for set-default action")
+    if args.action == 'delete-default' and not args.product_id:
+        parser.error("--product-id is required for delete-default action")
 
     # Validate file exists
     if not os.path.isfile(args.p8_file):
@@ -397,6 +558,10 @@ Error Codes:
         list_messages(args)
     elif args.action == 'delete':
         delete_message(args)
+    elif args.action == 'set-default':
+        set_default_message(args)
+    elif args.action == 'delete-default':
+        delete_default_message(args)
 
 
 if __name__ == '__main__':

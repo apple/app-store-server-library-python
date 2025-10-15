@@ -75,7 +75,7 @@ class PayloadVerification(unittest.TestCase):
         self.assertEqual(decoded_request.originalTransactionId, "1000000000000001")
         self.assertEqual(decoded_request.appAppleId, 1234)
         self.assertEqual(decoded_request.productId, "com.example.subscription")
-        self.assertEqual(decoded_request.locale, "en_US")
+        self.assertEqual(decoded_request.userLocale, "en-US")
         self.assertEqual(decoded_request.requestIdentifier, "550e8400-e29b-41d4-a716-446655440000")
         self.assertEqual(decoded_request.environment, Environment.LOCAL_TESTING)
         self.assertEqual(decoded_request.signedDate, 1681314324000)

@@ -82,6 +82,54 @@ python retention_message.py \
   --message-id "my-campaign-001"
 ```
 
+#### Configure Default Messages
+
+Set a message as the default for a specific product and locale. The default message is shown when the real-time messaging flow isn't available or fails.
+
+**Single Product:**
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action set-default \
+  --message-id "my-campaign-001" \
+  --product-id "com.example.premium" \
+  --locale "en-US"
+```
+
+**Multiple Products (Bulk Operation):**
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action set-default \
+  --message-id "my-campaign-001" \
+  --product-id "com.example.premium" \
+  --product-id "com.example.basic" \
+  --product-id "com.example.pro" \
+  --locale "en-US"
+```
+
+#### Delete Default Message Configuration
+
+Remove the default message configuration for one or more products:
+
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action delete-default \
+  --product-id "com.example.premium" \
+  --product-id "com.example.basic" \
+  --locale "en-US"
+```
+
 ### Environment Options
 
 By default, the tool uses the **SANDBOX** environment. For production:
@@ -143,10 +191,14 @@ The tool provides clear error messages for common issues:
 
 | Error Code | Description | Solution |
 |------------|-------------|----------|
+| 4000023 | Invalid product ID | Verify product ID exists in App Store Connect |
+| 4000164 | Invalid locale | Use valid locale code (e.g., "en-US", "fr-FR") |
 | 4010001 | Header text too long | Reduce header to ≤66 characters |
 | 4010002 | Body text too long | Reduce body to ≤144 characters |
 | 4010003 | Alt text too long | Reduce alt text to ≤150 characters |
 | 4010004 | Maximum messages reached | Delete old messages first |
+| 4030017 | Message not approved | Wait for Apple approval before setting as default |
+| 4030018 | Image not approved | Wait for Apple approval of associated image |
 | 4040001 | Message not found | Check message ID spelling |
 | 4090001 | Message ID already exists | Use a different message ID |
 
@@ -198,6 +250,30 @@ python retention_message.py --message-id "holiday-2023" \
 # Back to school
 python retention_message.py --message-id "back-to-school-2023" \
   --header "Ready to learn?" --body "New study tools available" # ... other params
+```
+
+#### Setting Default Messages Across Multiple Tiers
+
+Apply the same message to all subscription tiers in a single command:
+
+```bash
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --action set-default --message-id "general-retention-v1" \
+  --product-id "com.example.basic" \
+  --product-id "com.example.premium" \
+  --product-id "com.example.pro" \
+  --locale "en-US"
+```
+
+Output for bulk operations:
+```
+✓ Default message configured successfully for 3 product(s)!
+  Environment: SANDBOX
+  Message ID: general-retention-v1
+  Locale:     en-US
+  Products:   com.example.basic, com.example.premium, com.example.pro
 ```
 
 ### Integration with CI/CD

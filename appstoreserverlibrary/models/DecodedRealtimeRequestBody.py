@@ -35,7 +35,7 @@ class DecodedRealtimeRequestBody(AttrsRawValueAware):
     https://developer.apple.com/documentation/retentionmessaging/productid
     """
 
-    locale: Optional[str] = attr.ib(default=None)
+    userLocale: Optional[str] = attr.ib(default=None)
     """
     The device's locale.
 

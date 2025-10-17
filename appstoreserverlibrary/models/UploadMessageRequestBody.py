@@ -13,17 +13,17 @@ class UploadMessageRequestBody:
     https://developer.apple.com/documentation/retentionmessaging/uploadmessagerequestbody
     """
 
-    header: Optional[str] = attr.ib(default=None)
+    header: str = attr.ib()
     """
-    The header text of the retention message that the system displays to customers.
+    **Required.** The header text of the retention message that the system displays to customers.
     Maximum length: 66
 
     https://developer.apple.com/documentation/retentionmessaging/header
     """
 
-    body: Optional[str] = attr.ib(default=None)
+    body: str = attr.ib()
     """
-    The body text of the retention message that the system displays to customers.
+    **Required.** The body text of the retention message that the system displays to customers.
     Maximum length: 144
 
     https://developer.apple.com/documentation/retentionmessaging/body

@@ -35,6 +35,7 @@ from .models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 from .models.UploadMessageRequestBody import UploadMessageRequestBody
 from .models.GetMessageListResponse import GetMessageListResponse
 from .models.DefaultConfigurationRequest import DefaultConfigurationRequest
+from .models.GetImageListResponse import GetImageListResponse
 
 T = TypeVar('T')
 
@@ -528,6 +529,41 @@ class APIError(IntEnum):
     https://developer.apple.com/documentation/retentionmessaging/imagenotapprovederror
     """
 
+    INVALID_IMAGE_ERROR = 4000104
+    """
+    An error that indicates the image is invalid (wrong format, size, or has transparency).
+
+    https://developer.apple.com/documentation/retentionmessaging/invalidimageerror
+    """
+
+    IMAGE_NOT_FOUND_ERROR = 4040002
+    """
+    An error that indicates the specified image was not found.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagenotfounderror
+    """
+
+    IMAGE_IN_USE_ERROR = 4030002
+    """
+    An error that indicates the image is in use by a message and cannot be deleted.
+
+    https://developer.apple.com/documentation/retentionmessaging/imageinuseerror
+    """
+
+    IMAGE_ALREADY_EXISTS_ERROR = 4090002
+    """
+    An error that indicates the image identifier already exists.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagealreadyexistserror
+    """
+
+    MAXIMUM_NUMBER_OF_IMAGES_REACHED_ERROR = 4030019
+    """
+    An error that indicates the maximum number of retention images (2000) has been reached.
+
+    https://developer.apple.com/documentation/retentionmessaging/maximumnumberofimagesreachederror
+    """
+
 
 @define
 class APIException(Exception):
@@ -634,6 +670,28 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
 
     def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any]) -> requests.Response:
         return requests.request(method, url, params=params, headers=headers, json=json)
+
+    def _make_binary_request(self, path: str, method: str, binary_data: bytes, content_type: str) -> None:
+        """Make a request with binary data (e.g., image upload)."""
+        url = self._get_full_url(path)
+        headers = self._get_headers()
+        headers['Content-Type'] = content_type
+        # Remove Accept header for binary uploads
+        if 'Accept' in headers:
+            del headers['Accept']
+
+        response = requests.request(method, url, headers=headers, data=binary_data)
+
+        # Parse response for errors (successful uploads return 200 with no body)
+        if not (200 <= response.status_code < 300):
+            if response.headers.get('content-type') == 'application/json':
+                try:
+                    response_body = response.json()
+                    raise APIException(response.status_code, response_body.get('errorCode'), response_body.get('errorMessage'))
+                except (ValueError, KeyError):
+                    raise APIException(response.status_code)
+            else:
+                raise APIException(response.status_code)
 
     def extend_renewal_date_for_all_active_subscribers(self, mass_extend_renewal_date_request: MassExtendRenewalDateRequest) -> MassExtendRenewalDateResponse: 
         """
@@ -879,6 +937,37 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         self._make_request("/inApps/v1/messaging/default/" + product_id + "/" + locale, "DELETE", {}, None, None)
 
+    def upload_retention_image(self, image_identifier: str, image_data: bytes) -> None:
+        """
+        Upload an image to use for retention messaging.
+        https://developer.apple.com/documentation/retentionmessaging/upload-image
+
+        :param image_identifier: A UUID you provide to uniquely identify the image you upload.
+        :param image_data: The PNG image file data (must be 3840x2160 pixels, no transparency).
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_binary_request("/inApps/v1/messaging/image/" + image_identifier, "PUT", image_data, "image/png")
+
+    def get_retention_image_list(self) -> GetImageListResponse:
+        """
+        Get the image identifier and state for all uploaded images.
+        https://developer.apple.com/documentation/retentionmessaging/get-image-list
+
+        :return: A response that contains status information for all images.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        return self._make_request("/inApps/v1/messaging/image/list", "GET", {}, None, GetImageListResponse)
+
+    def delete_retention_image(self, image_identifier: str) -> None:
+        """
+        Delete a previously uploaded image.
+        https://developer.apple.com/documentation/retentionmessaging/delete-image
+
+        :param image_identifier: The identifier of the image to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request("/inApps/v1/messaging/image/" + image_identifier, "DELETE", {}, None, None)
+
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
         super().__init__(signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id, environment=environment)
@@ -901,6 +990,28 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
 
     async def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any]):
         return await self.http_client.request(method, url, params=params, headers=headers, json=json)
+
+    async def _make_binary_request(self, path: str, method: str, binary_data: bytes, content_type: str) -> None:
+        """Make an async request with binary data (e.g., image upload)."""
+        url = self._get_full_url(path)
+        headers = self._get_headers()
+        headers['Content-Type'] = content_type
+        # Remove Accept header for binary uploads
+        if 'Accept' in headers:
+            del headers['Accept']
+
+        response = await self.http_client.request(method, url, headers=headers, content=binary_data)
+
+        # Parse response for errors (successful uploads return 200 with no body)
+        if not (200 <= response.status_code < 300):
+            if response.headers.get('content-type') == 'application/json':
+                try:
+                    response_body = response.json()
+                    raise APIException(response.status_code, response_body.get('errorCode'), response_body.get('errorMessage'))
+                except (ValueError, KeyError):
+                    raise APIException(response.status_code)
+            else:
+                raise APIException(response.status_code)
 
     async def extend_renewal_date_for_all_active_subscribers(self, mass_extend_renewal_date_request: MassExtendRenewalDateRequest) -> MassExtendRenewalDateResponse: 
         """
@@ -1145,3 +1256,34 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :raises APIException: If a response was returned indicating the request could not be processed
         """
         await self._make_request("/inApps/v1/messaging/default/" + product_id + "/" + locale, "DELETE", {}, None, None)
+
+    async def upload_retention_image(self, image_identifier: str, image_data: bytes) -> None:
+        """
+        Upload an image to use for retention messaging.
+        https://developer.apple.com/documentation/retentionmessaging/upload-image
+
+        :param image_identifier: A UUID you provide to uniquely identify the image you upload.
+        :param image_data: The PNG image file data (must be 3840x2160 pixels, no transparency).
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_binary_request("/inApps/v1/messaging/image/" + image_identifier, "PUT", image_data, "image/png")
+
+    async def get_retention_image_list(self) -> GetImageListResponse:
+        """
+        Get the image identifier and state for all uploaded images.
+        https://developer.apple.com/documentation/retentionmessaging/get-image-list
+
+        :return: A response that contains status information for all images.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        return await self._make_request("/inApps/v1/messaging/image/list", "GET", {}, None, GetImageListResponse)
+
+    async def delete_retention_image(self, image_identifier: str) -> None:
+        """
+        Delete a previously uploaded image.
+        https://developer.apple.com/documentation/retentionmessaging/delete-image
+
+        :param image_identifier: The identifier of the image to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request("/inApps/v1/messaging/image/" + image_identifier, "DELETE", {}, None, None)

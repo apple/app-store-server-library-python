@@ -1,0 +1,16 @@
+{
+  "imageIdentifiers": [
+    {
+      "imageIdentifier": "test-image-1",
+      "imageState": "PENDING"
+    },
+    {
+      "imageIdentifier": "test-image-2",
+      "imageState": "APPROVED"
+    },
+    {
+      "imageIdentifier": "test-image-3",
+      "imageState": "REJECTED"
+    }
+  ]
+}

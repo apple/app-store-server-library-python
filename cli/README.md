@@ -30,8 +30,8 @@ python retention_message.py \
   --issuer-id "12345678-1234-1234-1234-123456789012" \
   --bundle-id "com.example.myapp" \
   --p8-file "/path/to/SubscriptionKey_ABCDEFGHIJ.p8" \
-  --header "Welcome back!" \
-  --body "Check out our new features"
+  --header "Don't miss out!" \
+  --body "Keep enjoying unlimited access to all premium content"
 ```
 
 Upload with a specific message ID:
@@ -41,9 +41,9 @@ python retention_message.py \
   --issuer-id "12345678-1234-1234-1234-123456789012" \
   --bundle-id "com.example.myapp" \
   --p8-file "/path/to/key.p8" \
-  --message-id "my-campaign-001" \
-  --header "Limited Time Sale!" \
-  --body "50% off premium features this week"
+  --message-id "550e8400-e29b-41d4-a716-446655440001" \
+  --header "Stay subscribed and save" \
+  --body "Your subscription gives you access to exclusive features"
 ```
 
 Upload with an image:
@@ -53,10 +53,11 @@ python retention_message.py \
   --issuer-id "12345678-1234-1234-1234-123456789012" \
   --bundle-id "com.example.myapp" \
   --p8-file "/path/to/key.p8" \
-  --header "New Update!" \
-  --body "Amazing new features await" \
-  --image-id "banner-v2" \
-  --image-alt-text "App update banner showing new features"
+  --message-id "550e8400-e29b-41d4-a716-446655440002" \
+  --header "You'll lose access to" \
+  --body "Premium content, ad-free experience, and exclusive features" \
+  --image-id "6ba7b810-9dad-11d1-80b4-00c04fd430c8" \
+  --image-alt-text "Visual showing premium features and content library"
 ```
 
 #### List All Messages
@@ -79,7 +80,7 @@ python retention_message.py \
   --bundle-id "com.example.myapp" \
   --p8-file "/path/to/key.p8" \
   --action delete \
-  --message-id "my-campaign-001"
+  --message-id "550e8400-e29b-41d4-a716-446655440001"
 ```
 
 #### Configure Default Messages
@@ -94,7 +95,7 @@ python retention_message.py \
   --bundle-id "com.example.myapp" \
   --p8-file "/path/to/key.p8" \
   --action set-default \
-  --message-id "my-campaign-001" \
+  --message-id "550e8400-e29b-41d4-a716-446655440003" \
   --product-id "com.example.premium" \
   --locale "en-US"
 ```
@@ -107,7 +108,7 @@ python retention_message.py \
   --bundle-id "com.example.myapp" \
   --p8-file "/path/to/key.p8" \
   --action set-default \
-  --message-id "my-campaign-001" \
+  --message-id "550e8400-e29b-41d4-a716-446655440003" \
   --product-id "com.example.premium" \
   --product-id "com.example.basic" \
   --product-id "com.example.pro" \
@@ -129,6 +130,146 @@ python retention_message.py \
   --product-id "com.example.basic" \
   --locale "en-US"
 ```
+
+### Image Operations
+
+Images can be uploaded and associated with text-based retention messages to make them more visually engaging.
+
+#### Upload an Image
+
+Upload a PNG image for use in retention messages with auto-generated ID:
+
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action upload-image \
+  --image-file "/path/to/premium_features_banner.png"
+```
+
+Upload with a specific image ID:
+
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action upload-image \
+  --image-id "6ba7b810-9dad-11d1-80b4-00c04fd430c8" \
+  --image-file "/path/to/premium_features_banner.png"
+```
+
+**Image Requirements:**
+- **Format**: PNG only
+- **Dimensions**: Exactly 3840 × 2160 pixels
+- **Transparency**: Not allowed
+- **Maximum images**: 2000 per app
+
+After upload, images are in **PENDING** state awaiting Apple approval. In SANDBOX, they're auto-approved.
+
+#### List All Images
+
+Check the status of all uploaded images:
+
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action list-images
+```
+
+Output:
+```
+Found 2 retention image(s) in SANDBOX:
+
+  Image ID: banner-2024-q1
+  State:    APPROVED
+
+  Image ID: promo-summer
+  State:    PENDING
+```
+
+#### Delete an Image
+
+Delete a previously uploaded image (must not be in use by any message):
+
+```bash
+python retention_message.py \
+  --key-id "ABCDEFGHIJ" \
+  --issuer-id "12345678-1234-1234-1234-123456789012" \
+  --bundle-id "com.example.myapp" \
+  --p8-file "/path/to/key.p8" \
+  --action delete-image \
+  --image-id "6ba7b810-9dad-11d1-80b4-00c04fd430c7"
+```
+
+**Important**: You must delete any messages that reference an image before you can delete the image itself.
+
+#### Complete Workflow: Message with Image
+
+Here's the complete workflow for creating a retention message with an image:
+
+```bash
+# Step 1: Upload the image
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --action upload-image \
+  --image-id "7ba7b810-9dad-11d1-80b4-00c04fd430c9" \
+  --image-file "./images/premium_benefits_showcase.png"
+
+# Step 2: Check image approval status (skip in SANDBOX as it's auto-approved)
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --action list-images
+
+# Step 3: Upload a message that references the image
+# Note: Both --header and --body are REQUIRED
+# Note: --image-id and --image-alt-text must be provided together
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --action upload \
+  --message-id "650e8400-e29b-41d4-a716-446655440040" \
+  --header "Keep all your benefits" \
+  --body "Continue enjoying unlimited streaming and exclusive content" \
+  --image-id "7ba7b810-9dad-11d1-80b4-00c04fd430c9" \
+  --image-alt-text "Collage of premium features including ad-free streaming and exclusive shows"
+
+# Step 4: Set as default for products (optional)
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --action set-default \
+  --message-id "650e8400-e29b-41d4-a716-446655440040" \
+  --product-id "com.example.premium" \
+  --locale "en-US"
+```
+
+#### Image States
+
+Images can be in one of three states:
+- **PENDING**: Image uploaded and awaiting Apple's review
+- **APPROVED**: Image approved and can be used in messages
+- **REJECTED**: Image rejected and cannot be used
+
+Both the message and its associated image must be in **APPROVED** state before the system can display them.
+
+#### Image Error Codes
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| 4000104 | Invalid image | Ensure PNG format, 3840×2160 pixels, no transparency |
+| 4030002 | Image in use | Delete messages using this image first |
+| 4030019 | Maximum images reached | Delete unused images (limit: 2000) |
+| 4040002 | Image not found | Check image ID spelling |
+| 4090002 | Image ID already exists | Use a different image ID |
 
 ### Environment Options
 
@@ -179,11 +320,18 @@ Messages can be in one of three states:
 
 ### Constraints and Limits
 
-- **Header text**: Maximum 66 characters
-- **Body text**: Maximum 144 characters
-- **Image alt text**: Maximum 150 characters
-- **Message ID**: Must be unique (UUIDs recommended)
-- **Total messages**: Limited number per app (see Apple's documentation)
+**Required Fields (for upload action):**
+- **Header text**: REQUIRED - Maximum 66 characters
+- **Body text**: REQUIRED - Maximum 144 characters
+
+**Optional Fields:**
+- **Image reference**: Optional - Use `--image-id` and `--image-alt-text` together
+- **Image alt text**: Maximum 150 characters (required if image is included)
+- **Message ID**: Must be unique (UUIDs recommended, auto-generated if not provided)
+
+**System Limits:**
+- **Total messages**: 2000 per app
+- **Total images**: 2000 per app
 
 ### Error Handling
 
@@ -232,24 +380,40 @@ The tool provides clear error messages for common issues:
 
 #### A/B Testing Messages
 ```bash
-# Upload message A
-python retention_message.py --message-id "test-a-v1" \
-  --header "Come back!" --body "We miss you" # ... other params
+# Upload message A - Emotional appeal
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --message-id "550e8400-e29b-41d4-a716-446655440010" \
+  --header "We value your membership" \
+  --body "Continue enjoying premium benefits and exclusive content"
 
-# Upload message B
-python retention_message.py --message-id "test-b-v1" \
-  --header "New features!" --body "Check out what's new" # ... other params
+# Upload message B - Value-focused
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --message-id "550e8400-e29b-41d4-a716-446655440011" \
+  --header "Keep your premium access" \
+  --body "Ad-free experience, offline downloads, and more"
 ```
 
 #### Seasonal Campaigns
 ```bash
-# Holiday campaign
-python retention_message.py --message-id "holiday-2023" \
-  --header "Holiday Sale!" --body "Limited time: 40% off premium" # ... other params
+# Holiday campaign - Highlight seasonal content
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --message-id "550e8400-e29b-41d4-a716-446655440020" \
+  --header "Holiday content awaits" \
+  --body "Stay subscribed for exclusive seasonal features"
 
-# Back to school
-python retention_message.py --message-id "back-to-school-2023" \
-  --header "Ready to learn?" --body "New study tools available" # ... other params
+# Back to school - Educational content retention
+python retention_message.py \
+  --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
+  --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
+  --message-id "550e8400-e29b-41d4-a716-446655440021" \
+  --header "Your learning continues" \
+  --body "Keep accessing study tools and educational resources"
 ```
 
 #### Setting Default Messages Across Multiple Tiers
@@ -260,7 +424,8 @@ Apply the same message to all subscription tiers in a single command:
 python retention_message.py \
   --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
   --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
-  --action set-default --message-id "general-retention-v1" \
+  --action set-default \
+  --message-id "550e8400-e29b-41d4-a716-446655440030" \
   --product-id "com.example.basic" \
   --product-id "com.example.premium" \
   --product-id "com.example.pro" \
@@ -271,7 +436,7 @@ Output for bulk operations:
 ```
 ✓ Default message configured successfully for 3 product(s)!
   Environment: SANDBOX
-  Message ID: general-retention-v1
+  Message ID: 550e8400-e29b-41d4-a716-446655440030
   Locale:     en-US
   Products:   com.example.basic, com.example.premium, com.example.pro
 ```
@@ -285,10 +450,12 @@ For automated deployments, use JSON output:
 RESULT=$(python retention_message.py --json --action upload \
   --key-id "$KEY_ID" --issuer-id "$ISSUER_ID" \
   --bundle-id "$BUNDLE_ID" --p8-file "$P8_FILE" \
-  --header "Auto-deployed message" --body "Latest features")
+  --message-id "750e8400-e29b-41d4-a716-446655440050" \
+  --header "Stay connected" \
+  --body "Keep your subscription active for uninterrupted access")
 
 if echo "$RESULT" | jq -e '.status == "success"' > /dev/null; then
-  echo "Message deployed successfully"
+  echo "Retention message deployed successfully"
   MESSAGE_ID=$(echo "$RESULT" | jq -r '.message_id')
   echo "Message ID: $MESSAGE_ID"
 else

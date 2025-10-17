@@ -39,6 +39,7 @@ from appstoreserverlibrary.models.UploadMessageRequestBody import UploadMessageR
 from appstoreserverlibrary.models.UploadMessageImage import UploadMessageImage
 from appstoreserverlibrary.models.RetentionMessageState import RetentionMessageState
 from appstoreserverlibrary.models.DefaultConfigurationRequest import DefaultConfigurationRequest
+from appstoreserverlibrary.models.ImageState import ImageState
 
 from tests.util import decode_json_from_signed_date, read_data_from_binary_file, read_data_from_file
 
@@ -786,6 +787,173 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual(4040001, e.raw_api_error)
             self.assertEqual(APIError.MESSAGE_NOT_FOUND_ERROR, e.api_error)
             self.assertEqual("An error that indicates the specified message was not found.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def get_client_with_binary_mock(self, response_body: bytes, expected_method: str, expected_url: str, expected_content_type: str, expected_binary_data: bytes, status_code: int = 200):
+        """Helper for testing binary upload endpoints (e.g., image upload)."""
+        signing_key = self.get_signing_key()
+        client = AppStoreServerAPIClient(signing_key, 'keyId', 'issuerId', 'com.example', Environment.LOCAL_TESTING)
+
+        def fake_binary_request(path: str, method: str, binary_data: bytes, content_type: str):
+            url = client._get_full_url(path)
+            self.assertEqual(expected_method, method)
+            self.assertEqual(expected_url, url)
+            self.assertEqual(expected_content_type, content_type)
+            self.assertEqual(expected_binary_data, binary_data)
+
+            # Simulate error handling from _make_binary_request
+            if not (200 <= status_code < 300):
+                if response_body:
+                    import json
+                    response_data = json.loads(response_body.decode('utf-8'))
+                    raise APIException(status_code, response_data.get('errorCode'), response_data.get('errorMessage'))
+                else:
+                    raise APIException(status_code)
+
+        client._make_binary_request = fake_binary_request
+        return client
+
+    def test_upload_retention_image(self):
+        test_image_data = b'\x89PNG\r\n\x1a\n'  # Minimal PNG header
+        client = self.get_client_with_binary_mock(
+            b'',  # Empty response body for successful upload
+            'PUT',
+            'https://local-testing-base-url/inApps/v1/messaging/image/test-image-id',
+            'image/png',
+            test_image_data
+        )
+
+        # Should not raise exception for successful upload
+        client.upload_retention_image('test-image-id', test_image_data)
+
+    def test_upload_retention_image_already_exists_error(self):
+        test_image_data = b'\x89PNG\r\n\x1a\n'
+        error_body = read_data_from_binary_file('tests/resources/models/imageAlreadyExistsError.json')
+        client = self.get_client_with_binary_mock(
+            error_body,
+            'PUT',
+            'https://local-testing-base-url/inApps/v1/messaging/image/test-image-id',
+            'image/png',
+            test_image_data,
+            409
+        )
+
+        try:
+            client.upload_retention_image('test-image-id', test_image_data)
+        except APIException as e:
+            self.assertEqual(409, e.http_status_code)
+            self.assertEqual(4090002, e.raw_api_error)
+            self.assertEqual(APIError.IMAGE_ALREADY_EXISTS_ERROR, e.api_error)
+            self.assertEqual("The image identifier already exists.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_upload_retention_image_invalid_error(self):
+        test_image_data = b'invalid image data'
+        error_body = read_data_from_binary_file('tests/resources/models/invalidImageError.json')
+        client = self.get_client_with_binary_mock(
+            error_body,
+            'PUT',
+            'https://local-testing-base-url/inApps/v1/messaging/image/test-image-id',
+            'image/png',
+            test_image_data,
+            400
+        )
+
+        try:
+            client.upload_retention_image('test-image-id', test_image_data)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000104, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_IMAGE_ERROR, e.api_error)
+            self.assertEqual("The request is invalid and can't be accepted.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_get_retention_image_list(self):
+        client = self.get_client_with_body_from_file(
+            'tests/resources/models/getRetentionImageListResponse.json',
+            'GET',
+            'https://local-testing-base-url/inApps/v1/messaging/image/list',
+            {},
+            None
+        )
+
+        response = client.get_retention_image_list()
+
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response.imageIdentifiers)
+        self.assertEqual(3, len(response.imageIdentifiers))
+
+        # Check first image
+        image1 = response.imageIdentifiers[0]
+        self.assertEqual('test-image-1', image1.imageIdentifier)
+        self.assertEqual(ImageState.PENDING, image1.imageState)
+
+        # Check second image
+        image2 = response.imageIdentifiers[1]
+        self.assertEqual('test-image-2', image2.imageIdentifier)
+        self.assertEqual(ImageState.APPROVED, image2.imageState)
+
+        # Check third image
+        image3 = response.imageIdentifiers[2]
+        self.assertEqual('test-image-3', image3.imageIdentifier)
+        self.assertEqual(ImageState.REJECTED, image3.imageState)
+
+    def test_delete_retention_image(self):
+        client = self.get_client_with_body(
+            b'',
+            'DELETE',
+            'https://local-testing-base-url/inApps/v1/messaging/image/test-image-id',
+            {},
+            None
+        )
+
+        # Should not raise exception for successful deletion
+        client.delete_retention_image('test-image-id')
+
+    def test_delete_retention_image_not_found_error(self):
+        client = self.get_client_with_body_from_file(
+            'tests/resources/models/imageNotFoundError.json',
+            'DELETE',
+            'https://local-testing-base-url/inApps/v1/messaging/image/nonexistent-image-id',
+            {},
+            None,
+            404
+        )
+
+        try:
+            client.delete_retention_image('nonexistent-image-id')
+        except APIException as e:
+            self.assertEqual(404, e.http_status_code)
+            self.assertEqual(4040002, e.raw_api_error)
+            self.assertEqual(APIError.IMAGE_NOT_FOUND_ERROR, e.api_error)
+            self.assertEqual("The system can't find the image.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_delete_retention_image_in_use_error(self):
+        client = self.get_client_with_body_from_file(
+            'tests/resources/models/imageInUseError.json',
+            'DELETE',
+            'https://local-testing-base-url/inApps/v1/messaging/image/image-in-use',
+            {},
+            None,
+            403
+        )
+
+        try:
+            client.delete_retention_image('image-in-use')
+        except APIException as e:
+            self.assertEqual(403, e.http_status_code)
+            self.assertEqual(4030002, e.raw_api_error)
+            self.assertEqual(APIError.IMAGE_IN_USE_ERROR, e.api_error)
+            self.assertEqual("The request is forbidden because the image is in use.", e.error_message)
             return
 
         self.assertFalse(True)

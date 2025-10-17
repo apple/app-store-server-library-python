@@ -12,16 +12,16 @@ class UploadMessageImage:
     https://developer.apple.com/documentation/retentionmessaging/uploadmessageimage
     """
 
-    imageIdentifier: Optional[str] = attr.ib(default=None)
+    imageIdentifier: str = attr.ib()
     """
-    The unique identifier of an image.
+    **Required.** The unique identifier of an image.
 
     https://developer.apple.com/documentation/retentionmessaging/imageidentifier
     """
 
-    altText: Optional[str] = attr.ib(default=None)
+    altText: str = attr.ib()
     """
-    The alternative text you provide for the corresponding image.
+    **Required.** The alternative text you provide for the corresponding image.
     Maximum length: 150
 
     https://developer.apple.com/documentation/retentionmessaging/alttext

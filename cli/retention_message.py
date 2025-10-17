@@ -392,6 +392,187 @@ def delete_default_message(args) -> None:
         sys.exit(1)
 
 
+def upload_image(args) -> None:
+    """Upload a retention messaging image."""
+    if not args.image_file:
+        print("Error: --image-file is required for upload-image action")
+        sys.exit(1)
+
+    # Generate image ID if not provided
+    image_id = args.image_id if args.image_id else str(uuid.uuid4())
+
+    # Load and validate image file
+    try:
+        with open(args.image_file, 'rb') as f:
+            image_data = f.read()
+    except FileNotFoundError:
+        print(f"Error: Image file not found: {args.image_file}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading image file: {e}")
+        sys.exit(1)
+
+    client = create_api_client(args)
+
+    try:
+        client.upload_retention_image(image_id, image_data)
+
+        if args.json:
+            print(json.dumps({
+                "status": "success",
+                "image_id": image_id,
+                "file_path": args.image_file,
+                "environment": args.environment
+            }))
+        else:
+            print(f"✓ Image uploaded successfully!")
+            print(f"  Environment: {args.environment}")
+            print(f"  Image ID:    {image_id}")
+            print(f"  File:        {args.image_file}")
+            print(f"  Note:        Image is PENDING approval. Use --action list-images to check status.")
+
+    except APIException as e:
+        error_msg = f"API Error {e.http_status_code}"
+        if e.api_error:
+            error_msg += f" ({e.api_error.name})"
+        if e.error_message:
+            error_msg += f": {e.error_message}"
+
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": error_msg,
+                "http_status": e.http_status_code
+            }))
+        else:
+            print(f"✗ {error_msg}")
+
+        sys.exit(1)
+    except Exception as e:
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": str(e)
+            }))
+        else:
+            print(f"✗ Unexpected error: {e}")
+        sys.exit(1)
+
+
+def list_images(args) -> None:
+    """List all retention messaging images."""
+    client = create_api_client(args)
+
+    try:
+        response = client.get_retention_image_list()
+
+        if args.json:
+            images = []
+            if response.imageIdentifiers:
+                for img in response.imageIdentifiers:
+                    images.append({
+                        "image_id": img.imageIdentifier,
+                        "state": img.imageState.value if img.imageState else None
+                    })
+            print(json.dumps({
+                "status": "success",
+                "images": images,
+                "total_count": len(images),
+                "environment": args.environment
+            }))
+        else:
+            if not response.imageIdentifiers or len(response.imageIdentifiers) == 0:
+                print(f"No retention images found in {args.environment}.")
+            else:
+                print(f"Found {len(response.imageIdentifiers)} retention image(s) in {args.environment}:")
+                print()
+                for img in response.imageIdentifiers:
+                    state = img.imageState.value if img.imageState else "UNKNOWN"
+                    print(f"  Image ID: {img.imageIdentifier}")
+                    print(f"  State:    {state}")
+                    print()
+
+    except APIException as e:
+        error_msg = f"API Error {e.http_status_code}"
+        if e.api_error:
+            error_msg += f" ({e.api_error.name})"
+        if e.error_message:
+            error_msg += f": {e.error_message}"
+
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": error_msg,
+                "http_status": e.http_status_code
+            }))
+        else:
+            print(f"✗ {error_msg}")
+
+        sys.exit(1)
+    except Exception as e:
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": str(e)
+            }))
+        else:
+            print(f"✗ Unexpected error: {e}")
+        sys.exit(1)
+
+
+def delete_image(args) -> None:
+    """Delete a retention messaging image."""
+    if not args.image_id:
+        print("Error: --image-id is required for delete-image action")
+        sys.exit(1)
+
+    client = create_api_client(args)
+
+    try:
+        client.delete_retention_image(args.image_id)
+
+        if args.json:
+            print(json.dumps({
+                "status": "success",
+                "image_id": args.image_id,
+                "action": "deleted",
+                "environment": args.environment
+            }))
+        else:
+            print(f"✓ Image deleted successfully!")
+            print(f"  Environment: {args.environment}")
+            print(f"  Image ID:    {args.image_id}")
+
+    except APIException as e:
+        error_msg = f"API Error {e.http_status_code}"
+        if e.api_error:
+            error_msg += f" ({e.api_error.name})"
+        if e.error_message:
+            error_msg += f": {e.error_message}"
+
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": error_msg,
+                "http_status": e.http_status_code,
+                "image_id": args.image_id
+            }))
+        else:
+            print(f"✗ {error_msg}")
+
+        sys.exit(1)
+    except Exception as e:
+        if args.json:
+            print(json.dumps({
+                "status": "error",
+                "error": str(e),
+                "image_id": args.image_id
+            }))
+        else:
+            print(f"✗ Unexpected error: {e}")
+        sys.exit(1)
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -478,7 +659,7 @@ Error Codes:
     # Action selection
     parser.add_argument(
         '--action',
-        choices=['upload', 'list', 'delete', 'set-default', 'delete-default'],
+        choices=['upload', 'list', 'delete', 'set-default', 'delete-default', 'upload-image', 'list-images', 'delete-image'],
         default='upload',
         help='Action to perform (default: upload)'
     )
@@ -491,19 +672,19 @@ Error Codes:
     )
     content_group.add_argument(
         '--header',
-        help='Header text (max 66 characters)'
+        help='**Required** for upload. Header text (max 66 characters)'
     )
     content_group.add_argument(
         '--body',
-        help='Body text (max 144 characters)'
+        help='**Required** for upload. Body text (max 144 characters)'
     )
     content_group.add_argument(
         '--image-id',
-        help='Image identifier for optional image'
+        help='Image identifier (UUID). For upload: references existing image (with --image-alt-text). For upload-image: auto-generated if not provided. For delete-image: required.'
     )
     content_group.add_argument(
         '--image-alt-text',
-        help='Alternative text for image (max 150 characters)'
+        help='Alt text for image (max 150 characters). Required when using --image-id with upload action.'
     )
 
     # Default message configuration arguments
@@ -516,6 +697,13 @@ Error Codes:
     default_group.add_argument(
         '--locale',
         help='Locale code (e.g., "en-US", "fr-FR"). Default: en-US'
+    )
+
+    # Image operations arguments
+    image_group = parser.add_argument_group('image operations (upload-image, list-images, delete-image)')
+    image_group.add_argument(
+        '--image-file',
+        help='Path to PNG image file (3840x2160 pixels, no transparency). Required for upload-image.'
     )
 
     # Global options
@@ -539,6 +727,16 @@ Error Codes:
     args = parser.parse_args()
 
     # Validate arguments based on action
+    if args.action == 'upload':
+        if not args.header:
+            parser.error("--header is required for upload action")
+        if not args.body:
+            parser.error("--body is required for upload action")
+        # Validate that image-id and image-alt-text are provided together or not at all
+        if args.image_id and not args.image_alt_text:
+            parser.error("--image-alt-text is required when --image-id is provided")
+        if args.image_alt_text and not args.image_id:
+            parser.error("--image-id is required when --image-alt-text is provided")
     if args.action == 'delete' and not args.message_id:
         parser.error("--message-id is required for delete action")
     if args.action == 'set-default':
@@ -548,6 +746,11 @@ Error Codes:
             parser.error("--product-id is required for set-default action")
     if args.action == 'delete-default' and not args.product_id:
         parser.error("--product-id is required for delete-default action")
+    if args.action == 'upload-image':
+        if not args.image_file:
+            parser.error("--image-file is required for upload-image action")
+    if args.action == 'delete-image' and not args.image_id:
+        parser.error("--image-id is required for delete-image action")
 
     # Validate file exists
     if not os.path.isfile(args.p8_file):
@@ -565,6 +768,12 @@ Error Codes:
         set_default_message(args)
     elif args.action == 'delete-default':
         delete_default_message(args)
+    elif args.action == 'upload-image':
+        upload_image(args)
+    elif args.action == 'list-images':
+        list_images(args)
+    elif args.action == 'delete-image':
+        delete_image(args)
 
 
 if __name__ == '__main__':

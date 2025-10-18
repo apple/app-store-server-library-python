@@ -14,10 +14,12 @@ from cryptography.hazmat.primitives import serialization
 from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 from .models.CheckTestNotificationResponse import CheckTestNotificationResponse
 from .models.ConsumptionRequest import ConsumptionRequest
-
+from .models.DefaultConfigurationRequest import DefaultConfigurationRequest
 from .models.Environment import Environment
 from .models.ExtendRenewalDateRequest import ExtendRenewalDateRequest
 from .models.ExtendRenewalDateResponse import ExtendRenewalDateResponse
+from .models.GetImageListResponse import GetImageListResponse
+from .models.GetMessageListResponse import GetMessageListResponse
 from .models.HistoryResponse import HistoryResponse
 from .models.MassExtendRenewalDateRequest import MassExtendRenewalDateRequest
 from .models.MassExtendRenewalDateResponse import MassExtendRenewalDateResponse
@@ -32,6 +34,8 @@ from .models.StatusResponse import StatusResponse
 from .models.TransactionHistoryRequest import TransactionHistoryRequest
 from .models.TransactionInfoResponse import TransactionInfoResponse
 from .models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
+from .models.UploadMessageRequestBody import UploadMessageRequestBody
+from uuid import UUID
 
 T = TypeVar('T')
 
@@ -323,8 +327,43 @@ class APIError(IntEnum):
     APP_TRANSACTION_ID_NOT_SUPPORTED_ERROR = 4000048
     """
     An error that indicates the endpoint doesn't support an app transaction ID.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/apptransactionidnotsupportederror
+    """
+
+    INVALID_IMAGE = 4000161
+    """
+    An error that indicates the image that's uploading is invalid.
+
+    https://developer.apple.com/documentation/retentionmessaging/invalidimageerror
+    """
+
+    HEADER_TOO_LONG = 4000162
+    """
+    An error that indicates the header text is too long.
+
+    https://developer.apple.com/documentation/retentionmessaging/headertoolongerror
+    """
+
+    BODY_TOO_LONG = 4000163
+    """
+    An error that indicates the body text is too long.
+
+    https://developer.apple.com/documentation/retentionmessaging/bodytoolongerror
+    """
+
+    INVALID_LOCALE = 4000164
+    """
+    An error that indicates the locale is invalid.
+
+    https://developer.apple.com/documentation/retentionmessaging/invalidlocaleerror
+    """
+
+    ALT_TEXT_TOO_LONG = 4000175
+    """
+    An error that indicates the alternative text for an image is too long.
+
+    https://developer.apple.com/documentation/retentionmessaging/alttexttoolongerror
     """
 
     INVALID_APP_ACCOUNT_TOKEN_UUID_ERROR = 4000183
@@ -368,6 +407,41 @@ class APIError(IntEnum):
     An error that indicates a subscription isn't directly eligible for a renewal date extension because the user obtained it through Family Sharing.
     
     https://developer.apple.com/documentation/appstoreserverapi/familysharedsubscriptionextensionineligibleerror
+    """
+
+    MAXIMUM_NUMBER_OF_IMAGES_REACHED = 4030014
+    """
+    An error that indicates when you reach the maximum number of uploaded images.
+
+    https://developer.apple.com/documentation/retentionmessaging/maximumnumberofimagesreachederror
+    """
+
+    MAXIMUM_NUMBER_OF_MESSAGES_REACHED = 4030016
+    """
+    An error that indicates when you reach the maximum number of uploaded messages.
+
+    https://developer.apple.com/documentation/retentionmessaging/maximumnumberofmessagesreachederror
+    """
+
+    MESSAGE_NOT_APPROVED = 4030017
+    """
+    An error that indicates the message isn't in the approved state, so you can't configure it as a default message.
+
+    https://developer.apple.com/documentation/retentionmessaging/messagenotapprovederror
+    """
+
+    IMAGE_NOT_APPROVED = 4030018
+    """
+    An error that indicates the image isn't in the approved state, so you can't configure it as part of a default message.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagenotapprovederror
+    """
+
+    IMAGE_IN_USE = 4030019
+    """
+    An error that indicates the image is currently in use as part of a message, so you can't delete it.
+
+    https://developer.apple.com/documentation/retentionmessaging/imageinuseerror
     """
 
     ACCOUNT_NOT_FOUND = 4040001
@@ -438,6 +512,34 @@ class APIError(IntEnum):
     An error that indicates a transaction identifier wasn't found.
     
     https://developer.apple.com/documentation/appstoreserverapi/transactionidnotfounderror
+    """
+
+    IMAGE_NOT_FOUND = 4040014
+    """
+    An error that indicates the system can't find the image identifier.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagenotfounderror
+    """
+
+    MESSAGE_NOT_FOUND = 4040015
+    """
+    An error that indicates the system can't find the message identifier.
+
+    https://developer.apple.com/documentation/retentionmessaging/messagenotfounderror
+    """
+
+    IMAGE_ALREADY_EXISTS = 4090000
+    """
+    An error that indicates the image identifier already exists.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagealreadyexistserror
+    """
+
+    MESSAGE_ALREADY_EXISTS = 4090001
+    """
+    An error that indicates the message identifier already exists.
+
+    https://developer.apple.com/documentation/retentionmessaging/messagealreadyexistserror
     """
 
     RATE_LIMIT_EXCEEDED = 4290000
@@ -557,16 +659,22 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
         super().__init__(signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id, environment=environment)
     
-    def _make_request(self, path: str, method: str, queryParameters: Dict[str, Union[str, List[str]]], body, destination_class: Type[T]) -> T:
+    def _make_request(self, path: str, method: str, queryParameters: Dict[str, Union[str, List[str]]], body, destination_class: Type[T], content_type: Optional[str] = None) -> T:
         url = self._get_full_url(path)
-        json = self._get_request_json(body)
         headers = self._get_headers()
-        
-        response = self._execute_request(method, url, queryParameters, headers, json)
+
+        if isinstance(body, bytes):
+            if content_type:
+                headers['Content-Type'] = content_type
+            response = self._execute_request(method, url, queryParameters, headers, None, body)
+        else:
+            json = self._get_request_json(body)
+            response = self._execute_request(method, url, queryParameters, headers, json, None)
+
         return self._parse_response(response.status_code, response.headers, lambda: response.json(), destination_class)
 
-    def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any]) -> requests.Response:
-        return requests.request(method, url, params=params, headers=headers, json=json)
+    def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Optional[Dict[str, Any]], data: Optional[bytes]) -> requests.Response:
+        return requests.request(method, url, params=params, headers=headers, json=json, data=data)
 
     def extend_renewal_date_for_all_active_subscribers(self, mass_extend_renewal_date_request: MassExtendRenewalDateRequest) -> MassExtendRenewalDateResponse: 
         """
@@ -577,7 +685,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates the server successfully received the subscription-renewal-date extension request.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/subscriptions/extend/mass", "POST", {}, mass_extend_renewal_date_request, MassExtendRenewalDateResponse)
+        return self._make_request("/inApps/v1/subscriptions/extend/mass", "POST", {}, mass_extend_renewal_date_request, MassExtendRenewalDateResponse, None)
 
     def extend_subscription_renewal_date(self, original_transaction_id: str, extend_renewal_date_request: ExtendRenewalDateRequest) -> ExtendRenewalDateResponse:
         """
@@ -589,7 +697,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates whether an individual renewal-date extension succeeded, and related details.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse)
+        return self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
     
     def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
@@ -605,7 +713,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if status is not None:
             queryParameters["status"] = [s.value for s in status]
         
-        return self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse)
+        return self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse, None)
     
     def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
@@ -622,7 +730,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if revision is not None:
             queryParameters["revision"] = [revision]
         
-        return self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse)
+        return self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse, None)
     
     def get_status_of_subscription_renewal_date_extensions(self, request_identifier: str, product_id: str) -> MassExtendRenewalDateStatusResponse:
         """
@@ -634,7 +742,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/subscriptions/extend/mass/" + product_id + "/" + request_identifier, "GET", {}, None, MassExtendRenewalDateStatusResponse)
+        return self._make_request("/inApps/v1/subscriptions/extend/mass/" + product_id + "/" + request_identifier, "GET", {}, None, MassExtendRenewalDateStatusResponse, None)
     
     def get_test_notification_status(self, test_notification_token: str) -> CheckTestNotificationResponse:
         """
@@ -645,7 +753,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains the contents of the test notification sent by the App Store server and the result from your server.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse)
+        return self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse, None)
     
     def get_notification_history(self, pagination_token: Optional[str], notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
         """
@@ -661,7 +769,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if pagination_token is not None:
             queryParameters["paginationToken"] = [pagination_token]
         
-        return self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse)
+        return self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse, None)
 
     def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
         """
@@ -703,7 +811,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
-        return self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse)
+        return self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse, None)
     
     def get_transaction_info(self, transaction_id: str) -> TransactionInfoResponse:
         """
@@ -714,7 +822,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains signed transaction information for a single transaction.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/transactions/" + transaction_id, "GET", {}, None, TransactionInfoResponse)
+        return self._make_request("/inApps/v1/transactions/" + transaction_id, "GET", {}, None, TransactionInfoResponse, None)
 
     def look_up_order_id(self, order_id: str) -> OrderLookupResponse:
         """
@@ -725,7 +833,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that includes the order lookup status and an array of signed transactions for the in-app purchases in the order.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/lookup/" + order_id, "GET", {}, None, OrderLookupResponse)
+        return self._make_request("/inApps/v1/lookup/" + order_id, "GET", {}, None, OrderLookupResponse, None)
     def request_test_notification(self) -> SendTestNotificationResponse:
         """
         Ask App Store Server Notifications to send a test notification to your server.
@@ -734,7 +842,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains the test notification token.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/notifications/test", "POST", {}, None, SendTestNotificationResponse)
+        return self._make_request("/inApps/v1/notifications/test", "POST", {}, None, SendTestNotificationResponse, None)
 
     def send_consumption_data(self, transaction_id: str, consumption_request: ConsumptionRequest):
         """
@@ -745,7 +853,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param consumption_request:    The request body containing consumption information.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None)
+        self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None, None)
 
     def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
         """
@@ -756,7 +864,92 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param update_app_account_token_request The request body that contains a valid app account token value.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None)
+        self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None, None)
+
+    def upload_image(self, image_identifier: UUID, image: bytes):
+        """
+        Upload an image to use for retention messaging.
+
+        :param image_identifier: A UUID you provide to uniquely identify the image you upload.
+        :param image: The image file to upload.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/upload-image
+        """
+        self._make_request(f"/inApps/v1/messaging/image/{image_identifier}", "PUT", {}, image, None, "image/png")
+
+    def delete_image(self, image_identifier: UUID):
+        """
+        Delete a previously uploaded image.
+
+        :param image_identifier: The identifier of the image to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/delete-image
+        """
+        self._make_request(f"/inApps/v1/messaging/image/{image_identifier}", "DELETE", {}, None, None, None)
+
+    def get_image_list(self) -> GetImageListResponse:
+        """
+        Get the image identifier and state for all uploaded images.
+
+        :return: A response that contains status information for all images.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/get-image-list
+        """
+        return self._make_request("/inApps/v1/messaging/image/list", "GET", {}, None, GetImageListResponse, None)
+
+    def upload_message(self, message_identifier: UUID, upload_message_request_body: UploadMessageRequestBody):
+        """
+        Upload a message to use for retention messaging.
+
+        :param message_identifier: A UUID you provide to uniquely identify the message you upload.
+        :param upload_message_request_body: The message text to upload.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/upload-message
+        """
+        self._make_request(f"/inApps/v1/messaging/message/{message_identifier}", "PUT", {}, upload_message_request_body, None, None)
+
+    def delete_message(self, message_identifier: UUID):
+        """
+        Delete a previously uploaded message.
+
+        :param message_identifier: The identifier of the message to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/delete-message
+        """
+        self._make_request(f"/inApps/v1/messaging/message/{message_identifier}", "DELETE", {}, None, None, None)
+
+    def get_message_list(self) -> GetMessageListResponse:
+        """
+        Get the message identifier and state of all uploaded messages.
+
+        :return: A response that contains status information for all messages.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/get-message-list
+        """
+        return self._make_request("/inApps/v1/messaging/message/list", "GET", {}, None, GetMessageListResponse, None)
+
+    def configure_default_message(self, product_id: str, locale: str, default_configuration_request: DefaultConfigurationRequest):
+        """
+        Configure a default message for a specific product in a specific locale.
+
+        :param product_id: The product identifier for the default configuration.
+        :param locale: The locale for the default configuration.
+        :param default_configuration_request: The request body that includes the message identifier to configure as the default message.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/configure-default-message
+        """
+        self._make_request(f"/inApps/v1/messaging/default/{product_id}/{locale}", "PUT", {}, default_configuration_request, None, None)
+
+    def delete_default_message(self, product_id: str, locale: str):
+        """
+        Delete a default message for a product in a locale.
+
+        :param product_id: The product ID of the default message configuration.
+        :param locale: The locale of the default message configuration.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/delete-default-message
+        """
+        self._make_request(f"/inApps/v1/messaging/default/{product_id}/{locale}", "DELETE", {}, None, None, None)
 
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
@@ -770,16 +963,24 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     async def async_close(self):
         await self.http_client.aclose()
     
-    async def _make_request(self, path: str, method: str, queryParameters: Dict[str, Union[str, List[str]]], body, destination_class: Type[T]) -> T:
+    async def _make_request(self, path: str, method: str, queryParameters: Dict[str, Union[str, List[str]]], body, destination_class: Type[T], content_type: Optional[str] = None) -> T:
         url = self._get_full_url(path)
-        json = self._get_request_json(body)
         headers = self._get_headers()
-        
-        response = await self._execute_request(method, url, queryParameters, headers, json)
+
+        if isinstance(body, bytes):
+            # For binary data like images
+            if content_type:
+                headers['Content-Type'] = content_type
+            response = await self._execute_request(method, url, queryParameters, headers, None, body)
+        else:
+            # For JSON data
+            json = self._get_request_json(body)
+            response = await self._execute_request(method, url, queryParameters, headers, json, None)
+
         return self._parse_response(response.status_code, response.headers, lambda: response.json(), destination_class)
 
-    async def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any]):
-        return await self.http_client.request(method, url, params=params, headers=headers, json=json)
+    async def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Optional[Dict[str, Any]], data: Optional[bytes]):
+        return await self.http_client.request(method, url, params=params, headers=headers, json=json, data=data)
 
     async def extend_renewal_date_for_all_active_subscribers(self, mass_extend_renewal_date_request: MassExtendRenewalDateRequest) -> MassExtendRenewalDateResponse: 
         """
@@ -790,7 +991,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates the server successfully received the subscription-renewal-date extension request.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/subscriptions/extend/mass", "POST", {}, mass_extend_renewal_date_request, MassExtendRenewalDateResponse)
+        return await self._make_request("/inApps/v1/subscriptions/extend/mass", "POST", {}, mass_extend_renewal_date_request, MassExtendRenewalDateResponse, None)
 
     async def extend_subscription_renewal_date(self, original_transaction_id: str, extend_renewal_date_request: ExtendRenewalDateRequest) -> ExtendRenewalDateResponse:
         """
@@ -802,7 +1003,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates whether an individual renewal-date extension succeeded, and related details.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse)
+        return await self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
     
     async def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
@@ -818,7 +1019,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if status is not None:
             queryParameters["status"] = [s.value for s in status]
         
-        return await self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse)
+        return await self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse, None)
     
     async def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
@@ -835,7 +1036,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if revision is not None:
             queryParameters["revision"] = [revision]
         
-        return await self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse)
+        return await self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse, None)
     
     async def get_status_of_subscription_renewal_date_extensions(self, request_identifier: str, product_id: str) -> MassExtendRenewalDateStatusResponse:
         """
@@ -847,7 +1048,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/subscriptions/extend/mass/" + product_id + "/" + request_identifier, "GET", {}, None, MassExtendRenewalDateStatusResponse)
+        return await self._make_request("/inApps/v1/subscriptions/extend/mass/" + product_id + "/" + request_identifier, "GET", {}, None, MassExtendRenewalDateStatusResponse, None)
     
     async def get_test_notification_status(self, test_notification_token: str) -> CheckTestNotificationResponse:
         """
@@ -858,7 +1059,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains the contents of the test notification sent by the App Store server and the result from your server.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse)
+        return await self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse, None)
     
     async def get_notification_history(self, pagination_token: Optional[str], notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
         """
@@ -874,7 +1075,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if pagination_token is not None:
             queryParameters["paginationToken"] = [pagination_token]
         
-        return await self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse)
+        return await self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse, None)
 
     async def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
         """
@@ -916,7 +1117,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
-        return await self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse)
+        return await self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse, None)
     
     async def get_transaction_info(self, transaction_id: str) -> TransactionInfoResponse:
         """
@@ -927,7 +1128,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains signed transaction information for a single transaction.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/transactions/" + transaction_id, "GET", {}, None, TransactionInfoResponse)
+        return await self._make_request("/inApps/v1/transactions/" + transaction_id, "GET", {}, None, TransactionInfoResponse, None)
 
     async def look_up_order_id(self, order_id: str) -> OrderLookupResponse:
         """
@@ -938,7 +1139,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that includes the order lookup status and an array of signed transactions for the in-app purchases in the order.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/lookup/" + order_id, "GET", {}, None, OrderLookupResponse)
+        return await self._make_request("/inApps/v1/lookup/" + order_id, "GET", {}, None, OrderLookupResponse, None)
     async def request_test_notification(self) -> SendTestNotificationResponse:
         """
         Ask App Store Server Notifications to send a test notification to your server.
@@ -947,7 +1148,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains the test notification token.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/notifications/test", "POST", {}, None, SendTestNotificationResponse)
+        return await self._make_request("/inApps/v1/notifications/test", "POST", {}, None, SendTestNotificationResponse, None)
 
     async def send_consumption_data(self, transaction_id: str, consumption_request: ConsumptionRequest):
         """
@@ -958,7 +1159,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param consumption_request:    The request body containing consumption information.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        await self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None)
+        await self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None, None)
 
     async def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
         """
@@ -969,4 +1170,89 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param update_app_account_token_request The request body that contains a valid app account token value.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        await self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None)
+        await self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None, None)
+
+    async def upload_image(self, image_identifier: UUID, image: bytes):
+        """
+        Upload an image to use for retention messaging.
+
+        :param image_identifier: A UUID you provide to uniquely identify the image you upload.
+        :param image: The image file to upload.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/upload-image
+        """
+        await self._make_request(f"/inApps/v1/messaging/image/{image_identifier}", "PUT", {}, image, None, "image/png")
+
+    async def delete_image(self, image_identifier: UUID):
+        """
+        Delete a previously uploaded image.
+
+        :param image_identifier: The identifier of the image to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/delete-image
+        """
+        await self._make_request(f"/inApps/v1/messaging/image/{image_identifier}", "DELETE", {}, None, None, None)
+
+    async def get_image_list(self) -> GetImageListResponse:
+        """
+        Get the image identifier and state for all uploaded images.
+
+        :return: A response that contains status information for all images.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/get-image-list
+        """
+        return await self._make_request("/inApps/v1/messaging/image/list", "GET", {}, None, GetImageListResponse, None)
+
+    async def upload_message(self, message_identifier: UUID, upload_message_request_body: UploadMessageRequestBody):
+        """
+        Upload a message to use for retention messaging.
+
+        :param message_identifier: A UUID you provide to uniquely identify the message you upload.
+        :param upload_message_request_body: The message text to upload.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/upload-message
+        """
+        await self._make_request(f"/inApps/v1/messaging/message/{message_identifier}", "PUT", {}, upload_message_request_body, None, None)
+
+    async def delete_message(self, message_identifier: UUID):
+        """
+        Delete a previously uploaded message.
+
+        :param message_identifier: The identifier of the message to delete.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/delete-message
+        """
+        await self._make_request(f"/inApps/v1/messaging/message/{message_identifier}", "DELETE", {}, None, None, None)
+
+    async def get_message_list(self) -> GetMessageListResponse:
+        """
+        Get the message identifier and state of all uploaded messages.
+
+        :return: A response that contains status information for all messages.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/get-message-list
+        """
+        return await self._make_request("/inApps/v1/messaging/message/list", "GET", {}, None, GetMessageListResponse, None)
+
+    async def configure_default_message(self, product_id: str, locale: str, default_configuration_request: DefaultConfigurationRequest):
+        """
+        Configure a default message for a specific product in a specific locale.
+
+        :param product_id: The product identifier for the default configuration.
+        :param locale: The locale for the default configuration.
+        :param default_configuration_request: The request body that includes the message identifier to configure as the default message.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/configure-default-message
+        """
+        await self._make_request(f"/inApps/v1/messaging/default/{product_id}/{locale}", "PUT", {}, default_configuration_request, None, None)
+
+    async def delete_default_message(self, product_id: str, locale: str):
+        """
+        Delete a default message for a product in a locale.
+
+        :param product_id: The product ID of the default message configuration.
+        :param locale: The locale of the default message configuration.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/retentionmessaging/delete-default-message
+        """
+        await self._make_request(f"/inApps/v1/messaging/default/{product_id}/{locale}", "DELETE", {}, None, None, None)

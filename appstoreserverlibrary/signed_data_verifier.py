@@ -19,6 +19,7 @@ from OpenSSL import crypto
 from appstoreserverlibrary.models.AppTransaction import AppTransaction
 from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 
+from .models.DecodedRealtimeRequestBody import DecodedRealtimeRequestBody
 from .models.Environment import Environment
 from .models.ResponseBodyV2DecodedPayload import ResponseBodyV2DecodedPayload
 from .models.JWSTransactionDecodedPayload import JWSTransactionDecodedPayload
@@ -130,6 +131,23 @@ class SignedDataVerifier:
         if environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
         return decoded_app_transaction
+
+    def verify_and_decode_realtime_request(self, signed_payload: str) -> DecodedRealtimeRequestBody:
+        """
+        Verifies and decodes a Retention Messaging API signedPayload
+        See https://developer.apple.com/documentation/retentionmessaging/signedpayload
+
+        :param signedPayload: The payload received by your server
+        :return: The decoded payload after verification
+        :throws VerificationException: Thrown if the data could not be verified
+        """
+        decoded_dict = self._decode_signed_object(signed_payload)
+        decoded_realtime_request = _get_cattrs_converter(DecodedRealtimeRequestBody).structure(decoded_dict, DecodedRealtimeRequestBody)
+        if self._environment == Environment.PRODUCTION and decoded_realtime_request.appAppleId != self._app_apple_id:
+            raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
+        if decoded_realtime_request.environment != self._environment:
+            raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
+        return decoded_realtime_request
 
     def _decode_signed_object(self, signed_obj: str) -> dict:
         try:

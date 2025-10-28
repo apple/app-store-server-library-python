@@ -2,6 +2,7 @@
 
 from typing import Optional
 import unittest
+from uuid import UUID
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
 from appstoreserverlibrary.models.ConsumptionRequestReason import ConsumptionRequestReason
 from appstoreserverlibrary.models.Environment import Environment
@@ -264,3 +265,18 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148950000, notification.externalPurchaseToken.tokenCreationDate)
         self.assertEqual(55555, notification.externalPurchaseToken.appAppleId)
         self.assertEqual("com.example", notification.externalPurchaseToken.bundleId)
+    
+    def test_realtime_request_decoding(self):
+        signed_realtime_request = create_signed_data_from_json('tests/resources/models/decodedRealtimeRequest.json')
+
+        signed_data_verifier = get_default_signed_data_verifier()
+        request = signed_data_verifier.verify_and_decode_realtime_request(signed_realtime_request)
+
+        self.assertEqual('99371282', request.originalTransactionId)
+        self.assertEqual(531412, request.appAppleId)
+        self.assertEqual('com.example.product', request.productId)
+        self.assertEqual('en-US', request.userLocale)
+        self.assertEqual(UUID('3db5c98d-8acf-4e29-831e-8e1f82f9f6e9'), request.requestIdentifier)
+        self.assertEqual(Environment.LOCAL_TESTING, request.environment)
+        self.assertEqual('LocalTesting', request.rawEnvironment)
+        self.assertEqual(1698148900000, request.signedDate)

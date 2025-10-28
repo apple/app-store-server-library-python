@@ -25,7 +25,7 @@ jobs:
     - name: Spinx build
       run: sphinx-build -b html _staging _build
     - name: Upload docs
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
       with:
         path: _build
   deploy:

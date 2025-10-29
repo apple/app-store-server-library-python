@@ -654,6 +654,71 @@ class DecodedPayloads(unittest.TestCase):
                                            None)
         client.delete_default_message('com.example.product', 'en-US')
 
+    def test_get_app_transaction_info_success(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/appTransactionInfoResponse.json',
+                                            'GET',
+                                            'https://local-testing-base-url/inApps/v1/transactions/appTransactions/1234',
+                                            {},
+                                            None)
+
+        app_transaction_info_response = client.get_app_transaction_info('1234')
+
+        self.assertIsNotNone(app_transaction_info_response)
+        self.assertEqual('signed_app_transaction_info_value', app_transaction_info_response.signedAppTransactionInfo)
+
+    def test_get_app_transaction_info_invalid_transaction_id(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/invalidTransactionIdError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/inApps/v1/transactions/appTransactions/invalid_id',
+                                                      {},
+                                                      None,
+                                                      400)
+        try:
+            client.get_app_transaction_info('invalid_id')
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000006, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_TRANSACTION_ID, e.api_error)
+            self.assertEqual("Invalid transaction id.", e.error_message)
+            return
+        self.assertFalse(True)
+
+    def test_get_app_transaction_info_app_transaction_does_not_exist(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/appTransactionDoesNotExistError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/inApps/v1/transactions/appTransactions/nonexistent_id',
+                                                      {},
+                                                      None,
+                                                      404)
+        try:
+            client.get_app_transaction_info('nonexistent_id')
+        except APIException as e:
+             self.assertEqual(404, e.http_status_code)
+             self.assertEqual(4040019, e.raw_api_error)
+             self.assertEqual(APIError.APP_TRANSACTION_DOES_NOT_EXIST_ERROR, e.api_error)
+             self.assertEqual("No AppTransaction exists for the customer.", e.error_message)
+             return
+
+        self.assertFalse(True)
+
+    def test_get_app_transaction_info_transaction_id_not_found(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionIdNotFoundError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/inApps/v1/transactions/appTransactions/not_found_id',
+                                                      {},
+                                                      None,
+                                                      404)
+        try:
+            client.get_app_transaction_info('not_found_id')
+        except APIException as e:
+            self.assertEqual(404, e.http_status_code)
+            self.assertEqual(4040010, e.raw_api_error)
+            self.assertEqual(APIError.TRANSACTION_ID_NOT_FOUND, e.api_error)
+            self.assertEqual("Transaction id not found.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
 
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')

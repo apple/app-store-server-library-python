@@ -33,6 +33,7 @@ from .models.Status import Status
 from .models.StatusResponse import StatusResponse
 from .models.TransactionHistoryRequest import TransactionHistoryRequest
 from .models.TransactionInfoResponse import TransactionInfoResponse
+from .models.AppTransactionInfoResponse import AppTransactionInfoResponse
 from .models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 from .models.UploadMessageRequestBody import UploadMessageRequestBody
 from uuid import UUID
@@ -528,6 +529,13 @@ class APIError(IntEnum):
     https://developer.apple.com/documentation/retentionmessaging/messagenotfounderror
     """
 
+    APP_TRANSACTION_DOES_NOT_EXIST_ERROR = 4040019
+    """
+    An error response that indicates an app transaction doesn’t exist for the specified customer.
+    
+    https://developer.apple.com/documentation/appstoreserverapi/apptransactiondoesnotexisterror
+    """
+
     IMAGE_ALREADY_EXISTS = 4090000
     """
     An error that indicates the image identifier already exists.
@@ -627,7 +635,7 @@ class BaseAppStoreServerAPIClient:
     def _get_headers(self) -> Dict[str, str]:
         return {
             'User-Agent': "app-store-server-library/python/1.9.0",
-            'Authorization': 'Bearer ' + self._generate_token(),
+            'Authorization': f'Bearer {self._generate_token()}',
             'Accept': 'application/json'
         }
     
@@ -697,7 +705,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates whether an individual renewal-date extension succeeded, and related details.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
+        return self._make_request(f"/inApps/v1/subscriptions/extend/{original_transaction_id}", "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
     
     def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
@@ -713,7 +721,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if status is not None:
             queryParameters["status"] = [s.value for s in status]
         
-        return self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse, None)
+        return self._make_request(f"/inApps/v1/subscriptions/{transaction_id}", "GET", queryParameters, None, StatusResponse, None)
     
     def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
@@ -730,7 +738,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if revision is not None:
             queryParameters["revision"] = [revision]
         
-        return self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse, None)
+        return self._make_request(f"/inApps/v2/refund/lookup/{transaction_id}", "GET", queryParameters, None, RefundHistoryResponse, None)
     
     def get_status_of_subscription_renewal_date_extensions(self, request_identifier: str, product_id: str) -> MassExtendRenewalDateStatusResponse:
         """
@@ -742,7 +750,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/subscriptions/extend/mass/" + product_id + "/" + request_identifier, "GET", {}, None, MassExtendRenewalDateStatusResponse, None)
+        return self._make_request(f"/inApps/v1/subscriptions/extend/mass/{product_id}/{request_identifier}", "GET", {}, None, MassExtendRenewalDateStatusResponse, None)
     
     def get_test_notification_status(self, test_notification_token: str) -> CheckTestNotificationResponse:
         """
@@ -753,7 +761,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains the contents of the test notification sent by the App Store server and the result from your server.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse, None)
+        return self._make_request(f"/inApps/v1/notifications/test/{test_notification_token}", "GET", {}, None, CheckTestNotificationResponse, None)
     
     def get_notification_history(self, pagination_token: Optional[str], notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
         """
@@ -811,7 +819,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
-        return self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse, None)
+        return self._make_request("/inApps/{}/history/{}".format(version.value, transaction_id), "GET", queryParameters, None, HistoryResponse, None)
     
     def get_transaction_info(self, transaction_id: str) -> TransactionInfoResponse:
         """
@@ -822,7 +830,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains signed transaction information for a single transaction.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/transactions/" + transaction_id, "GET", {}, None, TransactionInfoResponse, None)
+        return self._make_request(f"/inApps/v1/transactions/{transaction_id}", "GET", {}, None, TransactionInfoResponse, None)
 
     def look_up_order_id(self, order_id: str) -> OrderLookupResponse:
         """
@@ -833,7 +841,8 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that includes the order lookup status and an array of signed transactions for the in-app purchases in the order.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return self._make_request("/inApps/v1/lookup/" + order_id, "GET", {}, None, OrderLookupResponse, None)
+        return self._make_request(f"/inApps/v1/lookup/{order_id}", "GET", {}, None, OrderLookupResponse, None)
+    
     def request_test_notification(self) -> SendTestNotificationResponse:
         """
         Ask App Store Server Notifications to send a test notification to your server.
@@ -853,7 +862,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param consumption_request:    The request body containing consumption information.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None, None)
+        self._make_request(f"/inApps/v1/transactions/consumption/{transaction_id}", "PUT", {}, consumption_request, None, None)
 
     def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
         """
@@ -864,7 +873,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param update_app_account_token_request The request body that contains a valid app account token value.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None, None)
+        self._make_request(f"/inApps/v1/transactions/{original_transaction_id}/appAccountToken", "PUT", {}, update_app_account_token_request, None, None)
 
     def upload_image(self, image_identifier: UUID, image: bytes):
         """
@@ -950,6 +959,17 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :see: https://developer.apple.com/documentation/retentionmessaging/delete-default-message
         """
         self._make_request(f"/inApps/v1/messaging/default/{product_id}/{locale}", "DELETE", {}, None, None, None)
+    
+    def get_app_transaction_info(self, transaction_id: str) -> AppTransactionInfoResponse:
+        """
+        Get a customer's app transaction information for your app.
+        
+        :param transaction_id Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.
+        :return: A response that contains signed app transaction information for a customer.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info
+        """
+        return self._make_request(f"/inApps/v1/transactions/appTransactions/{transaction_id}", "GET", {}, None, AppTransactionInfoResponse, None)
 
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
@@ -1003,7 +1023,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates whether an individual renewal-date extension succeeded, and related details.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/subscriptions/extend/" + original_transaction_id, "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
+        return await self._make_request(f"/inApps/v1/subscriptions/extend/{original_transaction_id}", "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
     
     async def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
@@ -1019,7 +1039,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if status is not None:
             queryParameters["status"] = [s.value for s in status]
         
-        return await self._make_request("/inApps/v1/subscriptions/" + transaction_id, "GET", queryParameters, None, StatusResponse, None)
+        return await self._make_request(f"/inApps/v1/subscriptions/{transaction_id}", "GET", queryParameters, None, StatusResponse, None)
     
     async def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
@@ -1036,7 +1056,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if revision is not None:
             queryParameters["revision"] = [revision]
         
-        return await self._make_request("/inApps/v2/refund/lookup/" + transaction_id, "GET", queryParameters, None, RefundHistoryResponse, None)
+        return await self._make_request(f"/inApps/v2/refund/lookup/{transaction_id}", "GET", queryParameters, None, RefundHistoryResponse, None)
     
     async def get_status_of_subscription_renewal_date_extensions(self, request_identifier: str, product_id: str) -> MassExtendRenewalDateStatusResponse:
         """
@@ -1048,7 +1068,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/subscriptions/extend/mass/" + product_id + "/" + request_identifier, "GET", {}, None, MassExtendRenewalDateStatusResponse, None)
+        return await self._make_request(f"/inApps/v1/subscriptions/extend/mass/{product_id}/{request_identifier}", "GET", {}, None, MassExtendRenewalDateStatusResponse, None)
     
     async def get_test_notification_status(self, test_notification_token: str) -> CheckTestNotificationResponse:
         """
@@ -1059,7 +1079,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains the contents of the test notification sent by the App Store server and the result from your server.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/notifications/test/" + test_notification_token, "GET", {}, None, CheckTestNotificationResponse, None)
+        return await self._make_request(f"/inApps/v1/notifications/test/{test_notification_token}", "GET", {}, None, CheckTestNotificationResponse, None)
     
     async def get_notification_history(self, pagination_token: Optional[str], notification_history_request: NotificationHistoryRequest) -> NotificationHistoryResponse:
         """
@@ -1128,7 +1148,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that contains signed transaction information for a single transaction.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/transactions/" + transaction_id, "GET", {}, None, TransactionInfoResponse, None)
+        return await self._make_request(f"/inApps/v1/transactions/{transaction_id}", "GET", {}, None, TransactionInfoResponse, None)
 
     async def look_up_order_id(self, order_id: str) -> OrderLookupResponse:
         """
@@ -1139,7 +1159,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :return: A response that includes the order lookup status and an array of signed transactions for the in-app purchases in the order.
         :throws APIException: If a response was returned indicating the request could not be processed
         """
-        return await self._make_request("/inApps/v1/lookup/" + order_id, "GET", {}, None, OrderLookupResponse, None)
+        return await self._make_request(f"/inApps/v1/lookup/{order_id}", "GET", {}, None, OrderLookupResponse, None)
     async def request_test_notification(self) -> SendTestNotificationResponse:
         """
         Ask App Store Server Notifications to send a test notification to your server.
@@ -1159,7 +1179,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param consumption_request:    The request body containing consumption information.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        await self._make_request("/inApps/v1/transactions/consumption/" + transaction_id, "PUT", {}, consumption_request, None, None)
+        await self._make_request(f"/inApps/v1/transactions/consumption/{transaction_id}", "PUT", {}, consumption_request, None, None)
 
     async def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
         """
@@ -1170,7 +1190,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :param update_app_account_token_request The request body that contains a valid app account token value.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
-        await self._make_request("/inApps/v1/transactions/" + original_transaction_id + "/appAccountToken", "PUT", {}, update_app_account_token_request, None, None)
+        await self._make_request(f"/inApps/v1/transactions/{original_transaction_id}/appAccountToken", "PUT", {}, update_app_account_token_request, None, None)
 
     async def upload_image(self, image_identifier: UUID, image: bytes):
         """
@@ -1256,3 +1276,15 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :see: https://developer.apple.com/documentation/retentionmessaging/delete-default-message
         """
         await self._make_request(f"/inApps/v1/messaging/default/{product_id}/{locale}", "DELETE", {}, None, None, None)
+    
+    async def get_app_transaction_info(self, transaction_id: str) -> AppTransactionInfoResponse:
+        """
+        Get a customer's app transaction information for your app.
+        
+        :param transaction_id Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.
+        :return: A response that contains signed app transaction information for a customer.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info
+        """
+        return await self._make_request(f"/inApps/v1/transactions/appTransactions/{transaction_id}", "GET", {}, None, AppTransactionInfoResponse, None)
+    

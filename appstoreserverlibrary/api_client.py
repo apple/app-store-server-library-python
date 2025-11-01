@@ -682,7 +682,7 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         return self._parse_response(response.status_code, response.headers, lambda: response.json(), destination_class)
 
     def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Optional[Dict[str, Any]], data: Optional[bytes]) -> requests.Response:
-        return requests.request(method, url, params=params, headers=headers, json=json, data=data)
+        return requests.request(method, url, params=params, headers=headers, json=json, data=data, timeout=30)
 
     def extend_renewal_date_for_all_active_subscribers(self, mass_extend_renewal_date_request: MassExtendRenewalDateRequest) -> MassExtendRenewalDateResponse: 
         """
@@ -1000,7 +1000,7 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         return self._parse_response(response.status_code, response.headers, lambda: response.json(), destination_class)
 
     async def _execute_request(self, method: str, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Optional[Dict[str, Any]], data: Optional[bytes]):
-        return await self.http_client.request(method, url, params=params, headers=headers, json=json, data=data)
+        return await self.http_client.request(method, url, params=params, headers=headers, json=json, data=data, timeout=30)
 
     async def extend_renewal_date_for_all_active_subscribers(self, mass_extend_renewal_date_request: MassExtendRenewalDateRequest) -> MassExtendRenewalDateResponse: 
         """

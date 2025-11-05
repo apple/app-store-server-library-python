@@ -93,7 +93,7 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
 
     offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType')
     """
-    The type of the subscription offer.
+    The type of subscription offer.
     
     https://developer.apple.com/documentation/appstoreserverapi/offertype
     """
@@ -105,7 +105,7 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
 
     offerIdentifier: Optional[str] = attr.ib(default=None)
     """
-    The identifier that contains the promo code or the promotional offer identifier.
+    The offer code or the promotional offer identifier.
     
     https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
     """
@@ -159,7 +159,7 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
 
     offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType')
     """
-    The payment mode of the discount offer.
+    The payment mode you configure for the offer.
     
     https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype
     """

@@ -132,7 +132,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
 
     revocationReason: Optional[RevocationReason] = RevocationReason.create_main_attr('rawRevocationReason')
     """
-    The reason that the App Store refunded the transaction or revoked it from family sharing.
+    The reason that the App Store refunded the transaction or revoked it from Family Sharing.
     
     https://developer.apple.com/documentation/appstoreserverapi/revocationreason
     """
@@ -170,7 +170,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
 
     offerIdentifier: Optional[str] = attr.ib(default=None)
     """
-    The identifier that contains the promo code or the promotional offer identifier.
+    The identifier that contains the offer code or the promotional offer identifier.
     
     https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
     """
@@ -229,7 +229,7 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
 
     offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType')
     """
-    The payment mode you configure for an introductory offer, promotional offer, or offer code on an auto-renewable subscription.
+    The payment mode you configure for the offer.
     
     https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype
     """

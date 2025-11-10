@@ -434,6 +434,64 @@ class DecodedPayloads(unittest.TestCase):
         
         self.assertFalse(True)
 
+    def test_api_exception_includes_response_headers(self):
+        # Test that response headers are captured in APIException
+        custom_headers = {
+            'X-Custom-Header': 'test-value',
+            'X-Another-Header': 'another-value'
+        }
+        client = self.get_client_with_body(b'{"errorCode": 4040010, "errorMessage": "Transaction id not found."}',
+                                          'POST',
+                                          'https://local-testing-base-url/inApps/v1/notifications/test',
+                                          {},
+                                          None,
+                                          404,
+                                          response_headers=custom_headers)
+        try:
+            client.request_test_notification()
+        except APIException as e:
+            self.assertEqual(404, e.http_status_code)
+            self.assertEqual(4040010, e.raw_api_error)
+            self.assertEqual(APIError.TRANSACTION_ID_NOT_FOUND, e.api_error)
+            self.assertEqual("Transaction id not found.", e.error_message)
+            # Verify response_headers are captured
+            self.assertIsNotNone(e.response_headers)
+            self.assertEqual('test-value', e.response_headers['X-Custom-Header'])
+            self.assertEqual('another-value', e.response_headers['X-Another-Header'])
+            self.assertEqual('application/json', e.response_headers['Content-Type'])
+            return
+
+        self.assertFalse(True)
+
+    def test_rate_limit_with_retry_after_header(self):
+        # Test that Retry-After header is accessible for rate limiting
+        retry_after_time = '1699564800000'  # Unix time in milliseconds
+        rate_limit_headers = {
+            'Retry-After': retry_after_time,
+            'X-Rate-Limit-Remaining': '0'
+        }
+        client = self.get_client_with_body(b'{"errorCode": 4290000, "errorMessage": "Rate limit exceeded."}',
+                                          'POST',
+                                          'https://local-testing-base-url/inApps/v1/notifications/test',
+                                          {},
+                                          None,
+                                          429,
+                                          response_headers=rate_limit_headers)
+        try:
+            client.request_test_notification()
+        except APIException as e:
+            self.assertEqual(429, e.http_status_code)
+            self.assertEqual(4290000, e.raw_api_error)
+            self.assertEqual(APIError.RATE_LIMIT_EXCEEDED, e.api_error)
+            self.assertEqual("Rate limit exceeded.", e.error_message)
+            # Verify Retry-After header is accessible
+            self.assertIsNotNone(e.response_headers)
+            self.assertEqual(retry_after_time, e.response_headers['Retry-After'])
+            self.assertEqual('0', e.response_headers['X-Rate-Limit-Remaining'])
+            return
+
+        self.assertFalse(True)
+
     def test_get_transaction_history_with_unknown_environment(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponseWithMalformedEnvironment.json',
                                            'GET',
@@ -723,7 +781,7 @@ class DecodedPayloads(unittest.TestCase):
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
 
-    def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, expected_data: bytes = None, expected_content_type: str = None):
+    def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, expected_data: bytes = None, expected_content_type: str = None, response_headers: Dict[str, str] = None):
         signing_key = self.get_signing_key()
         client = AppStoreServerAPIClient(signing_key, 'keyId', 'issuerId', 'com.example', Environment.LOCAL_TESTING)
         def fake_execute_and_validate_inputs(method: bytes, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any], data: bytes):
@@ -753,6 +811,9 @@ class DecodedPayloads(unittest.TestCase):
             response.status_code = status_code
             response.raw = BytesIO(body)
             response.headers['Content-Type'] = 'application/json'
+            if response_headers:
+                for key, value in response_headers.items():
+                    response.headers[key] = value
             return response
 
         client._execute_request = fake_execute_and_validate_inputs

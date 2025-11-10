@@ -574,16 +574,32 @@ class APIError(IntEnum):
 
 @define
 class APIException(Exception):
+    """
+    Exception raised when the App Store Server API returns an error response.
+
+    Attributes:
+        http_status_code: The HTTP status code from the response
+        api_error: The parsed APIError enum value, if recognized
+        raw_api_error: The raw error code from the API response
+        error_message: The error message from the API response
+        response_headers: HTTP response headers from the error response. This is useful for accessing
+            rate limiting information such as the 'Retry-After' header when receiving a 429 response.
+            Note: Header key casing depends on the HTTP client library used. The async client (httpx)
+            normalizes all header keys to lowercase, while the sync client (requests) uses case-insensitive
+            access. For portability, use lowercase header keys (e.g., 'retry-after' instead of 'Retry-After').
+    """
     http_status_code: int
     api_error: Optional[APIError]
     raw_api_error: Optional[int]
     error_message: Optional[str]
+    response_headers: Optional[Dict[str, str]] = None
 
-    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None):
+    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None, response_headers: Optional[Dict[str, str]] = None):
         self.http_status_code = http_status_code
         self.raw_api_error = raw_api_error
         self.api_error = None
         self.error_message = error_message
+        self.response_headers = response_headers or {}
         try:
             if raw_api_error is not None:
                 self.api_error = APIError(raw_api_error)
@@ -653,14 +669,14 @@ class BaseAppStoreServerAPIClient:
         else:
             # Best effort parsing of the response body
             if not 'content-type' in headers or headers['content-type'] != 'application/json':
-                raise APIException(status_code)
+                raise APIException(status_code, response_headers=dict(headers))
             try:
                 response_body = json_supplier()
-                raise APIException(status_code, response_body['errorCode'], response_body['errorMessage'])
+                raise APIException(status_code, response_body['errorCode'], response_body['errorMessage'], response_headers=dict(headers))
             except APIException as e:
                 raise e
             except Exception as e:
-                raise APIException(status_code) from e
+                raise APIException(status_code, response_headers=dict(headers)) from e
 
 
 class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):

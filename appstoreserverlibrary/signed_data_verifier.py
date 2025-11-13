@@ -244,12 +244,18 @@ class _ChainVerifier:
         )
         ocsps = [val for val in authority_values if val.access_method == x509.oid.AuthorityInformationAccessOID.OCSP]
         for o in ocsps:
-            r = requests.post(
-                o.access_location.value,
-                headers={"Content-Type": "application/ocsp-request"},
-                data=req.public_bytes(serialization.Encoding.DER),
-            )
-            if r.status_code == 200:
+            try:
+                r = requests.post(
+                    o.access_location.value,
+                    headers={"Content-Type": "application/ocsp-request"},
+                    data=req.public_bytes(serialization.Encoding.DER),
+                    timeout=30,
+                )
+            except (requests.exceptions.RequestException, OSError) as e:
+                raise VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE) from e
+            if r.status_code != 200:
+                raise VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE)
+            else:
                 ocsp_resp = ocsp.load_der_ocsp_response(r.content)
                 if ocsp_resp.response_status == ocsp.OCSPResponseStatus.SUCCESSFUL:
                     certs = [issuer]
@@ -352,6 +358,7 @@ class VerificationStatus(IntEnum):
     INVALID_CHAIN_LENGTH = 4
     INVALID_CHAIN = 5
     INVALID_ENVIRONMENT = 6
+    RETRYABLE_VERIFICATION_FAILURE = 7
 
 
 class VerificationException(Exception):

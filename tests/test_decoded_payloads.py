@@ -14,6 +14,7 @@ from appstoreserverlibrary.models.OfferType import OfferType
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
 from appstoreserverlibrary.models.PurchasePlatform import PurchasePlatform
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
+from appstoreserverlibrary.models.RevocationType import RevocationType
 from appstoreserverlibrary.models.Status import Status
 from appstoreserverlibrary.models.Subtype import Subtype
 from appstoreserverlibrary.models.TransactionReason import TransactionReason
@@ -86,6 +87,53 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("PAY_AS_YOU_GO", transaction.rawOfferDiscountType)
         self.assertEqual("71134", transaction.appTransactionId)
         self.assertEqual("P1Y", transaction.offerPeriod)
+
+    def test_transaction_with_revocation_decoding(self):
+        signed_transaction = create_signed_data_from_json('tests/resources/models/signedTransactionWithRevocation.json')
+
+        signed_data_verifier = get_default_signed_data_verifier()
+
+        transaction = signed_data_verifier.verify_and_decode_signed_transaction(signed_transaction)
+
+        self.assertEqual("12345", transaction.originalTransactionId)
+        self.assertEqual("23456", transaction.transactionId)
+        self.assertEqual("34343", transaction.webOrderLineItemId)
+        self.assertEqual("com.example", transaction.bundleId)
+        self.assertEqual("com.example.product", transaction.productId)
+        self.assertEqual("55555", transaction.subscriptionGroupIdentifier)
+        self.assertEqual(1698148800000, transaction.originalPurchaseDate)
+        self.assertEqual(1698148900000, transaction.purchaseDate)
+        self.assertEqual(1698148950000, transaction.revocationDate)
+        self.assertEqual(1698149000000, transaction.expiresDate)
+        self.assertEqual(1, transaction.quantity)
+        self.assertEqual(Type.AUTO_RENEWABLE_SUBSCRIPTION, transaction.type)
+        self.assertEqual("Auto-Renewable Subscription", transaction.rawType)
+        self.assertEqual("7e3fb20b-4cdb-47cc-936d-99d65f608138", transaction.appAccountToken)
+        self.assertEqual(InAppOwnershipType.PURCHASED, transaction.inAppOwnershipType)
+        self.assertEqual("PURCHASED", transaction.rawInAppOwnershipType)
+        self.assertEqual(1698148900000, transaction.signedDate)
+        self.assertEqual(RevocationReason.REFUNDED_DUE_TO_ISSUE, transaction.revocationReason)
+        self.assertEqual(1, transaction.rawRevocationReason)
+        self.assertEqual("abc.123", transaction.offerIdentifier)
+        self.assertTrue(transaction.isUpgraded)
+        self.assertEqual(OfferType.INTRODUCTORY_OFFER, transaction.offerType)
+        self.assertEqual(1, transaction.rawOfferType)
+        self.assertEqual("USA", transaction.storefront)
+        self.assertEqual("143441", transaction.storefrontId)
+        self.assertEqual(TransactionReason.PURCHASE, transaction.transactionReason)
+        self.assertEqual("PURCHASE", transaction.rawTransactionReason)
+        self.assertEqual(Environment.LOCAL_TESTING, transaction.environment)
+        self.assertEqual("LocalTesting", transaction.rawEnvironment)
+        self.assertEqual(10990, transaction.price)
+        self.assertEqual("USD", transaction.currency)
+        self.assertEqual(OfferDiscountType.PAY_AS_YOU_GO, transaction.offerDiscountType)
+        self.assertEqual("PAY_AS_YOU_GO", transaction.rawOfferDiscountType)
+        self.assertEqual("71134", transaction.appTransactionId)
+        self.assertEqual("P1Y", transaction.offerPeriod)
+        self.assertEqual(RevocationType.REFUND_PRORATED, transaction.revocationType)
+        self.assertEqual("REFUND_PRORATED", transaction.rawRevocationType)
+        self.assertEqual(50000, transaction.revocationPercentage)
+
 
     
     def test_renewal_info_decoding(self):
@@ -280,3 +328,27 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(Environment.LOCAL_TESTING, request.environment)
         self.assertEqual('LocalTesting', request.rawEnvironment)
         self.assertEqual(1698148900000, request.signedDate)
+
+    def test_rescind_consent_notification_decoding(self):
+        signed_notification = create_signed_data_from_json('tests/resources/models/signedRescindConsentNotification.json')
+
+        signed_data_verifier = get_default_signed_data_verifier()
+
+        notification = signed_data_verifier.verify_and_decode_notification(signed_notification)
+
+        self.assertEqual(NotificationTypeV2.RESCIND_CONSENT, notification.notificationType)
+        self.assertEqual("RESCIND_CONSENT", notification.rawNotificationType)
+        self.assertIsNone(notification.subtype)
+        self.assertIsNone(notification.rawSubtype)
+        self.assertEqual("002e14d5-51f5-4503-b5a8-c3a1af68eb20", notification.notificationUUID)
+        self.assertEqual("2.0", notification.version)
+        self.assertEqual(1698148900000, notification.signedDate)
+        self.assertIsNone(notification.data)
+        self.assertIsNone(notification.summary)
+        self.assertIsNone(notification.externalPurchaseToken)
+        self.assertIsNotNone(notification.appData)
+        self.assertEqual(Environment.LOCAL_TESTING, notification.appData.environment)
+        self.assertEqual("LocalTesting", notification.appData.rawEnvironment)
+        self.assertEqual(41234, notification.appData.appAppleId)
+        self.assertEqual("com.example", notification.appData.bundleId)
+        self.assertEqual("signed_app_transaction_info_value", notification.appData.signedAppTransactionInfo)

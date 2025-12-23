@@ -105,6 +105,10 @@ class SignedDataVerifier:
                 environment = Environment.SANDBOX
             else:
                 environment = Environment.PRODUCTION
+        elif decoded_signed_notification.appData:
+            bundle_id = decoded_signed_notification.appData.bundleId
+            app_apple_id = decoded_signed_notification.appData.appAppleId
+            environment = decoded_signed_notification.appData.environment
         self._verify_notification(bundle_id, app_apple_id, environment)
         return decoded_signed_notification
 

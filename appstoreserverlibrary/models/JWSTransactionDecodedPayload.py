@@ -10,6 +10,7 @@ from .InAppOwnershipType import InAppOwnershipType
 from .LibraryUtility import AttrsRawValueAware
 from .OfferType import OfferType
 from .RevocationReason import RevocationReason
+from .RevocationType import RevocationType
 from .TransactionReason import TransactionReason
 
 from .Type import Type
@@ -251,4 +252,22 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     The duration of the offer.
     
     https://developer.apple.com/documentation/appstoreserverapi/offerPeriod
+    """
+    revocationType: Optional[RevocationType] = RevocationType.create_main_attr('rawRevocationType')
+    """
+    The type of the refund or revocation that applies to the transaction.
+
+    https://developer.apple.com/documentation/appstoreservernotifications/revocationtype
+    """
+
+    rawRevocationType: Optional[str] = RevocationType.create_raw_attr('revocationType')
+    """
+    See revocationType
+    """
+
+    revocationPercentage: Optional[int] = attr.ib(default=None)
+    """
+    The percentage, in milliunits, of the transaction that the App Store has refunded or revoked.
+
+    https://developer.apple.com/documentation/appstoreservernotifications/revocationpercentage
     """

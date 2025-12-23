@@ -2,6 +2,7 @@
 
 import calendar
 import datetime
+import warnings
 from enum import IntEnum, Enum
 from typing import Any, Dict, List, MutableMapping, Optional, Type, TypeVar, Union
 from attr import define
@@ -14,6 +15,7 @@ from cryptography.hazmat.primitives import serialization
 from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 from .models.CheckTestNotificationResponse import CheckTestNotificationResponse
 from .models.ConsumptionRequest import ConsumptionRequest
+from .models.ConsumptionRequestV1 import ConsumptionRequestV1
 from .models.DefaultConfigurationRequest import DefaultConfigurationRequest
 from .models.Environment import Environment
 from .models.ExtendRenewalDateRequest import ExtendRenewalDateRequest
@@ -853,16 +855,31 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         return self._make_request("/inApps/v1/notifications/test", "POST", {}, None, SendTestNotificationResponse, None)
 
-    def send_consumption_data(self, transaction_id: str, consumption_request: ConsumptionRequest):
+    def send_consumption_data(self, transaction_id: str, consumption_request: ConsumptionRequestV1):
         """
         Send consumption information about a consumable in-app purchase to the App Store after your server receives a consumption request notification.
-        https://developer.apple.com/documentation/appstoreserverapi/send_consumption_information
+        https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information-v1
+
+        .. deprecated::
+            Use :func:`send_consumption_information` instead.
 
         :param transaction_id: The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server.
         :param consumption_request:    The request body containing consumption information.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
+        warnings.warn("send_consumption_data is deprecated, use send_consumption_information instead", DeprecationWarning, stacklevel=2)
         self._make_request(f"/inApps/v1/transactions/consumption/{transaction_id}", "PUT", {}, consumption_request, None, None)
+
+    def send_consumption_information(self, transaction_id: str, consumption_request: ConsumptionRequest):
+        """
+        Send consumption information about an In-App Purchase to the App Store after your server receives a consumption request notification.
+        https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information
+
+        :param transaction_id: The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server's App Store Server Notifications V2 endpoint.
+        :param consumption_request:    The request body containing consumption information.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request(f"/inApps/v2/transactions/consumption/{transaction_id}", "PUT", {}, consumption_request, None, None)
 
     def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
         """
@@ -1170,16 +1187,31 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         return await self._make_request("/inApps/v1/notifications/test", "POST", {}, None, SendTestNotificationResponse, None)
 
-    async def send_consumption_data(self, transaction_id: str, consumption_request: ConsumptionRequest):
+    async def send_consumption_data(self, transaction_id: str, consumption_request: ConsumptionRequestV1):
         """
         Send consumption information about a consumable in-app purchase to the App Store after your server receives a consumption request notification.
-        https://developer.apple.com/documentation/appstoreserverapi/send_consumption_information
+        https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information-v1
+
+        .. deprecated::
+            Use :func:`send_consumption_information` instead.
 
         :param transaction_id: The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server.
         :param consumption_request:    The request body containing consumption information.
         :raises APIException: If a response was returned indicating the request could not be processed
         """
+        warnings.warn("send_consumption_data is deprecated, use send_consumption_information instead", DeprecationWarning, stacklevel=2)
         await self._make_request(f"/inApps/v1/transactions/consumption/{transaction_id}", "PUT", {}, consumption_request, None, None)
+
+    async def send_consumption_information(self, transaction_id: str, consumption_request: ConsumptionRequest):
+        """
+        Send consumption information about an In-App Purchase to the App Store after your server receives a consumption request notification.
+        https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information
+
+        :param transaction_id: The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server's App Store Server Notifications V2 endpoint.
+        :param consumption_request:    The request body containing consumption information.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request(f"/inApps/v2/transactions/consumption/{transaction_id}", "PUT", {}, consumption_request, None, None)
 
     async def set_app_account_token(self, original_transaction_id: str, update_app_account_token_request: UpdateAppAccountTokenRequest):
         """

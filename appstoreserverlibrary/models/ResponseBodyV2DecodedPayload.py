@@ -4,6 +4,7 @@ from typing import Optional
 from attr import define
 import attr
 
+from .AppData import AppData
 from .Data import Data
 from .ExternalPurchaseToken import ExternalPurchaseToken
 from .LibraryUtility import AttrsRawValueAware
@@ -87,4 +88,10 @@ class ResponseBodyV2DecodedPayload(AttrsRawValueAware):
     The data, summary, and externalPurchaseToken fields are mutually exclusive. The payload contains only one of these fields.
     
     https://developer.apple.com/documentation/appstoreservernotifications/externalpurchasetoken
+    """
+    appData: Optional[AppData] = attr.ib(default=None)
+    """
+    The object that contains the app metadata and signed app transaction information. This field appears when the notificationType is RESCIND_CONSENT.
+
+    https://developer.apple.com/documentation/appstoreservernotifications/appdata
     """

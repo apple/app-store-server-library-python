@@ -1,16 +1,15 @@
-# Copyright (c) 2024 Apple Inc. Licensed under MIT License.
+# Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-from enum import IntEnum
+from enum import Enum
 
 from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
-class RefundPreference(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
+class RefundPreference(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    A value that indicates your preferred outcome for the refund request.
-    
+    A value that indicates your preference, based on your operational logic, as to whether Apple should grant the refund.
+
     https://developer.apple.com/documentation/appstoreserverapi/refundpreference
     """
-    UNDECLARED = 0
-    PREFER_GRANT = 1
-    PREFER_DECLINE = 2
-    NO_PREFERENCE = 3
+    DECLINE = "DECLINE"
+    GRANT_FULL = "GRANT_FULL"
+    GRANT_PRORATED = "GRANT_PRORATED"

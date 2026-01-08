@@ -1,18 +1,17 @@
-# Copyright (c) 2023 Apple Inc. Licensed under MIT License.
+# Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-from enum import IntEnum
+from enum import Enum
 
 from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
-class DeliveryStatus(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
+class DeliveryStatus(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     A value that indicates whether the app successfully delivered an in-app purchase that works properly.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/deliverystatus
     """
-    DELIVERED_AND_WORKING_PROPERLY = 0
-    DID_NOT_DELIVER_DUE_TO_QUALITY_ISSUE = 1
-    DELIVERED_WRONG_ITEM = 2
-    DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE = 3
-    DID_NOT_DELIVER_DUE_TO_IN_GAME_CURRENCY_CHANGE = 4
-    DID_NOT_DELIVER_FOR_OTHER_REASON = 5
+    DELIVERED = "DELIVERED"
+    UNDELIVERED_QUALITY_ISSUE = "UNDELIVERED_QUALITY_ISSUE"
+    UNDELIVERED_WRONG_ITEM = "UNDELIVERED_WRONG_ITEM"
+    UNDELIVERED_SERVER_OUTAGE = "UNDELIVERED_SERVER_OUTAGE"
+    UNDELIVERED_OTHER = "UNDELIVERED_OTHER"

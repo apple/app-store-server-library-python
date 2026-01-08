@@ -10,8 +10,10 @@ from appstoreserverlibrary.models.AccountTenure import AccountTenure
 from appstoreserverlibrary.models.AppTransactionInfoResponse import AppTransactionInfoResponse
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
 from appstoreserverlibrary.models.ConsumptionRequest import ConsumptionRequest
+from appstoreserverlibrary.models.ConsumptionRequestV1 import ConsumptionRequestV1
 from appstoreserverlibrary.models.ConsumptionStatus import ConsumptionStatus
 from appstoreserverlibrary.models.DeliveryStatus import DeliveryStatus
+from appstoreserverlibrary.models.DeliveryStatusV1 import DeliveryStatusV1
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.ExpirationIntent import ExpirationIntent
 from appstoreserverlibrary.models.ExtendReasonCode import ExtendReasonCode
@@ -30,6 +32,7 @@ from appstoreserverlibrary.models.Platform import Platform
 from appstoreserverlibrary.models.PlayTime import PlayTime
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
 from appstoreserverlibrary.models.RefundPreference import RefundPreference
+from appstoreserverlibrary.models.RefundPreferenceV1 import RefundPreferenceV1
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.SendAttemptItem import SendAttemptItem
 from appstoreserverlibrary.models.SendAttemptResult import SendAttemptResult
@@ -344,7 +347,7 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
     async def test_send_consumption_data(self):
         client = self.get_client_with_body(b'',
                                            'PUT',
-                                           'https://local-testing-base-url/inApps/v1/transactions/consumption/49571273', 
+                                           'https://local-testing-base-url/inApps/v1/transactions/consumption/49571273',
                                            {},
                                            {'customerConsented': True,
                                             'consumptionStatus': 1,
@@ -359,22 +362,42 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
                                             'userStatus': 4,
                                             'refundPreference': 3})
 
-        consumptionRequest = ConsumptionRequest(
+        consumptionRequest = ConsumptionRequestV1(
             customerConsented=True,
             consumptionStatus=ConsumptionStatus.NOT_CONSUMED,
             platform=Platform.NON_APPLE,
             sampleContentProvided=False,
-            deliveryStatus=DeliveryStatus.DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE,
+            deliveryStatus=DeliveryStatusV1.DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE,
             appAccountToken='7389a31a-fb6d-4569-a2a6-db7d85d84813',
             accountTenure=AccountTenure.THIRTY_DAYS_TO_NINETY_DAYS,
             playTime=PlayTime.ONE_DAY_TO_FOUR_DAYS,
             lifetimeDollarsRefunded=LifetimeDollarsRefunded.ONE_THOUSAND_DOLLARS_TO_ONE_THOUSAND_NINE_HUNDRED_NINETY_NINE_DOLLARS_AND_NINETY_NINE_CENTS,
             lifetimeDollarsPurchased=LifetimeDollarsPurchased.TWO_THOUSAND_DOLLARS_OR_GREATER,
             userStatus=UserStatus.LIMITED_ACCESS,
-            refundPreference=RefundPreference.NO_PREFERENCE
+            refundPreference=RefundPreferenceV1.NO_PREFERENCE
         )
 
         await client.send_consumption_data('49571273', consumptionRequest)
+
+    async def test_send_consumption_information(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v2/transactions/consumption/49571273',
+                                           {},
+                                           {'customerConsented': True,
+                                            'sampleContentProvided': False,
+                                            'consumptionPercentage': 50000,
+                                            'refundPreference': 'GRANT_FULL'})
+
+        consumptionRequest = ConsumptionRequest(
+            customerConsented=True,
+            sampleContentProvided=False,
+            deliveryStatus=DeliveryStatus.DELIVERED,
+            consumptionPercentage=50000,
+            refundPreference=RefundPreference.GRANT_FULL
+        )
+
+        await client.send_consumption_information('49571273', consumptionRequest)
 
     async def test_api_error(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiException.json',

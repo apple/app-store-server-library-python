@@ -21,7 +21,7 @@ class AppTransaction(AttrsRawValueAware):
     """
     The server environment that signs the app transaction.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3963901-environment
+    https://developer.apple.com/documentation/storekit/apptransaction/environment
     """
 
     rawReceiptType: Optional[str] = Environment.create_raw_attr('receiptType')
@@ -33,70 +33,70 @@ class AppTransaction(AttrsRawValueAware):
     """
     The unique identifier the App Store uses to identify the app.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954436-appid
+    https://developer.apple.com/documentation/storekit/apptransaction/appid
     """
 
     bundleId: Optional[str] = attr.ib(default=None)
     """
     The bundle identifier that the app transaction applies to.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954439-bundleid
+    https://developer.apple.com/documentation/storekit/apptransaction/bundleid
     """
 
     applicationVersion: Optional[str] = attr.ib(default=None)
     """
     The app version that the app transaction applies to.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954437-appversion
+    https://developer.apple.com/documentation/storekit/apptransaction/appversion
     """
 
     versionExternalIdentifier: Optional[int] = attr.ib(default=None)
     """
     The version external identifier of the app
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954438-appversionid
+    https://developer.apple.com/documentation/storekit/apptransaction/appversionid
     """
 
     receiptCreationDate: Optional[int] = attr.ib(default=None)
     """
     The date that the App Store signed the JWS app transaction.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954449-signeddate
+    https://developer.apple.com/documentation/storekit/apptransaction/signeddate
     """
 
     originalPurchaseDate: Optional[int] = attr.ib(default=None)
     """
     The date the user originally purchased the app from the App Store.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954448-originalpurchasedate
+    https://developer.apple.com/documentation/storekit/apptransaction/originalpurchasedate
     """
 
     originalApplicationVersion: Optional[str] = attr.ib(default=None)
     """
     The app version that the user originally purchased from the App Store.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954447-originalappversion
+    https://developer.apple.com/documentation/storekit/apptransaction/originalappversion
     """
 
     deviceVerification: Optional[str] = attr.ib(default=None)
     """
     The Base64 device verification value to use to verify whether the app transaction belongs to the device.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954441-deviceverification
+    https://developer.apple.com/documentation/storekit/apptransaction/deviceverification
     """
 
     deviceVerificationNonce: Optional[str] = attr.ib(default=None)
     """
     The UUID used to compute the device verification value.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/3954442-deviceverificationnonce
+    https://developer.apple.com/documentation/storekit/apptransaction/deviceverificationnonce
     """
 
     preorderDate: Optional[int] = attr.ib(default=None)
     """
     The date the customer placed an order for the app before it's available in the App Store.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/4013175-preorderdate
+    https://developer.apple.com/documentation/storekit/apptransaction/preorderdate
     """
 
     appTransactionId: Optional[str] = attr.ib(default=None)
@@ -110,7 +110,7 @@ class AppTransaction(AttrsRawValueAware):
     """
     The platform on which the customer originally purchased the app.
     
-    https://developer.apple.com/documentation/storekit/apptransaction/originalplatform-4mogz
+    https://developer.apple.com/documentation/storekit/apptransaction/originalplatform
     """
 
     rawOriginalPlatform: Optional[str] = PurchasePlatform.create_raw_attr('originalPlatform')

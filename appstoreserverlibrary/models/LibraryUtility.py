@@ -14,6 +14,7 @@ T = TypeVar('T')
 
 metadata_key = 'correspondingFieldName'
 metadata_type_key = 'typeOfField'
+metadata_required_key = 'requiredField'
 
 class AppStoreServerLibraryEnumMeta(EnumMeta):
     def __contains__(c, val):
@@ -53,9 +54,9 @@ class AppStoreServerLibraryEnumMeta(EnumMeta):
                 if main_value is not None:
                     return main_value.value
                 raise ValueError(f"Either {field_name} or raw{field_name[0].upper() + field_name[1:]} must be provided")
-            return ib(default=Factory(factory, takes_self=True), kw_only=True, on_setattr=value_set, validator=validate_not_none, metadata={metadata_key: field_name, metadata_type_key: 'raw'})
+            return ib(default=Factory(factory, takes_self=True), kw_only=True, on_setattr=value_set, validator=validate_not_none, metadata={metadata_key: field_name, metadata_type_key: 'raw', metadata_required_key: True})
         else:
-            return ib(default=None, kw_only=True, on_setattr=value_set, metadata={metadata_key: field_name, metadata_type_key: 'raw'})
+            return ib(default=None, kw_only=True, on_setattr=value_set, metadata={metadata_key: field_name, metadata_type_key: 'raw', metadata_required_key: False})
     
 class AttrsRawValueAware:
     def __attrs_post_init__(self):
@@ -92,7 +93,10 @@ def _get_cattrs_converter(destination_class: Type[T]) -> cattrs.Converter:
                 if attribute.metadata[metadata_type_key] == 'raw':
                     cattrs_overrides[matching_name] = override(omit=True)
                     raw_field = 'raw' + matching_name[0].upper() + matching_name[1:]
-                    cattrs_overrides[raw_field] = override(rename=matching_name, omit_if_default=True)
+                    if attribute.metadata.get(metadata_required_key, False):
+                        cattrs_overrides[raw_field] = override(rename=matching_name)
+                    else:
+                        cattrs_overrides[raw_field] = override(rename=matching_name, omit_if_default=True)
             elif attribute.default is None and attribute.name not in cattrs_overrides:
                 cattrs_overrides[attribute.name] = override(omit_if_default=True)
         return cattrs_overrides

@@ -381,6 +381,7 @@ class DecodedPayloads(unittest.TestCase):
                                     {
                                         'customerConsented': True,
                                         'sampleContentProvided': False,
+                                        'deliveryStatus': 'DELIVERED',
                                         'consumptionPercentage': 50000,
                                         'refundPreference': 'GRANT_FULL'
                                     })

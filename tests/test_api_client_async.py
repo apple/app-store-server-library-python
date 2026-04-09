@@ -42,8 +42,14 @@ from appstoreserverlibrary.models.Type import Type
 from appstoreserverlibrary.models.UpdateAppAccountTokenRequest import UpdateAppAccountTokenRequest
 from appstoreserverlibrary.models.UserStatus import UserStatus
 from appstoreserverlibrary.models.DefaultConfigurationRequest import DefaultConfigurationRequest
+from appstoreserverlibrary.models.HeaderPosition import HeaderPosition
+from appstoreserverlibrary.models.ImageSize import ImageSize
 from appstoreserverlibrary.models.ImageState import ImageState
 from appstoreserverlibrary.models.MessageState import MessageState
+from appstoreserverlibrary.models.BulletPoint import BulletPoint
+from appstoreserverlibrary.models.PerformanceTestRequest import PerformanceTestRequest
+from appstoreserverlibrary.models.PerformanceTestStatus import PerformanceTestStatus
+from appstoreserverlibrary.models.RealtimeUrlRequest import RealtimeUrlRequest
 from appstoreserverlibrary.models.UploadMessageImage import UploadMessageImage
 from appstoreserverlibrary.models.UploadMessageRequestBody import UploadMessageRequestBody
 from uuid import UUID
@@ -602,6 +608,7 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(1, len(response.imageIdentifiers))
         self.assertEqual(UUID('a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890'), response.imageIdentifiers[0].imageIdentifier)
         self.assertEqual(ImageState.APPROVED, response.imageIdentifiers[0].imageState)
+        self.assertEqual(ImageSize.FULL_SIZE, response.imageIdentifiers[0].imageSize)
 
     async def test_upload_message(self):
         client = self.get_client_with_body(b'',
@@ -658,7 +665,114 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
                                            {},
                                            None)
         await client.delete_default_message('com.example.product', 'en-US')
-    
+
+    async def test_get_default_message(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getDefaultMessageResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/default/com.example.product/en-US',
+                                           {},
+                                           None)
+        response = await client.get_default_message('com.example.product', 'en-US')
+        self.assertIsNotNone(response)
+        self.assertEqual(UUID('a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890'), response.messageIdentifier)
+
+    async def test_upload_image_with_image_size(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/messaging/image/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890',
+                                           {'imageSize': ['FULL_SIZE']},
+                                           None,
+                                           200,
+                                           bytes([1, 2, 3]),
+                                           'image/png')
+        await client.upload_image(UUID('a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890'), bytes([1, 2, 3]), ImageSize.FULL_SIZE)
+
+    async def test_configure_realtime_url(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/messaging/realtime/url',
+                                           {},
+                                           {'realtimeURL': 'https://example.com/realtime'})
+        realtime_url_request = RealtimeUrlRequest(realtimeURL='https://example.com/realtime')
+        await client.configure_realtime_url(realtime_url_request)
+
+    async def test_delete_realtime_url(self):
+        client = self.get_client_with_body(b'',
+                                           'DELETE',
+                                           'https://local-testing-base-url/inApps/v1/messaging/realtime/url',
+                                           {},
+                                           None)
+        await client.delete_realtime_url()
+
+    async def test_get_realtime_url(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getRealtimeUrlResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/realtime/url',
+                                           {},
+                                           None)
+        response = await client.get_realtime_url()
+        self.assertIsNotNone(response)
+        self.assertEqual('https://example.com/realtime', response.realtimeURL)
+
+    async def test_upload_message_with_bullet_points(self):
+        client = self.get_client_with_body(b'',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/messaging/message/a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890',
+                                           {},
+                                           {'header': 'Header text', 'body': 'Body text',
+                                            'image': {'imageIdentifier': 'b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901', 'altText': 'Alt text'},
+                                            'headerPosition': 'ABOVE_IMAGE',
+                                            'bulletPoints': [{'text': 'Bullet 1', 'imageIdentifier': 'c3d4e5f6-a7b8-9012-c3d4-e5f6a7b89012', 'altText': 'Bullet alt'}]})
+        image = UploadMessageImage(imageIdentifier=UUID('b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901'), altText='Alt text')
+        bullet_point = BulletPoint(text='Bullet 1', imageIdentifier=UUID('c3d4e5f6-a7b8-9012-c3d4-e5f6a7b89012'), altText='Bullet alt')
+        upload_message_request_body = UploadMessageRequestBody(header='Header text', body='Body text', image=image, headerPosition=HeaderPosition.ABOVE_IMAGE, bulletPoints=[bullet_point])
+        await client.upload_message(UUID('a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890'), upload_message_request_body)
+
+    async def test_initiate_performance_test(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/performanceTestResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/inApps/v1/messaging/performanceTest',
+                                           {},
+                                           {'originalTransactionId': '70000500092808'})
+        performance_test_request = PerformanceTestRequest(originalTransactionId='70000500092808')
+        response = await client.initiate_performance_test(performance_test_request)
+        self.assertIsNotNone(response)
+        self.assertEqual('c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d', response.requestId)
+        self.assertIsNotNone(response.config)
+        self.assertEqual(10, response.config.maxConcurrentRequests)
+        self.assertEqual(100, response.config.totalRequests)
+        self.assertEqual(60000, response.config.totalDuration)
+        self.assertEqual(500, response.config.responseTimeThreshold)
+        self.assertEqual(95, response.config.successRateThreshold)
+
+    async def test_get_performance_test_results(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/performanceTestResultResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/performanceTest/result/c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d',
+                                           {},
+                                           None)
+        response = await client.get_performance_test_results('c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d')
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response.config)
+        self.assertEqual(10, response.config.maxConcurrentRequests)
+        self.assertEqual(100, response.config.totalRequests)
+        self.assertEqual(60000, response.config.totalDuration)
+        self.assertEqual(500, response.config.responseTimeThreshold)
+        self.assertEqual(95, response.config.successRateThreshold)
+        self.assertEqual('https://example.com/retention', response.target)
+        self.assertEqual(PerformanceTestStatus.PASS, response.result)
+        self.assertEqual('PASS', response.rawResult)
+        self.assertEqual(98, response.successRate)
+        self.assertEqual(0, response.numPending)
+        self.assertIsNotNone(response.responseTimes)
+        self.assertEqual(120, response.responseTimes.average)
+        self.assertEqual(100, response.responseTimes.p50)
+        self.assertEqual(200, response.responseTimes.p90)
+        self.assertEqual(250, response.responseTimes.p95)
+        self.assertEqual(400, response.responseTimes.p99)
+        self.assertEqual({SendAttemptResult.TIMED_OUT: 1, SendAttemptResult.NO_RESPONSE: 1}, response.failures)
+        self.assertEqual({'TIMED_OUT': 1, 'NO_RESPONSE': 1}, response.rawFailures)
+
     async def test_get_app_transaction_info_success(self):
         client = self.get_client_with_body_from_file('tests/resources/models/appTransactionInfoResponse.json',
                                            'GET',

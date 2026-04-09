@@ -18,5 +18,7 @@ class DefaultConfigurationRequest:
     """
     The message identifier of the message to configure as a default message.
 
+    Note: In a future version, this field will become required.
+
     https://developer.apple.com/documentation/retentionmessaging/messageidentifier
     """

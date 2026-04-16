@@ -6,6 +6,7 @@ from uuid import UUID
 from attr import define
 import attr
 
+from .ImageSize import ImageSize
 from .ImageState import ImageState
 from .LibraryUtility import AttrsRawValueAware
 
@@ -34,4 +35,16 @@ class GetImageListResponseItem(AttrsRawValueAware):
     rawImageState: Optional[str] = ImageState.create_raw_attr('imageState')
     """
     See imageState
+    """
+
+    imageSize: Optional[ImageSize] = ImageSize.create_main_attr('rawImageSize')
+    """
+    The size of the image.
+
+    https://developer.apple.com/documentation/retentionmessaging/imagesize
+    """
+
+    rawImageSize: Optional[str] = ImageSize.create_raw_attr('imageSize')
+    """
+    See imageSize
     """

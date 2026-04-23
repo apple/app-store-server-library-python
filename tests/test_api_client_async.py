@@ -392,6 +392,7 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
                                            {},
                                            {'customerConsented': True,
                                             'sampleContentProvided': False,
+                                            'deliveryStatus': 'DELIVERED',
                                             'consumptionPercentage': 50000,
                                             'refundPreference': 'GRANT_FULL'})
 
@@ -900,4 +901,3 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
     def get_client_with_body_from_file(self, path: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200):
         body = read_data_from_binary_file(path)
         return self.get_client_with_body(body, expected_method, expected_url, expected_params, expected_json, status_code)
-

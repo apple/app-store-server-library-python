@@ -8,6 +8,7 @@ import attr
 from .Message import Message
 from .AlternateProduct import AlternateProduct
 from .PromotionalOffer import PromotionalOffer
+from .AdvancedCommerceInfo import AdvancedCommerceInfo
 
 @define
 class RealtimeResponseBody:
@@ -36,4 +37,11 @@ class RealtimeResponseBody:
     A retention message that includes a promotional offer.
 
     https://developer.apple.com/documentation/retentionmessaging/promotionaloffer
+    """
+
+    advancedCommerceInfo: Optional[AdvancedCommerceInfo] = attr.ib(default=None)
+    """
+    A retention offer or switch plan option.
+
+    https://developer.apple.com/documentation/retentionmessaging/advancedcommerceinfo
     """

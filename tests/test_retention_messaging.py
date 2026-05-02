@@ -4,6 +4,8 @@ import unittest
 from uuid import UUID
 
 from appstoreserverlibrary.models.AlternateProduct import AlternateProduct
+from appstoreserverlibrary.models.AdvancedCommerceInfo import AdvancedCommerceInfo
+from appstoreserverlibrary.models.BillingPlanType import BillingPlanType
 from appstoreserverlibrary.models.DecodedRealtimeRequestBody import DecodedRealtimeRequestBody
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.Message import Message
@@ -44,7 +46,7 @@ class RetentionMessaging(unittest.TestCase):
         # Create a RealtimeResponseBody with an AlternateProduct
         message_id = UUID('b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901')
         product_id = 'com.example.alternate.product'
-        alternate_product = AlternateProduct(messageIdentifier=message_id, productId=product_id)
+        alternate_product = AlternateProduct(messageIdentifier=message_id, productId=product_id, billingPlanType=BillingPlanType.MONTHLY)
         response_body = RealtimeResponseBody(alternateProduct=alternate_product)
 
         # Serialize to dict
@@ -57,6 +59,7 @@ class RetentionMessaging(unittest.TestCase):
         self.assertIn('productId', json_dict['alternateProduct'])
         self.assertEqual('b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901', json_dict['alternateProduct']['messageIdentifier'])
         self.assertEqual('com.example.alternate.product', json_dict['alternateProduct']['productId'])
+        self.assertEqual('MONTHLY', json_dict['alternateProduct']['billingPlanType'])
         self.assertNotIn('message', json_dict)
         self.assertNotIn('promotionalOffer', json_dict)
 
@@ -68,6 +71,8 @@ class RetentionMessaging(unittest.TestCase):
         self.assertIsNotNone(deserialized.alternateProduct)
         self.assertEqual(message_id, deserialized.alternateProduct.messageIdentifier)
         self.assertEqual(product_id, deserialized.alternateProduct.productId)
+        self.assertEqual(BillingPlanType.MONTHLY, deserialized.alternateProduct.billingPlanType)
+        self.assertEqual("MONTHLY", deserialized.alternateProduct.rawBillingPlanType)
         self.assertIsNone(deserialized.promotionalOffer)
 
     def test_realtime_response_body_with_promotional_offer_v2(self):
@@ -169,3 +174,28 @@ class RetentionMessaging(unittest.TestCase):
         self.assertEqual('keyId123', deserialized_v1.keyId)
         self.assertEqual(app_account_token, deserialized_v1.appAccountToken)
         self.assertEqual('base64encodedSignature', deserialized_v1.encodedSignature)
+
+    def test_realtime_response_body_with_advanced_commerce_info(self):
+        message_id = UUID('a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890')
+        ac_data = 'eyJhbGciOiJFUzI1NiJ9.base64data'
+        ac_info = AdvancedCommerceInfo(messageIdentifier=message_id, advancedCommerceData=ac_data)
+        response_body = RealtimeResponseBody(advancedCommerceInfo=ac_info)
+
+        c = _get_cattrs_converter(RealtimeResponseBody)
+        json_dict = c.unstructure(response_body)
+
+        self.assertIn('advancedCommerceInfo', json_dict)
+        self.assertEqual('a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890', json_dict['advancedCommerceInfo']['messageIdentifier'])
+        self.assertEqual(ac_data, json_dict['advancedCommerceInfo']['advancedCommerceData'])
+        self.assertNotIn('message', json_dict)
+        self.assertNotIn('alternateProduct', json_dict)
+        self.assertNotIn('promotionalOffer', json_dict)
+
+        deserialized = c.structure(json_dict, RealtimeResponseBody)
+
+        self.assertIsNone(deserialized.message)
+        self.assertIsNone(deserialized.alternateProduct)
+        self.assertIsNone(deserialized.promotionalOffer)
+        self.assertIsNotNone(deserialized.advancedCommerceInfo)
+        self.assertEqual(message_id, deserialized.advancedCommerceInfo.messageIdentifier)
+        self.assertEqual(ac_data, deserialized.advancedCommerceInfo.advancedCommerceData)

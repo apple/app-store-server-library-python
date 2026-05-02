@@ -5,7 +5,7 @@ from attr import define
 import attr
 
 from .AdvancedCommerceEffective import AdvancedCommerceEffective
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AdvancedCommerceSubscriptionChangeMetadataDescriptors():
@@ -29,7 +29,7 @@ class AdvancedCommerceSubscriptionChangeMetadataDescriptors():
 
     description: Optional[str] = attr.ib(
         default=None,
-        validator=attr.validators.optional(AdvancedCommerceValidationUtils.description_validator)
+        validator=attr.validators.optional(HelperValidationUtils.description_validator)
     )
     """
     The new description for the subscription.
@@ -39,7 +39,7 @@ class AdvancedCommerceSubscriptionChangeMetadataDescriptors():
 
     displayName: Optional[str] = attr.ib(
         default=None,
-        validator=attr.validators.optional(AdvancedCommerceValidationUtils.display_name_validator)
+        validator=attr.validators.optional(HelperValidationUtils.display_name_validator)
     )
     """
     The new display name for the subscription.

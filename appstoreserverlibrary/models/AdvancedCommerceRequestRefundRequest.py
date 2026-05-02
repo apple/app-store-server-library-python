@@ -7,7 +7,7 @@ import attr
 
 from .AdvancedCommerceRequest import AdvancedCommerceRequest
 from .AdvancedCommerceRequestRefundItem import AdvancedCommerceRequestRefundItem
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AdvancedCommerceRequestRefundRequest(AdvancedCommerceRequest):
@@ -17,7 +17,7 @@ class AdvancedCommerceRequestRefundRequest(AdvancedCommerceRequest):
     https://developer.apple.com/documentation/advancedcommerceapi/requestrefundrequest
     """
 
-    items: List[AdvancedCommerceRequestRefundItem] = attr.ib(validator=AdvancedCommerceValidationUtils.items_validator)
+    items: List[AdvancedCommerceRequestRefundItem] = attr.ib(validator=HelperValidationUtils.items_validator)
     """
     https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem
     """

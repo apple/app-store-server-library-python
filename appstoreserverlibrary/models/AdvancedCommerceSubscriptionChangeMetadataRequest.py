@@ -8,7 +8,7 @@ import attr
 from .AdvancedCommerceRequest import AdvancedCommerceRequest
 from .AdvancedCommerceSubscriptionChangeMetadataDescriptors import AdvancedCommerceSubscriptionChangeMetadataDescriptors
 from .AdvancedCommerceSubscriptionChangeMetadataItem import AdvancedCommerceSubscriptionChangeMetadataItem
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AdvancedCommerceSubscriptionChangeMetadataRequest(AdvancedCommerceRequest):
@@ -23,7 +23,7 @@ class AdvancedCommerceSubscriptionChangeMetadataRequest(AdvancedCommerceRequest)
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadatadescriptors
     """
 
-    items: Optional[List[AdvancedCommerceSubscriptionChangeMetadataItem]] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.items_validator))
+    items: Optional[List[AdvancedCommerceSubscriptionChangeMetadataItem]] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.items_validator))
     """
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadataitem
     """

@@ -5,12 +5,12 @@ from abc import ABC
 from attr import define
 import attr
 
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 from .LibraryUtility import AttrsRawValueAware
 
 @define
 class AbstractAdvancedCommerceBaseItem(AttrsRawValueAware, ABC):
-    SKU: str = attr.ib(validator=AdvancedCommerceValidationUtils.sku_validator)
+    SKU: str = attr.ib(validator=HelperValidationUtils.sku_validator)
     """
     The product identifier of an in-app purchase product you manage in your own system.
 

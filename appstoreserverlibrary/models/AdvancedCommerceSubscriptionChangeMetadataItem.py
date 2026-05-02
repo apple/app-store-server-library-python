@@ -5,7 +5,7 @@ from attr import define
 import attr
 
 from .AdvancedCommerceEffective import AdvancedCommerceEffective
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AdvancedCommerceSubscriptionChangeMetadataItem():
@@ -15,7 +15,7 @@ class AdvancedCommerceSubscriptionChangeMetadataItem():
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionchangemetadataitem
     """
 
-    currentSKU: str = attr.ib(validator=AdvancedCommerceValidationUtils.sku_validator)
+    currentSKU: str = attr.ib(validator=HelperValidationUtils.sku_validator)
     """
     The original SKU of the item.
     """
@@ -32,21 +32,21 @@ class AdvancedCommerceSubscriptionChangeMetadataItem():
     See effective
     """
 
-    description: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.description_validator))
+    description: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.description_validator))
     """
     The new description for the item.
 
     https://developer.apple.com/documentation/advancedcommerceapi/description
     """
 
-    displayName: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.display_name_validator))
+    displayName: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.display_name_validator))
     """
     The new display name for the item.
 
     https://developer.apple.com/documentation/advancedcommerceapi/displayname
     """   
     
-    SKU: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.sku_validator))
+    SKU: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.sku_validator))
     """
     The new SKU of the item.
 

@@ -4,18 +4,18 @@ from attr import define
 import attr
 
 from .AbstractAdvancedCommerceBaseItem import AbstractAdvancedCommerceBaseItem
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AbstractAdvancedCommerceItem(AbstractAdvancedCommerceBaseItem):
-    description: str = attr.ib(validator=AdvancedCommerceValidationUtils.description_validator)
+    description: str = attr.ib(validator=HelperValidationUtils.description_validator)
     """
     A string you provide that describes a SKU.
 
     https://developer.apple.com/documentation/advancedcommerceapi/description
     """
 
-    displayName: str = attr.ib(validator=AdvancedCommerceValidationUtils.display_name_validator)
+    displayName: str = attr.ib(validator=HelperValidationUtils.display_name_validator)
     """
     A string with a product name that you can localize and is suitable for display to customers.
 

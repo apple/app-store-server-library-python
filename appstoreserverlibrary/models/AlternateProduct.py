@@ -5,8 +5,11 @@ from uuid import UUID
 from attr import define
 import attr
 
+from .BillingPlanType import BillingPlanType
+from .LibraryUtility import AttrsRawValueAware
+
 @define
-class AlternateProduct:
+class AlternateProduct(AttrsRawValueAware):
     """
     A switch-plan message and product ID you provide in a real-time response to your Get Retention Message endpoint.
 
@@ -25,4 +28,14 @@ class AlternateProduct:
     The product identifier of the subscription the retention message suggests for your customer to switch to.
 
     https://developer.apple.com/documentation/retentionmessaging/productid
+    """
+
+    billingPlanType: Optional[BillingPlanType] = BillingPlanType.create_main_attr('rawBillingPlanType')
+    """
+    https://developer.apple.com/documentation/retentionmessaging/billingplantype
+    """
+
+    rawBillingPlanType: Optional[str] = BillingPlanType.create_raw_attr('billingPlanType')
+    """
+    See billingPlanType
     """

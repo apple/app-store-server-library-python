@@ -4,7 +4,7 @@ from typing import Optional
 import attr
 from attr import define
 from .AdvancedCommerceEffective import AdvancedCommerceEffective
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AdvancedCommerceSubscriptionModifyDescriptors():
@@ -24,12 +24,12 @@ class AdvancedCommerceSubscriptionModifyDescriptors():
     See effective
     """
 
-    description: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.description_validator))
+    description: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.description_validator))
     """
     https://developer.apple.com/documentation/advancedcommerceapi/description
     """
 
-    displayName: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.display_name_validator)
+    displayName: Optional[str] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.display_name_validator)
     )
     """
     https://developer.apple.com/documentation/advancedcommerceapi/displayname

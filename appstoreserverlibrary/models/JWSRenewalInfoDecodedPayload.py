@@ -11,6 +11,9 @@ from .LibraryUtility import AttrsRawValueAware
 from .OfferType import OfferType
 from .PriceIncreaseStatus import PriceIncreaseStatus
 from .OfferDiscountType import OfferDiscountType
+from .RenewalBillingPlanType import RenewalBillingPlanType
+from .AdvancedCommerceRenewalInfo import AdvancedCommerceRenewalInfo
+from .RenewalCommitmentInfo import RenewalCommitmentInfo
 
 @define
 class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
@@ -193,6 +196,28 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     offerPeriod: Optional[str] = attr.ib(default=None)
     """
     The duration of the offer.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/offerPeriod
+    """
+
+    advancedCommerceInfo: Optional[AdvancedCommerceRenewalInfo] = attr.ib(default=None)
+    """
+    Renewal information that is present only for Advanced Commerce SKUs.
+
+    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalinfo
+    """
+
+    commitmentInfo: Optional[RenewalCommitmentInfo] = attr.ib(default=None)
+    """
+    https://developer.apple.com/documentation/appstoreserverapi/renewalcommitmentinfo
+    """
+
+    renewalBillingPlanType: Optional[RenewalBillingPlanType] = RenewalBillingPlanType.create_main_attr('rawRenewalBillingPlanType')
+    """
+    https://developer.apple.com/documentation/appstoreserverapi/renewalbillingplantype
+    """
+
+    rawRenewalBillingPlanType: Optional[str] = RenewalBillingPlanType.create_raw_attr('renewalBillingPlanType')
+    """
+    See renewalBillingPlanType
     """

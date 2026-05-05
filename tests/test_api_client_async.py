@@ -863,6 +863,14 @@ class DecodedPayloads(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(True)
 
+    async def test_finish_transaction(self):
+        client = self.get_client_with_body(b'',
+                                           'POST',
+                                           'https://local-testing-base-url/inApps/v1/transactions/1234/finish',
+                                           {},
+                                           None)
+        await client.finish_transaction('1234')
+
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
 

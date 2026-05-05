@@ -800,12 +800,12 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         return self._make_request(f"/inApps/v1/subscriptions/extend/{original_transaction_id}", "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
     
-    def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
+    def get_all_subscription_statuses(self, any_transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
         Get the statuses for all of a customer's auto-renewable subscriptions in your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses
-        
-        :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :param status: An optional filter that indicates the status of subscriptions to include in the response. Your query may specify more than one status query parameter.
         :return: A response that contains status information for all of a customer's auto-renewable subscriptions in your app.
         :throws APIException: If a response was returned indicating the request could not be processed
@@ -813,15 +813,15 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         queryParameters: Dict[str, List[str]] = dict()
         if status is not None:
             queryParameters["status"] = [s.value for s in status]
-        
-        return self._make_request(f"/inApps/v1/subscriptions/{transaction_id}", "GET", queryParameters, None, StatusResponse, None)
+
+        return self._make_request(f"/inApps/v1/subscriptions/{any_transaction_id}", "GET", queryParameters, None, StatusResponse, None)
     
-    def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
+    def get_refund_history(self, any_transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
         Get a paginated list of all of a customer's refunded in-app purchases for your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_refund_history
 
-        :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous RefundHistoryResponse.
         :return: A response that contains status information for all of a customer's auto-renewable subscriptions in your app.
         :throws APIException: If a response was returned indicating the request could not be processed
@@ -830,8 +830,8 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         queryParameters: Dict[str, List[str]] = dict()
         if revision is not None:
             queryParameters["revision"] = [revision]
-        
-        return self._make_request(f"/inApps/v2/refund/lookup/{transaction_id}", "GET", queryParameters, None, RefundHistoryResponse, None)
+
+        return self._make_request(f"/inApps/v2/refund/lookup/{any_transaction_id}", "GET", queryParameters, None, RefundHistoryResponse, None)
     
     def get_status_of_subscription_renewal_date_extensions(self, request_identifier: str, product_id: str) -> MassExtendRenewalDateStatusResponse:
         """
@@ -872,12 +872,12 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         
         return self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse, None)
 
-    def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
+    def get_transaction_history(self, any_transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
         """
         Get a customer's in-app purchase transaction history for your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history
 
-        :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
         :param transaction_history_request: The request parameters that includes the startDate,endDate,productIds,productTypes and optional query constraints.
         :param version: The version of the Get Transaction History endpoint to use. V2 is recommended.
@@ -912,8 +912,8 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
-        return self._make_request("/inApps/{}/history/{}".format(version.value, transaction_id), "GET", queryParameters, None, HistoryResponse, None)
-    
+        return self._make_request("/inApps/{}/history/{}".format(version.value, any_transaction_id), "GET", queryParameters, None, HistoryResponse, None)
+
     def get_transaction_info(self, transaction_id: str) -> TransactionInfoResponse:
         """
         Get information about a single transaction for your app.
@@ -1135,16 +1135,26 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         return self._make_request(f"/inApps/v1/messaging/performanceTest/result/{request_id}", "GET", {}, None, PerformanceTestResultResponse, None)
 
-    def get_app_transaction_info(self, transaction_id: str) -> AppTransactionInfoResponse:
+    def get_app_transaction_info(self, any_transaction_id: str) -> AppTransactionInfoResponse:
         """
         Get a customer's app transaction information for your app.
-        
-        :param transaction_id Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.
+
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :return: A response that contains signed app transaction information for a customer.
         :raises APIException: If a response was returned indicating the request could not be processed
         :see: https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info
         """
-        return self._make_request(f"/inApps/v1/transactions/appTransactions/{transaction_id}", "GET", {}, None, AppTransactionInfoResponse, None)
+        return self._make_request(f"/inApps/v1/transactions/appTransactions/{any_transaction_id}", "GET", {}, None, AppTransactionInfoResponse, None)
+
+    def finish_transaction(self, transaction_id: str):
+        """
+        Notifies the App Store server that your system has finished processing the customer's transaction.
+        https://developer.apple.com/documentation/appstoreserverapi/finish-transaction
+
+        :param transaction_id The transaction identifier of the transaction to mark as finished.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        self._make_request(f"/inApps/v1/transactions/{transaction_id}/finish", "POST", {}, None, None, None)
 
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
@@ -1200,12 +1210,12 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         return await self._make_request(f"/inApps/v1/subscriptions/extend/{original_transaction_id}", "PUT", {}, extend_renewal_date_request, ExtendRenewalDateResponse, None)
     
-    async def get_all_subscription_statuses(self, transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
+    async def get_all_subscription_statuses(self, any_transaction_id: str, status: Optional[List[Status]] = None) -> StatusResponse:
         """
         Get the statuses for all of a customer's auto-renewable subscriptions in your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses
-        
-        :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :param status: An optional filter that indicates the status of subscriptions to include in the response. Your query may specify more than one status query parameter.
         :return: A response that contains status information for all of a customer's auto-renewable subscriptions in your app.
         :throws APIException: If a response was returned indicating the request could not be processed
@@ -1213,15 +1223,15 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         queryParameters: Dict[str, List[str]] = dict()
         if status is not None:
             queryParameters["status"] = [s.value for s in status]
-        
-        return await self._make_request(f"/inApps/v1/subscriptions/{transaction_id}", "GET", queryParameters, None, StatusResponse, None)
+
+        return await self._make_request(f"/inApps/v1/subscriptions/{any_transaction_id}", "GET", queryParameters, None, StatusResponse, None)
     
-    async def get_refund_history(self, transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
+    async def get_refund_history(self, any_transaction_id: str, revision: Optional[str]) -> RefundHistoryResponse:
         """
         Get a paginated list of all of a customer's refunded in-app purchases for your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_refund_history
 
-        :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous RefundHistoryResponse.
         :return: A response that contains status information for all of a customer's auto-renewable subscriptions in your app.
         :throws APIException: If a response was returned indicating the request could not be processed
@@ -1230,8 +1240,8 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         queryParameters: Dict[str, List[str]] = dict()
         if revision is not None:
             queryParameters["revision"] = [revision]
-        
-        return await self._make_request(f"/inApps/v2/refund/lookup/{transaction_id}", "GET", queryParameters, None, RefundHistoryResponse, None)
+
+        return await self._make_request(f"/inApps/v2/refund/lookup/{any_transaction_id}", "GET", queryParameters, None, RefundHistoryResponse, None)
     
     async def get_status_of_subscription_renewal_date_extensions(self, request_identifier: str, product_id: str) -> MassExtendRenewalDateStatusResponse:
         """
@@ -1272,12 +1282,12 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         
         return await self._make_request("/inApps/v1/notifications/history", "POST", queryParameters, notification_history_request, NotificationHistoryResponse, None)
 
-    async def get_transaction_history(self, transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
+    async def get_transaction_history(self, any_transaction_id: str, revision: Optional[str], transaction_history_request: TransactionHistoryRequest, version: GetTransactionHistoryVersion = GetTransactionHistoryVersion.V1) -> HistoryResponse:
         """
         Get a customer's in-app purchase transaction history for your app.
         https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history
 
-        :param transaction_id: The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :param revision: A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous HistoryResponse.
         :param transaction_history_request: The request parameters that includes the startDate,endDate,productIds,productTypes and optional query constraints.
         :param version: The version of the Get Transaction History endpoint to use. V2 is recommended.
@@ -1312,8 +1322,8 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         if transaction_history_request.revoked is not None:
             queryParameters["revoked"] = [str(transaction_history_request.revoked)]
         
-        return await self._make_request("/inApps/" + version + "/history/" + transaction_id, "GET", queryParameters, None, HistoryResponse, None)
-    
+        return await self._make_request("/inApps/" + version + "/history/" + any_transaction_id, "GET", queryParameters, None, HistoryResponse, None)
+
     async def get_transaction_info(self, transaction_id: str) -> TransactionInfoResponse:
         """
         Get information about a single transaction for your app.
@@ -1534,14 +1544,24 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         return await self._make_request(f"/inApps/v1/messaging/performanceTest/result/{request_id}", "GET", {}, None, PerformanceTestResultResponse, None)
 
-    async def get_app_transaction_info(self, transaction_id: str) -> AppTransactionInfoResponse:
+    async def get_app_transaction_info(self, any_transaction_id: str) -> AppTransactionInfoResponse:
         """
         Get a customer's app transaction information for your app.
-        
-        :param transaction_id Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.
+
+        :param any_transaction_id: Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.
         :return: A response that contains signed app transaction information for a customer.
         :raises APIException: If a response was returned indicating the request could not be processed
         :see: https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info
         """
-        return await self._make_request(f"/inApps/v1/transactions/appTransactions/{transaction_id}", "GET", {}, None, AppTransactionInfoResponse, None)
+        return await self._make_request(f"/inApps/v1/transactions/appTransactions/{any_transaction_id}", "GET", {}, None, AppTransactionInfoResponse, None)
+
+    async def finish_transaction(self, transaction_id: str):
+        """
+        Notifies the App Store server that your system has finished processing the customer's transaction.
+        https://developer.apple.com/documentation/appstoreserverapi/finish-transaction
+
+        :param transaction_id The transaction identifier of the transaction to mark as finished.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        """
+        await self._make_request(f"/inApps/v1/transactions/{transaction_id}/finish", "POST", {}, None, None, None)
     

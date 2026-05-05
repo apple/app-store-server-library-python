@@ -12,6 +12,9 @@ from .OfferType import OfferType
 from .RevocationReason import RevocationReason
 from .RevocationType import RevocationType
 from .TransactionReason import TransactionReason
+from .BillingPlanType import BillingPlanType
+from .AdvancedCommerceTransactionInfo import AdvancedCommerceTransactionInfo
+from .TransactionCommitmentInfo import TransactionCommitmentInfo
 
 from .Type import Type
 
@@ -270,4 +273,26 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     The percentage, in milliunits, of the transaction that the App Store has refunded or revoked.
 
     https://developer.apple.com/documentation/appstoreservernotifications/revocationpercentage
+    """
+
+    advancedCommerceInfo: Optional[AdvancedCommerceTransactionInfo] = attr.ib(default=None)
+    """
+    Transaction information that is present only for Advanced Commerce SKUs.
+
+    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactioninfo
+    """
+
+    billingPlanType: Optional[BillingPlanType] = BillingPlanType.create_main_attr('rawBillingPlanType')
+    """
+    https://developer.apple.com/documentation/appstoreserverapi/billingplantype
+    """
+
+    rawBillingPlanType: Optional[str] = BillingPlanType.create_raw_attr('billingPlanType')
+    """
+    See billingPlanType
+    """
+
+    commitmentInfo: Optional[TransactionCommitmentInfo] = attr.ib(default=None)
+    """
+    https://developer.apple.com/documentation/appstoreserverapi/transactioncommitmentinfo
     """

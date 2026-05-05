@@ -4,7 +4,7 @@ from typing import Optional, List
 import attr
 from attr import define
 from .AbstractAdvancedCommerceInAppRequest import AbstractAdvancedCommerceInAppRequest
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 from .AdvancedCommerceSubscriptionModifyAddItem import AdvancedCommerceSubscriptionModifyAddItem
 from .AdvancedCommerceSubscriptionModifyChangeItem import AdvancedCommerceSubscriptionModifyChangeItem
 from .AdvancedCommerceSubscriptionModifyDescriptors import AdvancedCommerceSubscriptionModifyDescriptors
@@ -34,12 +34,12 @@ class AdvancedCommerceSubscriptionModifyInAppRequest(AbstractAdvancedCommerceInA
     https://developer.apple.com/documentation/advancedcommerceapi/retainbillingcycle
     """
 
-    addItems: Optional[List[AdvancedCommerceSubscriptionModifyAddItem]] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.items_validator))
+    addItems: Optional[List[AdvancedCommerceSubscriptionModifyAddItem]] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.items_validator))
     """
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifyadditem
     """
 
-    changeItems: Optional[List[AdvancedCommerceSubscriptionModifyChangeItem]] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.items_validator))
+    changeItems: Optional[List[AdvancedCommerceSubscriptionModifyChangeItem]] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.items_validator))
     """
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifychangeitem
     """

@@ -4,7 +4,7 @@ from typing import Optional, List
 import attr
 from attr import define
 from .AdvancedCommerceRequest import AdvancedCommerceRequest
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 from .AdvancedCommerceSubscriptionMigrateDescriptors import AdvancedCommerceSubscriptionMigrateDescriptors
 from .AdvancedCommerceSubscriptionMigrateItem import AdvancedCommerceSubscriptionMigrateItem
 from .AdvancedCommerceSubscriptionMigrateRenewalItem import AdvancedCommerceSubscriptionMigrateRenewalItem
@@ -22,7 +22,7 @@ class AdvancedCommerceSubscriptionMigrateRequest(AdvancedCommerceRequest):
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmigratedescriptors
     """
 
-    items: List[AdvancedCommerceSubscriptionMigrateItem] = attr.ib(validator=AdvancedCommerceValidationUtils.items_validator)
+    items: List[AdvancedCommerceSubscriptionMigrateItem] = attr.ib(validator=HelperValidationUtils.items_validator)
     """
     An array of one or more SKUs, along with descriptions and display names, that are included in the subscription.
     
@@ -41,7 +41,7 @@ class AdvancedCommerceSubscriptionMigrateRequest(AdvancedCommerceRequest):
     https://developer.apple.com/documentation/advancedcommerceapi/taxcode
     """
 
-    renewalItems: Optional[List[AdvancedCommerceSubscriptionMigrateRenewalItem]] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.items_validator))
+    renewalItems: Optional[List[AdvancedCommerceSubscriptionMigrateRenewalItem]] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.items_validator))
     """
     An optional array of subscription items that represents the items that renew at the next renewal period, if they differ from items.
     

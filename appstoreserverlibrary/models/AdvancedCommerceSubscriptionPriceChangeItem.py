@@ -4,7 +4,7 @@ import attr
 from attr import define
 from typing import List, Optional  
 from .AbstractAdvancedCommerceBaseItem import AbstractAdvancedCommerceBaseItem
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 @define
 class AdvancedCommerceSubscriptionPriceChangeItem(AbstractAdvancedCommerceBaseItem):
@@ -19,7 +19,7 @@ class AdvancedCommerceSubscriptionPriceChangeItem(AbstractAdvancedCommerceBaseIt
     https://developer.apple.com/documentation/advancedcommerceapi/price
     """
 
-    dependentSKUs: Optional[List[str]] = attr.ib(default=None, validator=attr.validators.optional(AdvancedCommerceValidationUtils.dependent_skus_validator))
+    dependentSKUs: Optional[List[str]] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.dependent_skus_validator))
     """
     https://developer.apple.com/documentation/advancedcommerceapi/dependentsku
     """

@@ -4,6 +4,7 @@ from typing import Optional
 import unittest
 from uuid import UUID
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
+from appstoreserverlibrary.models.BillingPlanType import BillingPlanType
 from appstoreserverlibrary.models.ConsumptionRequestReason import ConsumptionRequestReason
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.ExpirationIntent import ExpirationIntent
@@ -13,12 +14,17 @@ from appstoreserverlibrary.models.OfferDiscountType import OfferDiscountType
 from appstoreserverlibrary.models.OfferType import OfferType
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
 from appstoreserverlibrary.models.PurchasePlatform import PurchasePlatform
+from appstoreserverlibrary.models.RenewalBillingPlanType import RenewalBillingPlanType
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.RevocationType import RevocationType
 from appstoreserverlibrary.models.Status import Status
 from appstoreserverlibrary.models.Subtype import Subtype
 from appstoreserverlibrary.models.TransactionReason import TransactionReason
 from appstoreserverlibrary.models.Type import Type
+from appstoreserverlibrary.models.AdvancedCommercePeriod import AdvancedCommercePeriod
+from appstoreserverlibrary.models.AdvancedCommercePriceIncreaseInfoStatus import AdvancedCommercePriceIncreaseInfoStatus
+from appstoreserverlibrary.models.AdvancedCommerceRefundReason import AdvancedCommerceRefundReason
+from appstoreserverlibrary.models.AdvancedCommerceRefundType import AdvancedCommerceRefundType
 
 from tests.util import create_signed_data_from_json, get_default_signed_data_verifier, get_signed_data_verifier
 
@@ -87,6 +93,43 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("PAY_AS_YOU_GO", transaction.rawOfferDiscountType)
         self.assertEqual("71134", transaction.appTransactionId)
         self.assertEqual("P1Y", transaction.offerPeriod)
+        self.assertIsNotNone(transaction.advancedCommerceInfo)
+        info = transaction.advancedCommerceInfo
+        self.assertIsNotNone(info.descriptors)
+        self.assertEqual("Premium Plan", info.descriptors.description)
+        self.assertEqual("Premium", info.descriptors.displayName)
+        self.assertEqual(1500, info.estimatedTax)
+        self.assertEqual(AdvancedCommercePeriod.P1M, info.period)
+        self.assertEqual("P1M", info.rawPeriod)
+        self.assertEqual("ref-12345", info.requestReferenceId)
+        self.assertEqual("TAX_CODE_1", info.taxCode)
+        self.assertEqual(8490, info.taxExclusivePrice)
+        self.assertEqual("0.15", info.taxRate)
+        self.assertIsNotNone(info.items)
+        self.assertEqual(1, len(info.items))
+        acItem = info.items[0]
+        self.assertEqual("com.example.sku.premium", acItem.SKU)
+        self.assertEqual("Premium feature", acItem.description)
+        self.assertEqual("Premium Feature", acItem.displayName)
+        self.assertEqual(9990, acItem.price)
+        self.assertEqual(1698149200000, acItem.revocationDate)
+        self.assertIsNotNone(acItem.refunds)
+        self.assertEqual(1, len(acItem.refunds))
+        refund = acItem.refunds[0]
+        self.assertEqual(5000, refund.refundAmount)
+        self.assertEqual(1698149100000, refund.refundDate)
+        self.assertEqual(AdvancedCommerceRefundReason.FULFILLMENT_ISSUE, refund.refundReason)
+        self.assertEqual("FULFILLMENT_ISSUE", refund.rawRefundReason)
+        self.assertEqual(AdvancedCommerceRefundType.PRORATED, refund.refundType)
+        self.assertEqual("PRORATED", refund.rawRefundType)
+        self.assertEqual(BillingPlanType.MONTHLY, transaction.billingPlanType)
+        self.assertEqual("MONTHLY", transaction.rawBillingPlanType)
+        self.assertIsNotNone(transaction.commitmentInfo)
+        commitment = transaction.commitmentInfo
+        self.assertEqual(3, commitment.billingPeriodNumber)
+        self.assertEqual(1698150000000, commitment.commitmentExpiresDate)
+        self.assertEqual(119880, commitment.commitmentPrice)
+        self.assertEqual(12, commitment.totalBillingPeriods)
 
     def test_transaction_with_revocation_decoding(self):
         signed_transaction = create_signed_data_from_json('tests/resources/models/signedTransactionWithRevocation.json')
@@ -170,6 +213,39 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual("71134", renewal_info.appTransactionId)
         self.assertEqual("P1Y", renewal_info.offerPeriod)
         self.assertEqual("7e3fb20b-4cdb-47cc-936d-99d65f608138", renewal_info.appAccountToken)
+        self.assertIsNotNone(renewal_info.advancedCommerceInfo)
+        acInfo = renewal_info.advancedCommerceInfo
+        self.assertEqual("token-abc-123", acInfo.consistencyToken)
+        self.assertIsNotNone(acInfo.descriptors)
+        self.assertEqual("Premium Plan", acInfo.descriptors.description)
+        self.assertEqual("Premium", acInfo.descriptors.displayName)
+        self.assertEqual(AdvancedCommercePeriod.P1M, acInfo.period)
+        self.assertEqual("P1M", acInfo.rawPeriod)
+        self.assertEqual("ref-12345", acInfo.requestReferenceId)
+        self.assertEqual("TAX_CODE_1", acInfo.taxCode)
+        self.assertIsNotNone(acInfo.items)
+        self.assertEqual(1, len(acInfo.items))
+        item = acInfo.items[0]
+        self.assertEqual("com.example.sku.premium", item.SKU)
+        self.assertEqual("Premium feature", item.description)
+        self.assertEqual("Premium Feature", item.displayName)
+        self.assertEqual(9990, item.price)
+        self.assertIsNotNone(item.priceIncreaseInfo)
+        self.assertEqual(["com.example.sku.1", "com.example.sku.2"], item.priceIncreaseInfo.dependentSKUs)
+        self.assertEqual(12990, item.priceIncreaseInfo.price)
+        self.assertEqual(AdvancedCommercePriceIncreaseInfoStatus.PENDING, item.priceIncreaseInfo.status)
+        self.assertEqual("PENDING", item.priceIncreaseInfo.rawStatus)
+        self.assertIsNotNone(renewal_info.commitmentInfo)
+        commitment = renewal_info.commitmentInfo
+        self.assertEqual("com.example.product.commitment", commitment.commitmentAutoRenewProductId)
+        self.assertEqual(AutoRenewStatus.ON, commitment.commitmentAutoRenewStatus)
+        self.assertEqual(1, commitment.rawCommitmentAutoRenewStatus)
+        self.assertEqual(RenewalBillingPlanType.MONTHLY, commitment.commitmentRenewalBillingPlanType)
+        self.assertEqual("MONTHLY", commitment.rawCommitmentRenewalBillingPlanType)
+        self.assertEqual(1698149500000, commitment.commitmentRenewalDate)
+        self.assertEqual(9990, commitment.commitmentRenewalPrice)
+        self.assertEqual(RenewalBillingPlanType.MONTHLY, renewal_info.renewalBillingPlanType)
+        self.assertEqual("MONTHLY", renewal_info.rawRenewalBillingPlanType)
 
     def test_notification_decoding(self):
         signed_notification = create_signed_data_from_json('tests/resources/models/signedNotification.json')

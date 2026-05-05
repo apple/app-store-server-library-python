@@ -6,7 +6,7 @@ import attr
 
 from .AdvancedCommerceOfferPeriod import AdvancedCommerceOfferPeriod
 from .AdvancedCommerceOfferReason import AdvancedCommerceOfferReason
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 from .LibraryUtility import AttrsRawValueAware
 
 @define
@@ -17,7 +17,7 @@ class AdvancedCommerceOffer(AttrsRawValueAware):
     https://developer.apple.com/documentation/advancedcommerceapi/offer
     """
 
-    periodCount: int = attr.ib(validator=AdvancedCommerceValidationUtils.period_count_validator)
+    periodCount: int = attr.ib(validator=HelperValidationUtils.period_count_validator)
     """
     The number of periods the offer is active.
     """

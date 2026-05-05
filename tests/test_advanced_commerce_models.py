@@ -11,9 +11,14 @@ from appstoreserverlibrary.models.AdvancedCommerceOfferReason import AdvancedCom
 from appstoreserverlibrary.models.AdvancedCommerceOneTimeChargeCreateRequest import AdvancedCommerceOneTimeChargeCreateRequest
 from appstoreserverlibrary.models.AdvancedCommerceOneTimeChargeItem import AdvancedCommerceOneTimeChargeItem
 from appstoreserverlibrary.models.AdvancedCommercePeriod import AdvancedCommercePeriod
+from appstoreserverlibrary.models.AdvancedCommercePriceIncreaseInfo import AdvancedCommercePriceIncreaseInfo
+from appstoreserverlibrary.models.AdvancedCommercePriceIncreaseInfoStatus import AdvancedCommercePriceIncreaseInfoStatus
 from appstoreserverlibrary.models.AdvancedCommerceReason import AdvancedCommerceReason
+from appstoreserverlibrary.models.AdvancedCommerceRefund import AdvancedCommerceRefund
 from appstoreserverlibrary.models.AdvancedCommerceRefundReason import AdvancedCommerceRefundReason
 from appstoreserverlibrary.models.AdvancedCommerceRefundType import AdvancedCommerceRefundType
+from appstoreserverlibrary.models.AdvancedCommerceRenewalInfo import AdvancedCommerceRenewalInfo
+from appstoreserverlibrary.models.AdvancedCommerceRenewalItem import AdvancedCommerceRenewalItem
 from appstoreserverlibrary.models.AdvancedCommerceRequestInfo import AdvancedCommerceRequestInfo
 from appstoreserverlibrary.models.AdvancedCommerceRequestRefundItem import AdvancedCommerceRequestRefundItem
 from appstoreserverlibrary.models.AdvancedCommerceRequestRefundRequest import AdvancedCommerceRequestRefundRequest
@@ -44,7 +49,14 @@ from appstoreserverlibrary.models.AdvancedCommerceSubscriptionReactivateInAppReq
 from appstoreserverlibrary.models.AdvancedCommerceSubscriptionReactivateItem import AdvancedCommerceSubscriptionReactivateItem
 from appstoreserverlibrary.models.AdvancedCommerceSubscriptionRevokeRequest import AdvancedCommerceSubscriptionRevokeRequest
 from appstoreserverlibrary.models.AdvancedCommerceSubscriptionRevokeResponse import AdvancedCommerceSubscriptionRevokeResponse
-from appstoreserverlibrary.models.AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from appstoreserverlibrary.models.AdvancedCommerceTransactionInfo import AdvancedCommerceTransactionInfo
+from appstoreserverlibrary.models.AdvancedCommerceTransactionItem import AdvancedCommerceTransactionItem
+from appstoreserverlibrary.models.HelperValidationUtils import HelperValidationUtils
+from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
+from appstoreserverlibrary.models.BillingPlanType import BillingPlanType
+from appstoreserverlibrary.models.RenewalBillingPlanType import RenewalBillingPlanType
+from appstoreserverlibrary.models.RenewalCommitmentInfo import RenewalCommitmentInfo
+from appstoreserverlibrary.models.TransactionCommitmentInfo import TransactionCommitmentInfo
 from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 from tests.util import read_data_from_file
 
@@ -143,47 +155,47 @@ class AdvancedCommerceModelsTest(unittest.TestCase):
 
     def test_validation_utils_description(self):
         valid_description = "Valid description"
-        AdvancedCommerceValidationUtils.description_validator(None, None, valid_description)
+        HelperValidationUtils.description_validator(None, None, valid_description)
 
         max_length_description = "A" * 45
-        AdvancedCommerceValidationUtils.description_validator(None, None, max_length_description)
+        HelperValidationUtils.description_validator(None, None, max_length_description)
 
         too_long_description = "A" * 46
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.description_validator(None, None, too_long_description)
+            HelperValidationUtils.description_validator(None, None, too_long_description)
 
     def test_validation_utils_display_name(self):
         valid_display_name = "Valid Name"
-        AdvancedCommerceValidationUtils.display_name_validator(None, None, valid_display_name)
+        HelperValidationUtils.display_name_validator(None, None, valid_display_name)
 
         max_length_display_name = "A" * 30
-        AdvancedCommerceValidationUtils.display_name_validator(None, None, max_length_display_name)
+        HelperValidationUtils.display_name_validator(None, None, max_length_display_name)
 
         too_long_display_name = "A" * 31
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.display_name_validator(None, None, too_long_display_name)
+            HelperValidationUtils.display_name_validator(None, None, too_long_display_name)
 
     def test_validation_utils_sku(self):
         valid_sku = "valid.sku.123"
-        AdvancedCommerceValidationUtils.sku_validator(None, None, valid_sku)
+        HelperValidationUtils.sku_validator(None, None, valid_sku)
 
         max_length_sku = "A" * 128
-        AdvancedCommerceValidationUtils.sku_validator(None, None, max_length_sku)
+        HelperValidationUtils.sku_validator(None, None, max_length_sku)
 
         too_long_sku = "A" * 129
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.sku_validator(None, None, too_long_sku)
+            HelperValidationUtils.sku_validator(None, None, too_long_sku)
 
     def test_validation_utils_period_count(self):
-        AdvancedCommerceValidationUtils.period_count_validator(None, None, 1)
-        AdvancedCommerceValidationUtils.period_count_validator(None, None, 6)
-        AdvancedCommerceValidationUtils.period_count_validator(None, None, 12)
+        HelperValidationUtils.period_count_validator(None, None, 1)
+        HelperValidationUtils.period_count_validator(None, None, 6)
+        HelperValidationUtils.period_count_validator(None, None, 12)
 
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.period_count_validator(None, None, 0)
+            HelperValidationUtils.period_count_validator(None, None, 0)
 
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.period_count_validator(None, None, 13)
+            HelperValidationUtils.period_count_validator(None, None, 13)
 
     def test_validation_utils_items(self):
         valid_list = [
@@ -194,17 +206,17 @@ class AdvancedCommerceModelsTest(unittest.TestCase):
                 price=1000
             )
         ]
-        AdvancedCommerceValidationUtils.items_validator(None, None, valid_list)
+        HelperValidationUtils.items_validator(None, None, valid_list)
 
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.items_validator(None, None, None)
+            HelperValidationUtils.items_validator(None, None, None)
 
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.items_validator(None, None, [])
+            HelperValidationUtils.items_validator(None, None, [])
 
         list_with_none = [None]
         with self.assertRaises(ValueError):
-            AdvancedCommerceValidationUtils.items_validator(None, None, list_with_none)
+            HelperValidationUtils.items_validator(None, None, list_with_none)
 
     def test_advanced_commerce_descriptors_deserialization(self):
         json_data = read_data_from_file('tests/resources/models/advancedCommerceDescriptors.json')
@@ -609,3 +621,52 @@ class AdvancedCommerceModelsTest(unittest.TestCase):
 
         self.assertEqual("signed_renewal_info_value", response.signedRenewalInfo)
         self.assertEqual("signed_transaction_info_value", response.signedTransactionInfo)
+
+    def test_advanced_commerce_price_increase_info_status(self):
+        self.assertEqual("SCHEDULED", AdvancedCommercePriceIncreaseInfoStatus.SCHEDULED.value)
+        self.assertEqual("PENDING", AdvancedCommercePriceIncreaseInfoStatus.PENDING.value)
+        self.assertEqual("ACCEPTED", AdvancedCommercePriceIncreaseInfoStatus.ACCEPTED.value)
+
+        self.assertEqual(AdvancedCommercePriceIncreaseInfoStatus.SCHEDULED,
+            AdvancedCommercePriceIncreaseInfoStatus("SCHEDULED"))
+        self.assertEqual(AdvancedCommercePriceIncreaseInfoStatus.PENDING,
+            AdvancedCommercePriceIncreaseInfoStatus("PENDING"))
+        self.assertEqual(AdvancedCommercePriceIncreaseInfoStatus.ACCEPTED,
+            AdvancedCommercePriceIncreaseInfoStatus("ACCEPTED"))
+        self.assertFalse("INVALID" in AdvancedCommercePriceIncreaseInfoStatus)
+
+        self.assertEqual("SCHEDULED", AdvancedCommercePriceIncreaseInfoStatus.SCHEDULED.value)
+
+    def test_billing_plan_type(self):
+        self.assertEqual("BILLED_UPFRONT", BillingPlanType.BILLED_UPFRONT.value)
+        self.assertEqual("MONTHLY", BillingPlanType.MONTHLY.value)
+
+        self.assertEqual(BillingPlanType.BILLED_UPFRONT,
+            BillingPlanType("BILLED_UPFRONT"))
+        self.assertEqual(BillingPlanType.MONTHLY,
+            BillingPlanType("MONTHLY"))
+        self.assertFalse("INVALID" in BillingPlanType)
+
+        self.assertEqual("MONTHLY", BillingPlanType.MONTHLY.value)
+
+    def test_renewal_billing_plan_type(self):
+        self.assertEqual("BILLED_UPFRONT", RenewalBillingPlanType.BILLED_UPFRONT.value)
+        self.assertEqual("MONTHLY", RenewalBillingPlanType.MONTHLY.value)
+
+        self.assertEqual(RenewalBillingPlanType.BILLED_UPFRONT,
+            RenewalBillingPlanType("BILLED_UPFRONT"))
+        self.assertEqual(RenewalBillingPlanType.MONTHLY,
+            RenewalBillingPlanType("MONTHLY"))
+        self.assertFalse("INVALID" in RenewalBillingPlanType)
+
+        self.assertEqual("BILLED_UPFRONT", RenewalBillingPlanType.BILLED_UPFRONT.value)
+
+    def test_transaction_commitment_info_billing_period_number_validation(self):
+        info = TransactionCommitmentInfo(billingPeriodNumber=1)
+        self.assertEqual(1, info.billingPeriodNumber)
+
+        info = TransactionCommitmentInfo(billingPeriodNumber=12)
+        self.assertEqual(12, info.billingPeriodNumber)
+
+        info = TransactionCommitmentInfo(billingPeriodNumber=None)
+        self.assertIsNone(info.billingPeriodNumber)

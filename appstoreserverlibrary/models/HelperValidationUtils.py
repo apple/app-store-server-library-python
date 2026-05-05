@@ -5,7 +5,7 @@ from typing import TypeVar
 T = TypeVar('T')
 
 
-class AdvancedCommerceValidationUtils:
+class HelperValidationUtils:
     MAXIMUM_DESCRIPTION_LENGTH = 45
     MAXIMUM_DISPLAY_NAME_LENGTH = 30
     MAXIMUM_SKU_LENGTH = 128
@@ -20,10 +20,10 @@ class AdvancedCommerceValidationUtils:
         Raises:
             ValueError: If description exceeds maximum length
         """
-        if len(value) > AdvancedCommerceValidationUtils.MAXIMUM_DESCRIPTION_LENGTH:
+        if len(value) > HelperValidationUtils.MAXIMUM_DESCRIPTION_LENGTH:
             raise ValueError(
                 f"Description length cannot exceed "
-                f"{AdvancedCommerceValidationUtils.MAXIMUM_DESCRIPTION_LENGTH} characters"
+                f"{HelperValidationUtils.MAXIMUM_DESCRIPTION_LENGTH} characters"
             )
 
     @staticmethod
@@ -34,10 +34,10 @@ class AdvancedCommerceValidationUtils:
         Raises:
             ValueError: If display name exceeds maximum length
         """
-        if len(value) > AdvancedCommerceValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH:
+        if len(value) > HelperValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH:
             raise ValueError(
                 f"Display name length cannot exceed "
-                f"{AdvancedCommerceValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH} characters"
+                f"{HelperValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH} characters"
             )
 
     @staticmethod
@@ -48,10 +48,10 @@ class AdvancedCommerceValidationUtils:
         Raises:
             ValueError: If SKU exceeds maximum length
         """
-        if len(value) > AdvancedCommerceValidationUtils.MAXIMUM_SKU_LENGTH:
+        if len(value) > HelperValidationUtils.MAXIMUM_SKU_LENGTH:
             raise ValueError(
                 f"SKU length cannot exceed "
-                f"{AdvancedCommerceValidationUtils.MAXIMUM_SKU_LENGTH} characters"
+                f"{HelperValidationUtils.MAXIMUM_SKU_LENGTH} characters"
             )
 
     @staticmethod
@@ -62,12 +62,12 @@ class AdvancedCommerceValidationUtils:
         Raises:
             ValueError: If period_count is out of range
         """
-        if (value < AdvancedCommerceValidationUtils.MIN_PERIOD or
-            value > AdvancedCommerceValidationUtils.MAX_PERIOD):
+        if (value < HelperValidationUtils.MIN_PERIOD or
+            value > HelperValidationUtils.MAX_PERIOD):
             raise ValueError(
                 f"Period count must be between "
-                f"{AdvancedCommerceValidationUtils.MIN_PERIOD} and "
-                f"{AdvancedCommerceValidationUtils.MAX_PERIOD}"
+                f"{HelperValidationUtils.MIN_PERIOD} and "
+                f"{HelperValidationUtils.MAX_PERIOD}"
             )
 
     @staticmethod
@@ -94,8 +94,8 @@ class AdvancedCommerceValidationUtils:
             ValueError: If any SKU exceeds maximum length
         """
         for sku in value:
-            if len(sku) > AdvancedCommerceValidationUtils.MAXIMUM_SKU_LENGTH:
+            if len(sku) > HelperValidationUtils.MAXIMUM_SKU_LENGTH:
                 raise ValueError(
                     f"SKU length cannot exceed "
-                    f"{AdvancedCommerceValidationUtils.MAXIMUM_SKU_LENGTH} characters"
+                    f"{HelperValidationUtils.MAXIMUM_SKU_LENGTH} characters"
                 )

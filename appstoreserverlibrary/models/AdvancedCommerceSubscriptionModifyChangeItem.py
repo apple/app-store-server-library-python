@@ -7,7 +7,7 @@ from .AbstractAdvancedCommerceItem import AbstractAdvancedCommerceItem
 from .AdvancedCommerceEffective import AdvancedCommerceEffective
 from .AdvancedCommerceOffer import AdvancedCommerceOffer
 from .AdvancedCommerceReason import AdvancedCommerceReason
-from .AdvancedCommerceValidationUtils import AdvancedCommerceValidationUtils
+from .HelperValidationUtils import HelperValidationUtils
 
 
 @define
@@ -18,7 +18,7 @@ class AdvancedCommerceSubscriptionModifyChangeItem(AbstractAdvancedCommerceItem)
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifychangeitem
     """
 
-    currentSKU: str = attr.ib(validator=AdvancedCommerceValidationUtils.sku_validator)
+    currentSKU: str = attr.ib(validator=HelperValidationUtils.sku_validator)
     """
     https://developer.apple.com/documentation/advancedcommerceapi/sku
     """

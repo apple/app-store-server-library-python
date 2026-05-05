@@ -696,11 +696,11 @@ class BaseAppStoreServerAPIClient:
         if environment == Environment.XCODE:
             raise ValueError("Xcode is not a supported environment for an AppStoreServerAPIClient")
         if environment == Environment.PRODUCTION:
-            self._base_url = "https://api.storekit.itunes.apple.com"
+            self._base_url = "https://api.storekit.apple.com"
         elif environment == Environment.LOCAL_TESTING:
             self._base_url = "https://local-testing-base-url"
         elif environment == Environment.SANDBOX:
-            self._base_url = "https://api.storekit-sandbox.itunes.apple.com"
+            self._base_url = "https://api.storekit-sandbox.apple.com"
         else:
             raise ValueError("Invalid environment provided")
         self._signing_key = serialization.load_pem_private_key(signing_key, password=None, backend=default_backend())

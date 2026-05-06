@@ -27,6 +27,12 @@ dependencies = [
 [project.optional-dependencies]
 async = ["httpx"]
 
+[project.urls]
+Documentation = "https://apple.github.io/app-store-server-library-python/"
+Repository = "https://github.com/apple/app-store-server-library-python"
+Issues = "https://github.com/apple/app-store-server-library-python/issues"
+Changelog = "https://github.com/apple/app-store-server-library-python/blob/main/CHANGELOG.md"
+
 [tool.setuptools]
 packages = {find = {exclude = ["tests"]}}
 

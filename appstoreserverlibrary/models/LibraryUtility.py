@@ -97,6 +97,8 @@ def _get_cattrs_converter(destination_class: Type[T]) -> cattrs.Converter:
                         cattrs_overrides[raw_field] = override(rename=matching_name)
                     else:
                         cattrs_overrides[raw_field] = override(rename=matching_name, omit_if_default=True)
+            elif not attribute.init and attribute.name not in cattrs_overrides:
+                cattrs_overrides[attribute.name] = override(omit=False)
             elif attribute.default is None and attribute.name not in cattrs_overrides:
                 cattrs_overrides[attribute.name] = override(omit_if_default=True)
         return cattrs_overrides

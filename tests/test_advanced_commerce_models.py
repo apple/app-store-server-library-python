@@ -622,6 +622,46 @@ class AdvancedCommerceModelsTest(unittest.TestCase):
         self.assertEqual("signed_renewal_info_value", response.signedRenewalInfo)
         self.assertEqual("signed_transaction_info_value", response.signedTransactionInfo)
 
+    def test_one_time_charge_create_request_deserialization_sets_operation_and_version(self):
+        json_data = read_data_from_file('tests/resources/models/advancedCommerceOneTimeChargeCreateRequest.json')
+
+        request_dict = json.loads(json_data)
+        request = _get_cattrs_converter(AdvancedCommerceOneTimeChargeCreateRequest).structure(request_dict, AdvancedCommerceOneTimeChargeCreateRequest)
+
+        result = _get_cattrs_converter(AdvancedCommerceOneTimeChargeCreateRequest).unstructure(request)
+        self.assertEqual("CREATE_ONE_TIME_CHARGE", result["operation"])
+        self.assertEqual("1", result["version"])
+
+    def test_subscription_create_request_deserialization_sets_operation_and_version(self):
+        json_data = read_data_from_file('tests/resources/models/advancedCommerceSubscriptionCreateRequest.json')
+
+        request_dict = json.loads(json_data)
+        request = _get_cattrs_converter(AdvancedCommerceSubscriptionCreateRequest).structure(request_dict, AdvancedCommerceSubscriptionCreateRequest)
+
+        result = _get_cattrs_converter(AdvancedCommerceSubscriptionCreateRequest).unstructure(request)
+        self.assertEqual("CREATE_SUBSCRIPTION", result["operation"])
+        self.assertEqual("1", result["version"])
+
+    def test_subscription_modify_in_app_request_deserialization_sets_operation_and_version(self):
+        json_data = read_data_from_file('tests/resources/models/advancedCommerceSubscriptionModifyInAppRequest.json')
+
+        request_dict = json.loads(json_data)
+        request = _get_cattrs_converter(AdvancedCommerceSubscriptionModifyInAppRequest).structure(request_dict, AdvancedCommerceSubscriptionModifyInAppRequest)
+
+        result = _get_cattrs_converter(AdvancedCommerceSubscriptionModifyInAppRequest).unstructure(request)
+        self.assertEqual("MODIFY_SUBSCRIPTION", result["operation"])
+        self.assertEqual("1", result["version"])
+
+    def test_subscription_reactivate_in_app_request_deserialization_sets_operation_and_version(self):
+        json_data = read_data_from_file('tests/resources/models/advancedCommerceSubscriptionReactivateInAppRequest.json')
+
+        request_dict = json.loads(json_data)
+        request = _get_cattrs_converter(AdvancedCommerceSubscriptionReactivateInAppRequest).structure(request_dict, AdvancedCommerceSubscriptionReactivateInAppRequest)
+
+        result = _get_cattrs_converter(AdvancedCommerceSubscriptionReactivateInAppRequest).unstructure(request)
+        self.assertEqual("REACTIVATE_SUBSCRIPTION", result["operation"])
+        self.assertEqual("1", result["version"])
+
     def test_advanced_commerce_price_increase_info_status(self):
         self.assertEqual("SCHEDULED", AdvancedCommercePriceIncreaseInfoStatus.SCHEDULED.value)
         self.assertEqual("PENDING", AdvancedCommercePriceIncreaseInfoStatus.PENDING.value)

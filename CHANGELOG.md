@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 3.1.2
+- Support validity with SKEW checking with cryptography 43 methods [https://github.com/apple/app-store-server-library-python/pull/197]
+
 ## Version 3.1.1
 - Fix inclusion of static fields in new Advanced Commerce API types [https://github.com/apple/app-store-server-library-python/pull/194]
 

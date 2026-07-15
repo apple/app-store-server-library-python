@@ -1,6 +1,6 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 import unittest
 
 from requests import Response
@@ -435,7 +435,8 @@ class DecodedPayloads(unittest.TestCase):
                                                      'https://local-testing-base-url/inApps/v1/notifications/test',
                                                      {},
                                                      None,
-                                                     429)
+                                                     429,
+                                                     response_headers={'Retry-After': '1698148904000'})
         try:
             client.request_test_notification()
         except APIException as e:
@@ -443,6 +444,7 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual(4290000, e.raw_api_error)
             self.assertEqual(APIError.RATE_LIMIT_EXCEEDED, e.api_error)
             self.assertEqual("Rate limit exceeded.", e.error_message)
+            self.assertEqual(1698148904000, e.retry_after)
             return
         
         self.assertFalse(True)
@@ -870,7 +872,7 @@ class DecodedPayloads(unittest.TestCase):
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
 
-    def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, expected_data: bytes = None, expected_content_type: str = None):
+    def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, expected_data: bytes = None, expected_content_type: str = None, response_headers: Optional[Dict[str, str]] = None):
         signing_key = self.get_signing_key()
         client = AppStoreServerAPIClient(signing_key, 'keyId', 'issuerId', 'com.example', Environment.LOCAL_TESTING)
         def fake_execute_and_validate_inputs(method: bytes, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any], data: bytes):
@@ -900,11 +902,13 @@ class DecodedPayloads(unittest.TestCase):
             response.status_code = status_code
             response.raw = BytesIO(body)
             response.headers['Content-Type'] = 'application/json'
+            if response_headers is not None:
+                response.headers.update(response_headers)
             return response
 
         client._execute_request = fake_execute_and_validate_inputs
         return client
 
-    def get_client_with_body_from_file(self, path: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200):
+    def get_client_with_body_from_file(self, path: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, response_headers: Optional[Dict[str, str]] = None):
         body = read_data_from_binary_file(path)
-        return self.get_client_with_body(body, expected_method, expected_url, expected_params, expected_json, status_code)
+        return self.get_client_with_body(body, expected_method, expected_url, expected_params, expected_json, status_code, response_headers=response_headers)

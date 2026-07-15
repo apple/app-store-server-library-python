@@ -671,12 +671,14 @@ class APIException(Exception):
     api_error: Optional[APIError]
     raw_api_error: Optional[int]
     error_message: Optional[str]
+    retry_after: Optional[int]
 
-    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None):
+    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None, retry_after: Optional[int] = None):
         self.http_status_code = http_status_code
         self.raw_api_error = raw_api_error
         self.api_error = None
         self.error_message = error_message
+        self.retry_after = retry_after
         try:
             if raw_api_error is not None:
                 self.api_error = APIError(raw_api_error)
@@ -736,6 +738,15 @@ class BaseAppStoreServerAPIClient:
         c = _get_cattrs_converter(type(body)) if body is not None else None
         return c.unstructure(body) if body is not None else None
 
+    def _get_retry_after(self, headers: MutableMapping) -> Optional[int]:
+        retry_after = headers.get("Retry-After")
+        if retry_after is None:
+            return None
+        try:
+            return int(retry_after)
+        except ValueError:
+            return None
+
     def _parse_response(self, status_code: int, headers: MutableMapping, json_supplier, destination_class: Type[T]) -> T:
         if 200 <= status_code < 300:
             if destination_class is None:
@@ -745,15 +756,16 @@ class BaseAppStoreServerAPIClient:
             return c.structure(response_body, destination_class)
         else:
             # Best effort parsing of the response body
+            retry_after = self._get_retry_after(headers)
             if not 'content-type' in headers or headers['content-type'] != 'application/json':
-                raise APIException(status_code)
+                raise APIException(status_code, retry_after=retry_after)
             try:
                 response_body = json_supplier()
-                raise APIException(status_code, response_body['errorCode'], response_body['errorMessage'])
+                raise APIException(status_code, response_body['errorCode'], response_body['errorMessage'], retry_after)
             except APIException as e:
                 raise e
             except Exception as e:
-                raise APIException(status_code) from e
+                raise APIException(status_code, retry_after=retry_after) from e
 
 
 class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):

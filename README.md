@@ -118,6 +118,31 @@ except APIException as e:
 
 ```
 
+### App Receipt Verification Usage
+
+```python
+from appstoreserverlibrary.app_receipt_verifier import AppReceiptVerifier
+from appstoreserverlibrary.models.Environment import Environment
+from appstoreserverlibrary.signed_data_verifier import VerificationException
+
+root_certificates = load_root_certificates()
+enable_online_checks = True
+bundle_id = "com.example"
+environment = Environment.SANDBOX
+app_receipt_verifier = AppReceiptVerifier(root_certificates, enable_online_checks, environment, bundle_id)
+
+app_receipt = "MI.."
+
+try:
+    receipt = app_receipt_verifier.verify_and_decode_app_receipt(app_receipt)
+    print(receipt)
+
+    transaction_id = app_receipt_verifier.verify_and_extract_transaction_id(app_receipt)
+    print(transaction_id)
+except VerificationException as e:
+    print(e)
+```
+
 ### Promotional Offer Signature Creation
 
 ```python

@@ -8,7 +8,7 @@ from appstoreserverlibrary.app_receipt_verifier import AppReceiptVerifier
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.signed_data_verifier import VerificationException, VerificationStatus
 
-from tests.receipt_creator import AttributeSet, ReceiptCreator, create_receipt_creator, create_self_signed_receipt_creator, days_ago, double_wrap, encode, in_one_year
+from tests.receipt_creator import AttributeSet, ReceiptCreator, create_receipt_creator, create_self_signed_receipt_creator, days_ago, double_wrap, encode, encode_context, encode_sequence, in_one_year, nest_octet_strings
 from tests.util import read_data_from_binary_file, read_data_from_file
 
 XCODE_BUNDLE_ID = "com.example.naturelab.backyardbirds.example"
@@ -296,6 +296,46 @@ class AppReceiptVerification(unittest.TestCase):
         with self.assertRaises(VerificationException) as context:
             verifier.verify_and_decode_app_receipt(encode_receipt(receipt))
         self.assertEqual(VerificationStatus.INVALID_ENVIRONMENT, context.exception.status)
+
+    def test_receipt_naming_its_signer_by_subject_key_identifier(self):
+        # The other way a CMS signer can name its certificate, and the one that decides which embedded
+        # certificate becomes the leaf of the chain
+        receipt = self.receipt_creator.sign_receipt(receipt_payload("ProductionSandbox", BUNDLE_ID, RECEIPT_CREATION_DATE), subject_key_identifier=True)
+
+        decoded = get_receipt_verifier(self.receipt_creator, Environment.SANDBOX, BUNDLE_ID, False).verify_and_decode_app_receipt(encode_receipt(receipt))
+        self.assertEqual(BUNDLE_ID, decoded.bundleId)
+        self.assertEqual(2, len(decoded.inAppPurchases))
+
+    def test_receipt_with_too_many_embedded_certificates(self):
+        # The embedded certificates are attacker-supplied and are parsed and ordered into a chain before
+        # anything about the receipt has been verified, so a receipt carrying more of them than a chain can
+        # hold is rejected rather than assembled
+        receipt = self.receipt_creator.sign_receipt(receipt_payload("ProductionSandbox", BUNDLE_ID, RECEIPT_CREATION_DATE), padding_certificates=30)
+
+        verifier = get_receipt_verifier(self.receipt_creator, Environment.SANDBOX, BUNDLE_ID, False)
+        with self.assertRaises(VerificationException) as context:
+            verifier.verify_and_decode_app_receipt(encode_receipt(receipt))
+        self.assertEqual(VerificationStatus.INVALID_CHAIN_LENGTH, context.exception.status)
+
+    def test_receipt_with_deeply_nested_content(self):
+        # Walking an indefinite-length element means walking everything inside it, and its parent walked it
+        # too, so a receipt nested far deeper than any real one is rejected on its depth rather than walked
+        receipt = self.receipt_creator.sign_receipt(b'', encoded_content=nest_octet_strings(receipt_payload("ProductionSandbox", BUNDLE_ID, RECEIPT_CREATION_DATE), 200))
+
+        verifier = get_receipt_verifier(self.receipt_creator, Environment.SANDBOX, BUNDLE_ID, False)
+        with self.assertRaises(VerificationException) as context:
+            verifier.verify_and_decode_app_receipt(encode_receipt(receipt))
+        self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_receipt_with_an_oversized_object_identifier(self):
+        # The content type is the first thing read out of a receipt, so an object identifier wider than any
+        # real one is rejected on its width rather than decoded
+        receipt = encode_sequence(encode(0x06, b'\x80' * 100000 + b'\x01'), encode_context(0, encode_sequence()))
+
+        verifier = get_receipt_verifier(self.receipt_creator, Environment.SANDBOX, BUNDLE_ID, False)
+        with self.assertRaises(VerificationException) as context:
+            verifier.verify_and_decode_app_receipt(encode_receipt(receipt))
+        self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
 
     def test_verify_and_extract_transaction_id(self):
         transaction_id = get_receipt_verifier(self.receipt_creator, Environment.SANDBOX, BUNDLE_ID, False).verify_and_extract_transaction_id(encode_receipt(self.sandbox_receipt))

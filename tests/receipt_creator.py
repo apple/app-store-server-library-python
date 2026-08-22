@@ -110,7 +110,7 @@ class ReceiptCreator:
         """The root of this chain, in the form the verifier's constructor accepts."""
         return self._chain[-1].public_bytes(serialization.Encoding.DER)
 
-    def sign_receipt(self, payload: bytes, embedded_certificates: Optional[int] = None, signing_time: Optional[datetime.datetime] = None, signed_attributes: bool = True, digest: str = 'sha256', content_segment_size: Optional[int] = None) -> bytes:
+    def sign_receipt(self, payload: bytes, embedded_certificates: Optional[int] = None, signing_time: Optional[datetime.datetime] = None, signed_attributes: bool = True, digest: str = 'sha256', content_segment_size: Optional[int] = None, padding_certificates: int = 0, subject_key_identifier: bool = False, encoded_content: Optional[bytes] = None) -> bytes:
         """
         CMS-signs the payload as encapsulated content, embedding the chain.
 
@@ -121,8 +121,17 @@ class ReceiptCreator:
             the payload directly, as Apple's own receipts do not
         :param digest: The digest the signer names and signs with, by its hashlib name
         :param content_segment_size: Encodes the payload as a constructed OCTET STRING of segments this size
+        :param padding_certificates: Unrelated certificates embedded on top of the chain, as a receipt bloated
+            to make chain assembly expensive carries
+        :param subject_key_identifier: Whether the signer names its certificate by subject key identifier
+            rather than by issuer and serial number
+        :param encoded_content: The already-encoded encapsulated content, in place of encoding the payload
         """
-        embedded = self._chain[:embedded_certificates] if embedded_certificates is not None else self._chain
+        embedded = list(self._chain[:embedded_certificates] if embedded_certificates is not None else self._chain)
+        for index in range(padding_certificates):
+            key = _rsa_key()
+            # Carries the intermediate's subject name, so it stays a candidate at every step of chain assembly
+            embedded.append(_certificate('Test WWDR CA', key.public_key(), 'Test WWDR CA', key, True, None, days_ago(3650), in_one_year()))
         algorithm, digest_oid = DIGESTS[digest]
         if signed_attributes:
             attributes = b''.join([
@@ -136,18 +145,24 @@ class ReceiptCreator:
         else:
             signature = self._signing_key.sign(payload, padding.PKCS1v15(), algorithm())
             attributes_field = []
+        if subject_key_identifier:
+            identifier = encode(0x80, self._chain[0].extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value.digest)
+        else:
+            identifier = encode_sequence(self._chain[0].issuer.public_bytes(), encode_integer(self._chain[0].serial_number))
         signer_info = encode_sequence(
-            encode_integer(1),
-            encode_sequence(self._chain[0].issuer.public_bytes(), encode_integer(self._chain[0].serial_number)),
+            encode_integer(3 if subject_key_identifier else 1),
+            identifier,
             encode_algorithm(digest_oid),
             *attributes_field,
             encode_algorithm(RSA_ENCRYPTION_OID),
             encode(0x04, signature),
         )
+        if encoded_content is None:
+            encoded_content = encode(0x04, payload) if content_segment_size is None else encode_segmented_octet_string(payload, content_segment_size)
         signed_data = encode_sequence(
             encode_integer(1),
             encode_set(encode_algorithm(digest_oid)),
-            encode_sequence(encode_object_identifier(PKCS7_DATA_OID), encode_context(0, encode(0x04, payload) if content_segment_size is None else encode_segmented_octet_string(payload, content_segment_size))),
+            encode_sequence(encode_object_identifier(PKCS7_DATA_OID), encode_context(0, encoded_content)),
             encode_context(0, b''.join(certificate.public_bytes(serialization.Encoding.DER) for certificate in embedded)),
             encode_set(signer_info),
         )
@@ -156,6 +171,16 @@ class ReceiptCreator:
 def double_wrap(payload: bytes) -> bytes:
     """The extra OCTET STRING wrapper Xcode-generated receipts put around the payload."""
     return encode(0x04, payload)
+
+def nest_octet_strings(value: bytes, levels: int) -> bytes:
+    """
+    A value wrapped in nested indefinite-length constructed OCTET STRINGs, the shape a receipt takes when it is
+    built to be expensive to walk rather than to be read.
+    """
+    encoded = encode(0x04, value)
+    for _ in range(levels):
+        encoded = b'\x24\x80' + encoded + b'\x00\x00'
+    return encoded
 
 def create_receipt_creator(receipt_signer_oid: bool = True, wwdr_intermediate_oid: bool = True, not_before: Optional[datetime.datetime] = None, not_after: Optional[datetime.datetime] = None) -> ReceiptCreator:
     """
@@ -203,6 +228,8 @@ def _certificate(subject: str, subject_key: rsa.RSAPublicKey, issuer: str, issue
         .not_valid_before(not_before)
         .not_valid_after(not_after)
         .add_extension(x509.BasicConstraints(ca=certificate_authority, path_length=None), critical=True)
+        # Real certificates carry one, and it is the other way a CMS signer can name its certificate
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(subject_key), critical=False)
     )
     if marker_oid is not None:
         # The Apple marker extensions are non-critical and carry no value

@@ -48,6 +48,13 @@ IAP_IS_IN_INTRO_OFFER_PERIOD = 1719
 # is otherwise rejected rather than trusted.
 _DIGESTS = {SHA1_OID: ('sha1', hashes.SHA1), SHA256_OID: ('sha256', hashes.SHA256)}
 
+# Bounds on what is read before the receipt has been verified, so that a hostile receipt cannot make parsing
+# expensive: the nesting a genuine receipt uses with room to spare, an object identifier wider than any real
+# one, and the certificates a chain can hold.
+MAXIMUM_ASN1_DEPTH = 32
+MAXIMUM_OID_BYTES = 32
+MAXIMUM_EMBEDDED_CERTIFICATES = 10
+
 # Only explicit production values map to the Production environment; an unknown
 # or missing receipt type maps to None and fails environment validation.
 _ENVIRONMENT_BY_RECEIPT_TYPE = {
@@ -140,6 +147,11 @@ class AppReceiptVerifier:
         _ChainVerifier, which enforces the chain length, the WWDR intermediate OID and the receipt-signing leaf
         OID, and validates to the caller-supplied Apple roots.
         """
+        # The embedded certificates are attacker-supplied and are parsed and ordered into a chain below, before
+        # anything about the receipt has been verified, so a receipt carrying more of them than a chain can hold
+        # is rejected here rather than assembled
+        if len(signed_data.certificates) > MAXIMUM_EMBEDDED_CERTIFICATES:
+            raise VerificationException(VerificationStatus.INVALID_CHAIN_LENGTH)
         try:
             certificates = [(der, x509.load_der_x509_certificate(der)) for der in signed_data.certificates]
         except Exception as e:
@@ -176,8 +188,13 @@ class _SignedData(NamedTuple):
     certificates: List[bytes]
     signer: _Signer
 
-def _read_element(data: bytes, offset: int) -> _Element:
+def _read_element(data: bytes, offset: int, depth: int = 0) -> _Element:
     """Reads one BER/DER element, supporting the indefinite lengths genuine App Store receipts use."""
+    # Finding the end of an indefinite-length element means walking everything inside it, and its parent walked
+    # it too, so the work grows with the nesting depth. Genuine receipts nest a handful of levels; the bound
+    # keeps a receipt built only to be deeply nested from being expensive to reject.
+    if depth > MAXIMUM_ASN1_DEPTH:
+        raise ValueError('ASN.1 element is nested too deeply')
     if offset + 2 > len(data):
         raise ValueError('Truncated ASN.1 element')
     tag = data[offset]
@@ -194,7 +211,7 @@ def _read_element(data: bytes, offset: int) -> _Element:
                 raise ValueError('Unterminated indefinite-length ASN.1 element')
             if data[position] == 0x00 and data[position + 1] == 0x00:
                 return _Element(tag, offset, content_start, position, position + 2)
-            position = _read_element(data, position).end
+            position = _read_element(data, position, depth + 1).end
     if length & 0x80:
         count = length & 0x7F
         if count > 4 or position + count > len(data):
@@ -205,11 +222,15 @@ def _read_element(data: bytes, offset: int) -> _Element:
         raise ValueError('ASN.1 length exceeds the available input')
     return _Element(tag, offset, position, position + length, position + length)
 
-def _children(data: bytes, element: _Element) -> List[_Element]:
+def _children(data: bytes, element: _Element, depth: int = 0) -> List[_Element]:
     children = []
     position = element.content_start
     while position < element.content_end:
-        child = _read_element(data, position)
+        child = _read_element(data, position, depth + 1)
+        # A child that runs past its parent is rejected rather than read, so a nested element can never be
+        # interpreted from bytes outside the element that declares it
+        if child.end > element.content_end:
+            raise ValueError('ASN.1 element runs past the end of its parent')
         children.append(child)
         position = child.end
     return children
@@ -217,17 +238,19 @@ def _children(data: bytes, element: _Element) -> List[_Element]:
 def _content(data: bytes, element: _Element) -> bytes:
     return data[element.content_start:element.content_end]
 
-def _octets(data: bytes, element: _Element, what: str) -> bytes:
+def _octets(data: bytes, element: _Element, what: str, depth: int = 0) -> bytes:
     """The value of an OCTET STRING, joining the segments BER splits long values into."""
     if element.tag & ~0x20 != 0x04:
         raise ValueError(what + ' is not an ASN.1 octet string')
     if not element.tag & 0x20:
         return _content(data, element)
-    return b''.join(_octets(data, child, what) for child in _children(data, element))
+    if depth > MAXIMUM_ASN1_DEPTH:
+        raise ValueError('ASN.1 element is nested too deeply')
+    return b''.join(_octets(data, child, what, depth + 1) for child in _children(data, element, depth))
 
 def _decode_oid(data: bytes, element: _Element) -> str:
     body = _content(data, element)
-    if not body or body[-1] & 0x80:
+    if not body or len(body) > MAXIMUM_OID_BYTES or body[-1] & 0x80:
         raise ValueError('Malformed ASN.1 object identifier')
     arcs = []
     value = 0

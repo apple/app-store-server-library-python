@@ -131,6 +131,24 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(119880, commitment.commitmentPrice)
         self.assertEqual(12, commitment.totalBillingPeriods)
 
+    def test_non_ascii_data_decoding_is_independent_of_the_default_charset(self):
+        """
+        The payload of a JWS is always UTF-8 encoded, so decoding it must not depend on the default charset of the interpreter.
+        The expected values below are written as escape sequences so that this test does not depend on the encoding
+        used to compile it either.
+        """
+        signed_transaction = create_signed_data_from_json('tests/resources/models/signedTransactionWithNonAsciiData.json')
+
+        signed_data_verifier = get_default_signed_data_verifier()
+
+        transaction = signed_data_verifier.verify_and_decode_signed_transaction(signed_transaction)
+
+        advanced_commerce_info = transaction.advancedCommerceInfo
+        self.assertEqual("Abonnement Caf\u00e9 \u2014 5,99 \u20ac par mois", advanced_commerce_info.descriptors.description)
+        self.assertEqual("Caf\u00e9 Premium", advanced_commerce_info.descriptors.displayName)
+        self.assertEqual("\u30d7\u30ec\u30df\u30a2\u30e0\u6a5f\u80fd", advanced_commerce_info.items[0].description)
+        self.assertEqual("\u30d7\u30ec\u30df\u30a2\u30e0", advanced_commerce_info.items[0].displayName)
+
     def test_transaction_with_revocation_decoding(self):
         signed_transaction = create_signed_data_from_json('tests/resources/models/signedTransactionWithRevocation.json')
 

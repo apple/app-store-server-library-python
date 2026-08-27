@@ -5,6 +5,7 @@ from attr import define
 import attr
 
 from .LibraryUtility import AttrsRawValueAware
+from .TokenType import TokenType
 
 @define
 class ExternalPurchaseToken(AttrsRawValueAware):
@@ -40,4 +41,23 @@ class ExternalPurchaseToken(AttrsRawValueAware):
     The bundle identifier of an app.
     
     https://developer.apple.com/documentation/appstoreservernotifications/bundleid
+    """
+
+    tokenType: Optional[TokenType] = TokenType.create_main_attr('rawTokenType')
+    """
+    The type of an external purchase custom link token.
+    
+    https://developer.apple.com/documentation/appstoreservernotifications/tokentype
+    """
+
+    rawTokenType: Optional[str] = TokenType.create_raw_attr('tokenType')
+    """
+    See tokenType
+    """
+
+    tokenExpirationDate: Optional[int] = attr.ib(default=None)
+    """
+    The field of a custom link token that contains the UNIX date, in milliseconds, when the token expires.
+    
+    https://developer.apple.com/documentation/appstoreservernotifications/tokenexpirationdate
     """

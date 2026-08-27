@@ -27,3 +27,5 @@ class Subtype(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     SUMMARY = "SUMMARY"
     FAILURE = "FAILURE"
     UNREPORTED = "UNREPORTED"
+    ACTIVE_TOKEN_REMINDER = "ACTIVE_TOKEN_REMINDER"
+    CREATED = "CREATED"

@@ -19,6 +19,7 @@ from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.RevocationType import RevocationType
 from appstoreserverlibrary.models.Status import Status
 from appstoreserverlibrary.models.Subtype import Subtype
+from appstoreserverlibrary.models.TokenType import TokenType
 from appstoreserverlibrary.models.TransactionReason import TransactionReason
 from appstoreserverlibrary.models.Type import Type
 from appstoreserverlibrary.models.AdvancedCommercePeriod import AdvancedCommercePeriod
@@ -360,6 +361,9 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148950000, notification.externalPurchaseToken.tokenCreationDate)
         self.assertEqual(55555, notification.externalPurchaseToken.appAppleId)
         self.assertEqual("com.example", notification.externalPurchaseToken.bundleId)
+        self.assertEqual(TokenType.ACQUISITION, notification.externalPurchaseToken.tokenType)
+        self.assertEqual("ACQUISITION", notification.externalPurchaseToken.rawTokenType)
+        self.assertEqual(1698149000000, notification.externalPurchaseToken.tokenExpirationDate)
     
     def test_external_purchase_token_sandbox_notification_decoding(self):
         signed_external_purchase_token_notification = create_signed_data_from_json('tests/resources/models/signedExternalPurchaseTokenSandboxNotification.json')
@@ -389,6 +393,9 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148950000, notification.externalPurchaseToken.tokenCreationDate)
         self.assertEqual(55555, notification.externalPurchaseToken.appAppleId)
         self.assertEqual("com.example", notification.externalPurchaseToken.bundleId)
+        self.assertEqual(TokenType.ACQUISITION, notification.externalPurchaseToken.tokenType)
+        self.assertEqual("ACQUISITION", notification.externalPurchaseToken.rawTokenType)
+        self.assertEqual(1698149000000, notification.externalPurchaseToken.tokenExpirationDate)
     
     def test_realtime_request_decoding(self):
         signed_realtime_request = create_signed_data_from_json('tests/resources/models/decodedRealtimeRequest.json')

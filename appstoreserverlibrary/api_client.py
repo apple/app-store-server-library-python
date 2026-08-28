@@ -2,6 +2,7 @@
 
 import calendar
 import datetime
+import re
 import warnings
 from enum import IntEnum, Enum
 from typing import Any, Dict, List, MutableMapping, Optional, Type, TypeVar, Union
@@ -671,17 +672,42 @@ class APIException(Exception):
     api_error: Optional[APIError]
     raw_api_error: Optional[int]
     error_message: Optional[str]
+    headers: Dict[str, List[str]]
+    """
+    The response headers, keyed by lowercased header name.
+    """
 
-    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None):
+    retry_after: Optional[int]
+    """
+    A UNIX time, in milliseconds, that informs you when you can next send a request.
+
+    https://developer.apple.com/documentation/appstoreserverapi/identifying-rate-limits
+    """
+
+    def __init__(self, http_status_code: int, raw_api_error: Optional[int] = None, error_message: Optional[str] = None, headers: Optional[Dict[str, List[str]]] = None):
         self.http_status_code = http_status_code
         self.raw_api_error = raw_api_error
         self.api_error = None
         self.error_message = error_message
+        self.headers = headers if headers is not None else {}
+        self.retry_after = _parse_retry_after(self.headers.get('retry-after'))
         try:
             if raw_api_error is not None:
                 self.api_error = APIError(raw_api_error)
         except ValueError:
             pass
+
+
+_RETRY_AFTER_PATTERN = re.compile(r'[0-9]+')
+
+
+def _parse_retry_after(retry_after_values: Optional[List[str]]) -> Optional[int]:
+    if not retry_after_values:
+        return None
+    stripped_retry_after = retry_after_values[0].strip()
+    if _RETRY_AFTER_PATTERN.fullmatch(stripped_retry_after) is None:
+        return None
+    return int(stripped_retry_after)
 
 class GetTransactionHistoryVersion(str, Enum):
     V1 = "v1"
@@ -736,6 +762,12 @@ class BaseAppStoreServerAPIClient:
         c = _get_cattrs_converter(type(body)) if body is not None else None
         return c.unstructure(body) if body is not None else None
 
+    def _normalize_headers(self, headers: MutableMapping) -> Dict[str, List[str]]:
+        normalized_headers: Dict[str, List[str]] = {}
+        for name, value in headers.items():
+            normalized_headers.setdefault(name.lower(), []).append(value)
+        return normalized_headers
+
     def _parse_response(self, status_code: int, headers: MutableMapping, json_supplier, destination_class: Type[T]) -> T:
         if 200 <= status_code < 300:
             if destination_class is None:
@@ -744,16 +776,17 @@ class BaseAppStoreServerAPIClient:
             response_body = json_supplier()
             return c.structure(response_body, destination_class)
         else:
+            normalized_headers = self._normalize_headers(headers)
             # Best effort parsing of the response body
             if not 'content-type' in headers or headers['content-type'] != 'application/json':
-                raise APIException(status_code)
+                raise APIException(status_code, headers=normalized_headers)
             try:
                 response_body = json_supplier()
-                raise APIException(status_code, response_body['errorCode'], response_body['errorMessage'])
+                raise APIException(status_code, response_body['errorCode'], response_body['errorMessage'], headers=normalized_headers)
             except APIException as e:
                 raise e
             except Exception as e:
-                raise APIException(status_code) from e
+                raise APIException(status_code, headers=normalized_headers) from e
 
 
 class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
@@ -1167,6 +1200,12 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
 
     async def async_close(self):
         await self.http_client.aclose()
+
+    def _normalize_headers(self, headers: MutableMapping) -> Dict[str, List[str]]:
+        normalized_headers: Dict[str, List[str]] = {}
+        for name, value in headers.multi_items():
+            normalized_headers.setdefault(name.lower(), []).append(value)
+        return normalized_headers
     
     async def _make_request(self, path: str, method: str, queryParameters: Dict[str, Union[str, List[str]]], body, destination_class: Type[T], content_type: Optional[str] = None) -> T:
         url = self._get_full_url(path)

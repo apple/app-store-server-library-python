@@ -443,9 +443,46 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual(4290000, e.raw_api_error)
             self.assertEqual(APIError.RATE_LIMIT_EXCEEDED, e.api_error)
             self.assertEqual("Rate limit exceeded.", e.error_message)
+            self.assertIsNone(e.retry_after)
             return
-        
+
         self.assertFalse(True)
+
+    def test_api_too_many_requests_with_retry_after(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/apiTooManyRequestsException.json',
+                                                     'POST',
+                                                     'https://local-testing-base-url/inApps/v1/notifications/test',
+                                                     {},
+                                                     None,
+                                                     429,
+                                                     response_headers={'Retry-After': '1698148900000'})
+        try:
+            client.request_test_notification()
+        except APIException as e:
+            self.assertEqual(429, e.http_status_code)
+            self.assertEqual(APIError.RATE_LIMIT_EXCEEDED, e.api_error)
+            self.assertEqual(1698148900000, e.retry_after)
+            self.assertEqual(['1698148900000'], e.headers['retry-after'])
+            return
+
+        self.assertFalse(True)
+
+    def test_api_too_many_requests_with_malformed_retry_after(self):
+        for raw_retry_after in ['', ' ', 'not-a-number', '1698148900000.0', '+1698148900000', '-1698148900000', '1_698_148_900_000', '1698148900000abc', 'Wed, 21 Oct 2015 07:28:00 GMT']:
+            client = self.get_client_with_body_from_file('tests/resources/models/apiTooManyRequestsException.json',
+                                                         'POST',
+                                                         'https://local-testing-base-url/inApps/v1/notifications/test',
+                                                         {},
+                                                         None,
+                                                         429,
+                                                         response_headers={'Retry-After': raw_retry_after})
+            try:
+                client.request_test_notification()
+                self.assertFalse(True)
+            except APIException as e:
+                self.assertEqual(429, e.http_status_code)
+                self.assertIsNone(e.retry_after)
+                self.assertEqual([raw_retry_after], e.headers['retry-after'])
 
     def test_unknown_error(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiUnknownError.json',
@@ -870,7 +907,7 @@ class DecodedPayloads(unittest.TestCase):
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
 
-    def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, expected_data: bytes = None, expected_content_type: str = None):
+    def get_client_with_body(self, body: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, expected_data: bytes = None, expected_content_type: str = None, response_headers: Dict[str, str] = None):
         signing_key = self.get_signing_key()
         client = AppStoreServerAPIClient(signing_key, 'keyId', 'issuerId', 'com.example', Environment.LOCAL_TESTING)
         def fake_execute_and_validate_inputs(method: bytes, url: str, params: Dict[str, Union[str, List[str]]], headers: Dict[str, str], json: Dict[str, Any], data: bytes):
@@ -900,11 +937,13 @@ class DecodedPayloads(unittest.TestCase):
             response.status_code = status_code
             response.raw = BytesIO(body)
             response.headers['Content-Type'] = 'application/json'
+            if response_headers is not None:
+                response.headers.update(response_headers)
             return response
 
         client._execute_request = fake_execute_and_validate_inputs
         return client
 
-    def get_client_with_body_from_file(self, path: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200):
+    def get_client_with_body_from_file(self, path: str, expected_method: str, expected_url: str, expected_params: Dict[str, Union[str, List[str]]], expected_json: Dict[str, Any], status_code: int = 200, response_headers: Dict[str, str] = None):
         body = read_data_from_binary_file(path)
-        return self.get_client_with_body(body, expected_method, expected_url, expected_params, expected_json, status_code)
+        return self.get_client_with_body(body, expected_method, expected_url, expected_params, expected_json, status_code, response_headers=response_headers)

@@ -24,7 +24,7 @@ def decode_json_from_signed_date(data: str) -> Dict[str, Any]:
 
 def read_data_from_file(path: str) -> str:
     full_path = os.path.join(path)
-    with open(full_path, mode='r') as test_file:
+    with open(full_path, mode='r', encoding='utf-8') as test_file:
         return test_file.read()
     
 def read_data_from_binary_file(path: str) -> str:

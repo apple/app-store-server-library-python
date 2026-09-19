@@ -14,6 +14,18 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
+from .models.AdvancedCommerceRequestRefundRequest import AdvancedCommerceRequestRefundRequest
+from .models.AdvancedCommerceRequestRefundResponse import AdvancedCommerceRequestRefundResponse
+from .models.AdvancedCommerceSubscriptionCancelRequest import AdvancedCommerceSubscriptionCancelRequest
+from .models.AdvancedCommerceSubscriptionCancelResponse import AdvancedCommerceSubscriptionCancelResponse
+from .models.AdvancedCommerceSubscriptionChangeMetadataRequest import AdvancedCommerceSubscriptionChangeMetadataRequest
+from .models.AdvancedCommerceSubscriptionChangeMetadataResponse import AdvancedCommerceSubscriptionChangeMetadataResponse
+from .models.AdvancedCommerceSubscriptionMigrateRequest import AdvancedCommerceSubscriptionMigrateRequest
+from .models.AdvancedCommerceSubscriptionMigrateResponse import AdvancedCommerceSubscriptionMigrateResponse
+from .models.AdvancedCommerceSubscriptionPriceChangeRequest import AdvancedCommerceSubscriptionPriceChangeRequest
+from .models.AdvancedCommerceSubscriptionPriceChangeResponse import AdvancedCommerceSubscriptionPriceChangeResponse
+from .models.AdvancedCommerceSubscriptionRevokeRequest import AdvancedCommerceSubscriptionRevokeRequest
+from .models.AdvancedCommerceSubscriptionRevokeResponse import AdvancedCommerceSubscriptionRevokeResponse
 from .models.CheckTestNotificationResponse import CheckTestNotificationResponse
 from .models.ConsumptionRequest import ConsumptionRequest
 from .models.ConsumptionRequestV1 import ConsumptionRequestV1
@@ -1189,6 +1201,78 @@ class AppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         """
         self._make_request(f"/inApps/v1/transactions/{transaction_id}/finish", "POST", {}, None, None, None)
 
+    def change_subscription_price(self, transaction_id: str, subscription_price_change_request: AdvancedCommerceSubscriptionPriceChangeRequest) -> AdvancedCommerceSubscriptionPriceChangeResponse:
+        """
+        Increase or decrease the price of an auto-renewable subscription, a bundle, or individual items within a subscription at the next renewal.
+
+        :param transaction_id: A transaction identifier of the auto-renewable subscription that is subject to the price change.
+        :param subscription_price_change_request: The request body that contains the details of the price change.
+        :return: A response that contains signed JWS renewal and JWS transaction information after a subscription price change request.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-price
+        """
+        return self._make_request(f"/advancedCommerce/v1/subscription/changePrice/{transaction_id}", "POST", {}, subscription_price_change_request, AdvancedCommerceSubscriptionPriceChangeResponse, None)
+
+    def cancel_subscription(self, transaction_id: str, subscription_cancel_request: AdvancedCommerceSubscriptionCancelRequest) -> AdvancedCommerceSubscriptionCancelResponse:
+        """
+        Turn off automatic renewal to cancel a customer's auto-renewable subscription.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to cancel.
+        :param subscription_cancel_request: The request body that includes information about the subscription to cancel.
+        :return: The response body for a successful subscription cancellation.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/cancel-a-subscription
+        """
+        return self._make_request(f"/advancedCommerce/v1/subscription/cancel/{transaction_id}", "POST", {}, subscription_cancel_request, AdvancedCommerceSubscriptionCancelResponse, None)
+
+    def revoke_subscription(self, transaction_id: str, subscription_revoke_request: AdvancedCommerceSubscriptionRevokeRequest) -> AdvancedCommerceSubscriptionRevokeResponse:
+        """
+        Immediately cancel a customer's subscription and all the items that are included in the subscription, and request a full or prorated refund.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to revoke.
+        :param subscription_revoke_request: The request body you provide to terminate a subscription and all its items immediately.
+        :return: The response body for a successful revoke-subscription request.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/revoke-subscription
+        """
+        return self._make_request(f"/advancedCommerce/v1/subscription/revoke/{transaction_id}", "POST", {}, subscription_revoke_request, AdvancedCommerceSubscriptionRevokeResponse, None)
+
+    def request_transaction_refund(self, transaction_id: str, request_refund_request: AdvancedCommerceRequestRefundRequest) -> AdvancedCommerceRequestRefundResponse:
+        """
+        Request a refund for a one-time charge or subscription transaction.
+
+        :param transaction_id: The transaction identifier for which you request a refund.
+        :param request_refund_request: The request body for requesting a refund for a transaction.
+        :return: The response body for a transaction refund request.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/request-transaction-refund
+        """
+        return self._make_request(f"/advancedCommerce/v1/transaction/requestRefund/{transaction_id}", "POST", {}, request_refund_request, AdvancedCommerceRequestRefundResponse, None)
+
+    def change_subscription_metadata(self, transaction_id: str, subscription_change_metadata_request: AdvancedCommerceSubscriptionChangeMetadataRequest) -> AdvancedCommerceSubscriptionChangeMetadataResponse:
+        """
+        Update the SKU, display name, and description associated with a subscription, without affecting the subscription's billing or its service.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to get changes to its metadata.
+        :param subscription_change_metadata_request: The request body that contains the metadata changes.
+        :return: The response body for a successful subscription metadata change.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-metadata
+        """
+        return self._make_request(f"/advancedCommerce/v1/subscription/changeMetadata/{transaction_id}", "POST", {}, subscription_change_metadata_request, AdvancedCommerceSubscriptionChangeMetadataResponse, None)
+
+    def migrate_subscription_to_advanced_commerce_api(self, transaction_id: str, subscription_migrate_request: AdvancedCommerceSubscriptionMigrateRequest) -> AdvancedCommerceSubscriptionMigrateResponse:
+        """
+        Migrate a subscription that a customer purchased through Apple In-App Purchase to a subscription you manage using the Advanced Commerce API.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to migrate.
+        :param subscription_migrate_request: The request body that contains the details for the migration.
+        :return: A response that contains signed renewal and transaction information after a subscription successfully migrates to the Advanced Commerce API.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/migrate-subscription-to-advanced-commerce-api
+        """
+        return self._make_request(f"/advancedCommerce/v1/subscription/migrate/{transaction_id}", "POST", {}, subscription_migrate_request, AdvancedCommerceSubscriptionMigrateResponse, None)
+
 class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str, environment: Environment):
         super().__init__(signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id, environment=environment)
@@ -1603,4 +1687,75 @@ class AsyncAppStoreServerAPIClient(BaseAppStoreServerAPIClient):
         :raises APIException: If a response was returned indicating the request could not be processed
         """
         await self._make_request(f"/inApps/v1/transactions/{transaction_id}/finish", "POST", {}, None, None, None)
-    
+
+    async def change_subscription_price(self, transaction_id: str, subscription_price_change_request: AdvancedCommerceSubscriptionPriceChangeRequest) -> AdvancedCommerceSubscriptionPriceChangeResponse:
+        """
+        Increase or decrease the price of an auto-renewable subscription, a bundle, or individual items within a subscription at the next renewal.
+
+        :param transaction_id: A transaction identifier of the auto-renewable subscription that is subject to the price change.
+        :param subscription_price_change_request: The request body that contains the details of the price change.
+        :return: A response that contains signed JWS renewal and JWS transaction information after a subscription price change request.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-price
+        """
+        return await self._make_request(f"/advancedCommerce/v1/subscription/changePrice/{transaction_id}", "POST", {}, subscription_price_change_request, AdvancedCommerceSubscriptionPriceChangeResponse, None)
+
+    async def cancel_subscription(self, transaction_id: str, subscription_cancel_request: AdvancedCommerceSubscriptionCancelRequest) -> AdvancedCommerceSubscriptionCancelResponse:
+        """
+        Turn off automatic renewal to cancel a customer's auto-renewable subscription.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to cancel.
+        :param subscription_cancel_request: The request body that includes information about the subscription to cancel.
+        :return: The response body for a successful subscription cancellation.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/cancel-a-subscription
+        """
+        return await self._make_request(f"/advancedCommerce/v1/subscription/cancel/{transaction_id}", "POST", {}, subscription_cancel_request, AdvancedCommerceSubscriptionCancelResponse, None)
+
+    async def revoke_subscription(self, transaction_id: str, subscription_revoke_request: AdvancedCommerceSubscriptionRevokeRequest) -> AdvancedCommerceSubscriptionRevokeResponse:
+        """
+        Immediately cancel a customer's subscription and all the items that are included in the subscription, and request a full or prorated refund.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to revoke.
+        :param subscription_revoke_request: The request body you provide to terminate a subscription and all its items immediately.
+        :return: The response body for a successful revoke-subscription request.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/revoke-subscription
+        """
+        return await self._make_request(f"/advancedCommerce/v1/subscription/revoke/{transaction_id}", "POST", {}, subscription_revoke_request, AdvancedCommerceSubscriptionRevokeResponse, None)
+
+    async def request_transaction_refund(self, transaction_id: str, request_refund_request: AdvancedCommerceRequestRefundRequest) -> AdvancedCommerceRequestRefundResponse:
+        """
+        Request a refund for a one-time charge or subscription transaction.
+
+        :param transaction_id: The transaction identifier for which you request a refund.
+        :param request_refund_request: The request body for requesting a refund for a transaction.
+        :return: The response body for a transaction refund request.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/request-transaction-refund
+        """
+        return await self._make_request(f"/advancedCommerce/v1/transaction/requestRefund/{transaction_id}", "POST", {}, request_refund_request, AdvancedCommerceRequestRefundResponse, None)
+
+    async def change_subscription_metadata(self, transaction_id: str, subscription_change_metadata_request: AdvancedCommerceSubscriptionChangeMetadataRequest) -> AdvancedCommerceSubscriptionChangeMetadataResponse:
+        """
+        Update the SKU, display name, and description associated with a subscription, without affecting the subscription's billing or its service.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to get changes to its metadata.
+        :param subscription_change_metadata_request: The request body that contains the metadata changes.
+        :return: The response body for a successful subscription metadata change.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/change-subscription-metadata
+        """
+        return await self._make_request(f"/advancedCommerce/v1/subscription/changeMetadata/{transaction_id}", "POST", {}, subscription_change_metadata_request, AdvancedCommerceSubscriptionChangeMetadataResponse, None)
+
+    async def migrate_subscription_to_advanced_commerce_api(self, transaction_id: str, subscription_migrate_request: AdvancedCommerceSubscriptionMigrateRequest) -> AdvancedCommerceSubscriptionMigrateResponse:
+        """
+        Migrate a subscription that a customer purchased through Apple In-App Purchase to a subscription you manage using the Advanced Commerce API.
+
+        :param transaction_id: The transaction identifier of the auto-renewable subscription to migrate.
+        :param subscription_migrate_request: The request body that contains the details for the migration.
+        :return: A response that contains signed renewal and transaction information after a subscription successfully migrates to the Advanced Commerce API.
+        :raises APIException: If a response was returned indicating the request could not be processed
+        :see: https://developer.apple.com/documentation/advancedcommerceapi/migrate-subscription-to-advanced-commerce-api
+        """
+        return await self._make_request(f"/advancedCommerce/v1/subscription/migrate/{transaction_id}", "POST", {}, subscription_migrate_request, AdvancedCommerceSubscriptionMigrateResponse, None)

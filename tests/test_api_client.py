@@ -6,6 +6,22 @@ import unittest
 from requests import Response
 from appstoreserverlibrary.api_client import APIError, APIException, AppStoreServerAPIClient, GetTransactionHistoryVersion
 from appstoreserverlibrary.models.AccountTenure import AccountTenure
+from appstoreserverlibrary.models.AdvancedCommerceEffective import AdvancedCommerceEffective
+from appstoreserverlibrary.models.AdvancedCommerceRefundReason import AdvancedCommerceRefundReason
+from appstoreserverlibrary.models.AdvancedCommerceRefundType import AdvancedCommerceRefundType
+from appstoreserverlibrary.models.AdvancedCommerceRequestInfo import AdvancedCommerceRequestInfo
+from appstoreserverlibrary.models.AdvancedCommerceRequestRefundItem import AdvancedCommerceRequestRefundItem
+from appstoreserverlibrary.models.AdvancedCommerceRequestRefundRequest import AdvancedCommerceRequestRefundRequest
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionCancelRequest import AdvancedCommerceSubscriptionCancelRequest
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionChangeMetadataDescriptors import AdvancedCommerceSubscriptionChangeMetadataDescriptors
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionChangeMetadataItem import AdvancedCommerceSubscriptionChangeMetadataItem
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionChangeMetadataRequest import AdvancedCommerceSubscriptionChangeMetadataRequest
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionMigrateDescriptors import AdvancedCommerceSubscriptionMigrateDescriptors
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionMigrateItem import AdvancedCommerceSubscriptionMigrateItem
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionMigrateRequest import AdvancedCommerceSubscriptionMigrateRequest
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionPriceChangeItem import AdvancedCommerceSubscriptionPriceChangeItem
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionPriceChangeRequest import AdvancedCommerceSubscriptionPriceChangeRequest
+from appstoreserverlibrary.models.AdvancedCommerceSubscriptionRevokeRequest import AdvancedCommerceSubscriptionRevokeRequest
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
 from appstoreserverlibrary.models.ConsumptionRequest import ConsumptionRequest
 from appstoreserverlibrary.models.ConsumptionRequestV1 import ConsumptionRequestV1
@@ -902,6 +918,148 @@ class DecodedPayloads(unittest.TestCase):
                                            {},
                                            None)
         client.finish_transaction('1234')
+
+    def test_change_subscription_price(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceSubscriptionPriceChangeResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/subscription/changePrice/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '7c80bb86-f892-4b21-a919-1357811d6c4f'}, 'items': [{'SKU': 'AD_FREE_1M', 'price': 12990, 'dependentSKUs': ['ADVANCED_FEATURES_1M']}], 'currency': 'USD', 'storefront': 'USA'})
+
+        subscription_price_change_request = AdvancedCommerceSubscriptionPriceChangeRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('7c80bb86-f892-4b21-a919-1357811d6c4f')),
+            items=[AdvancedCommerceSubscriptionPriceChangeItem(SKU='AD_FREE_1M', price=12990, dependentSKUs=['ADVANCED_FEATURES_1M'])],
+            currency='USD',
+            storefront='USA'
+        )
+
+        response = client.change_subscription_price('4124214', subscription_price_change_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_renewal_info', response.signedRenewalInfo)
+        self.assertEqual('signed_transaction_info', response.signedTransactionInfo)
+
+    def test_cancel_subscription(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceSubscriptionCancelResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/subscription/cancel/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '932c6903-0ab8-4469-9f21-015f6fab013c'}, 'storefront': 'USA'})
+
+        subscription_cancel_request = AdvancedCommerceSubscriptionCancelRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('932c6903-0ab8-4469-9f21-015f6fab013c')),
+            storefront='USA'
+        )
+
+        response = client.cancel_subscription('4124214', subscription_cancel_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_renewal_info', response.signedRenewalInfo)
+        self.assertEqual('signed_transaction_info', response.signedTransactionInfo)
+
+    def test_revoke_subscription(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceSubscriptionRevokeResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/subscription/revoke/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '932c6903-0ab8-4469-9f21-015f6fab013c'}, 'refundRiskingPreference': True, 'refundType': 'PRORATED', 'refundReason': 'UNINTENDED_PURCHASE', 'storefront': 'USA'})
+
+        subscription_revoke_request = AdvancedCommerceSubscriptionRevokeRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('932c6903-0ab8-4469-9f21-015f6fab013c')),
+            refundRiskingPreference=True,
+            refundType=AdvancedCommerceRefundType.PRORATED,
+            refundReason=AdvancedCommerceRefundReason.UNINTENDED_PURCHASE,
+            storefront='USA'
+        )
+
+        response = client.revoke_subscription('4124214', subscription_revoke_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_renewal_info', response.signedRenewalInfo)
+        self.assertEqual('signed_transaction_info', response.signedTransactionInfo)
+
+    def test_request_transaction_refund(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceRequestRefundResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/transaction/requestRefund/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '932c6903-0ab8-4469-9f21-015f6fab013c'}, 'items': [{'SKU': 'AD_FREE_1M', 'revoke': True, 'refundReason': 'UNSATISFIED_WITH_PURCHASE', 'refundType': 'FULL'}], 'refundRiskingPreference': True, 'currency': 'USD', 'storefront': 'USA'})
+
+        request_refund_request = AdvancedCommerceRequestRefundRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('932c6903-0ab8-4469-9f21-015f6fab013c')),
+            items=[AdvancedCommerceRequestRefundItem(
+                SKU='AD_FREE_1M',
+                revoke=True,
+                refundReason=AdvancedCommerceRefundReason.UNSATISFIED_WITH_PURCHASE,
+                refundType=AdvancedCommerceRefundType.FULL
+            )],
+            refundRiskingPreference=True,
+            currency='USD',
+            storefront='USA'
+        )
+
+        response = client.request_transaction_refund('4124214', request_refund_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_transaction_info_value', response.signedTransactionInfo)
+
+    def test_change_subscription_metadata(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceSubscriptionChangeMetadataResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/subscription/changeMetadata/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '932c6903-0ab8-4469-9f21-015f6fab013c'}, 'descriptors': {'effective': 'NEXT_BILL_CYCLE', 'description': 'Remove ads and unlock advanced features.', 'displayName': 'Ad-free package'}, 'items': [{'currentSKU': 'AD_FREE_1M', 'effective': 'NEXT_BILL_CYCLE', 'SKU': 'AD_FREE_1M_V2'}], 'storefront': 'USA', 'taxCode': 'C003-00-1'})
+
+        subscription_change_metadata_request = AdvancedCommerceSubscriptionChangeMetadataRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('932c6903-0ab8-4469-9f21-015f6fab013c')),
+            descriptors=AdvancedCommerceSubscriptionChangeMetadataDescriptors(
+                effective=AdvancedCommerceEffective.NEXT_BILL_CYCLE,
+                description='Remove ads and unlock advanced features.',
+                displayName='Ad-free package'
+            ),
+            items=[AdvancedCommerceSubscriptionChangeMetadataItem(
+                currentSKU='AD_FREE_1M',
+                effective=AdvancedCommerceEffective.NEXT_BILL_CYCLE,
+                SKU='AD_FREE_1M_V2'
+            )],
+            storefront='USA',
+            taxCode='C003-00-1'
+        )
+
+        response = client.change_subscription_metadata('4124214', subscription_change_metadata_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_renewal_info', response.signedRenewalInfo)
+        self.assertEqual('signed_transaction_info', response.signedTransactionInfo)
+
+    def test_migrate_subscription_to_advanced_commerce_api(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceSubscriptionMigrateResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/subscription/migrate/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '932c6903-0ab8-4469-9f21-015f6fab013c'}, 'descriptors': {'description': 'Remove ads and unlock advanced features.', 'displayName': 'Ad-free package'}, 'items': [{'SKU': 'AD_FREE_1M', 'description': 'Remove ads for the service.', 'displayName': 'Ad-free monthly plan'}], 'targetProductId': 'com.example.base', 'taxCode': 'C003-00-1', 'storefront': 'USA'})
+
+        subscription_migrate_request = AdvancedCommerceSubscriptionMigrateRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('932c6903-0ab8-4469-9f21-015f6fab013c')),
+            descriptors=AdvancedCommerceSubscriptionMigrateDescriptors(
+                description='Remove ads and unlock advanced features.',
+                displayName='Ad-free package'
+            ),
+            items=[AdvancedCommerceSubscriptionMigrateItem(
+                SKU='AD_FREE_1M',
+                description='Remove ads for the service.',
+                displayName='Ad-free monthly plan'
+            )],
+            targetProductId='com.example.base',
+            taxCode='C003-00-1',
+            storefront='USA'
+        )
+
+        response = client.migrate_subscription_to_advanced_commerce_api('4124214', subscription_migrate_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_renewal_info_value', response.signedRenewalInfo)
+        self.assertEqual('signed_transaction_info_value', response.signedTransactionInfo)
 
 
     def get_signing_key(self):

@@ -790,7 +790,8 @@ class BaseAppStoreServerAPIClient:
         else:
             normalized_headers = self._normalize_headers(headers)
             # Best effort parsing of the response body
-            if not 'content-type' in headers or headers['content-type'] != 'application/json':
+            content_type = headers.get('content-type', '').split(';', 1)[0].strip().lower()
+            if content_type != 'application/json':
                 raise APIException(status_code, headers=normalized_headers)
             try:
                 response_body = json_supplier()

@@ -464,6 +464,21 @@ class DecodedPayloads(unittest.TestCase):
 
         self.assertFalse(True)
 
+    def test_api_error_with_content_type_parameters(self):
+        for content_type in ['application/json; charset=utf-8', 'Application/JSON; charset=UTF-8']:
+            with self.subTest(content_type=content_type):
+                client = self.get_client_with_body_from_file(
+                    'tests/resources/models/apiTooManyRequestsException.json',
+                    'POST',
+                    'https://local-testing-base-url/inApps/v1/notifications/test',
+                    {}, None, 429,
+                    response_headers={'Content-Type': content_type, 'Retry-After': '123'})
+                with self.assertRaises(APIException) as caught:
+                    client.request_test_notification()
+                self.assertEqual(APIError.RATE_LIMIT_EXCEEDED, caught.exception.api_error)
+                self.assertEqual('Rate limit exceeded.', caught.exception.error_message)
+                self.assertEqual(123, caught.exception.retry_after)
+
     def test_api_too_many_requests_with_retry_after(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiTooManyRequestsException.json',
                                                      'POST',

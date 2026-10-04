@@ -57,15 +57,16 @@ class HelperValidationUtils:
     @staticmethod
     def period_count_validator(instance, attribute, value):
         """
-        Validates periodCount is not None and between `MIN_PERIOD` and `MAX_PERIOD` inclusive.
+        Validates periodCount is an integer between `MIN_PERIOD` and `MAX_PERIOD` inclusive.
 
         Raises:
-            ValueError: If period_count is out of range
+            ValueError: If period_count is not an integer or is out of range
         """
-        if (value < HelperValidationUtils.MIN_PERIOD or
+        if (not isinstance(value, int) or isinstance(value, bool) or
+            value < HelperValidationUtils.MIN_PERIOD or
             value > HelperValidationUtils.MAX_PERIOD):
             raise ValueError(
-                f"Period count must be between "
+                f"Period count must be an integer between "
                 f"{HelperValidationUtils.MIN_PERIOD} and "
                 f"{HelperValidationUtils.MAX_PERIOD}"
             )

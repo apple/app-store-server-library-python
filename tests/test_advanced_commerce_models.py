@@ -489,6 +489,35 @@ class AdvancedCommerceModelsTest(unittest.TestCase):
 
         self.assertEqual("description", descriptors.description)
         self.assertEqual("displayName", descriptors.displayName)
+
+        self.assertEqual(AdvancedCommerceEffective(descriptors_dict["effective"]), descriptors.effective)
+        self.assertEqual(descriptors_dict["effective"], descriptors.rawEffective)
+
+    def test_modify_descriptors_raw_effective_initialization(self):
+        for effective in AdvancedCommerceEffective:
+            with self.subTest(effective=effective):
+                descriptors = AdvancedCommerceSubscriptionModifyDescriptors(rawEffective=effective.value)
+                self.assertEqual(effective, descriptors.effective)
+                self.assertEqual(effective.value, descriptors.rawEffective)
+
+    def test_modify_descriptors_effective_round_trip(self):
+        converter = _get_cattrs_converter(AdvancedCommerceSubscriptionModifyDescriptors)
+        for effective in AdvancedCommerceEffective:
+            with self.subTest(effective=effective):
+                descriptors = AdvancedCommerceSubscriptionModifyDescriptors(effective=effective)
+                serialized = converter.unstructure(descriptors)
+                self.assertEqual({"effective": effective.value}, serialized)
+                restored = converter.structure(serialized, AdvancedCommerceSubscriptionModifyDescriptors)
+                self.assertEqual(descriptors, restored)
+
+    def test_modify_descriptors_unknown_effective(self):
+        descriptors = AdvancedCommerceSubscriptionModifyDescriptors(rawEffective="FUTURE_VALUE")
+        self.assertIsNone(descriptors.effective)
+        self.assertEqual("FUTURE_VALUE", descriptors.rawEffective)
+        descriptors.rawEffective = AdvancedCommerceEffective.NEXT_BILL_CYCLE.value
+        self.assertEqual(AdvancedCommerceEffective.NEXT_BILL_CYCLE, descriptors.effective)
+        descriptors.effective = AdvancedCommerceEffective.IMMEDIATELY
+        self.assertEqual("IMMEDIATELY", descriptors.rawEffective)
     
     def test_advanced_commerce_subscription_change_metadata_descriptors_deserialization(self):
         json_data = read_data_from_file('tests/resources/models/advancedCommerceSubscriptionChangeMetadataDescriptors.json')

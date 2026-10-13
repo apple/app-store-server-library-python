@@ -5,9 +5,10 @@ import attr
 from attr import define
 from .AdvancedCommerceEffective import AdvancedCommerceEffective
 from .HelperValidationUtils import HelperValidationUtils
+from .LibraryUtility import AttrsRawValueAware
 
 @define
-class AdvancedCommerceSubscriptionModifyDescriptors():
+class AdvancedCommerceSubscriptionModifyDescriptors(AttrsRawValueAware):
     """
     The data your app provides to change the description and display name of an auto-renewable subscription.
     

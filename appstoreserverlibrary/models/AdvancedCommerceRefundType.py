@@ -6,7 +6,7 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
 class AdvancedCommerceRefundType(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    Information about the refund request for an item, such as its SKU, the refund amount, reason, and type.
+    The type of refund requested.
 
     https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem
     """

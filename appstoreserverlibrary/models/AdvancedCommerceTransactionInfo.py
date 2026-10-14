@@ -1,6 +1,6 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-from typing import List, Optional
+from typing import Optional, List
 
 from attr import define
 import attr
@@ -16,22 +16,22 @@ class AdvancedCommerceTransactionInfo(AttrsRawValueAware):
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactioninfo
     """
 
-    descriptors: Optional[AdvancedCommerceDescriptors] = attr.ib(default=None)
+    descriptors: Optional[AdvancedCommerceDescriptors] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescriptors
     """
 
-    estimatedTax: Optional[int] = attr.ib(default=None)
+    estimatedTax: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceestimatedtax
     """
 
-    items: Optional[List[AdvancedCommerceTransactionItem]] = attr.ib(default=None)
+    items: Optional[List[AdvancedCommerceTransactionItem]] = attr.ib(default=None, kw_only=True)
     """
-    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactionitem
+    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactionitems
     """
 
-    period: Optional[AdvancedCommercePeriod] = AdvancedCommercePeriod.create_main_attr('rawPeriod')
+    period: Optional[AdvancedCommercePeriod] = AdvancedCommercePeriod.create_main_attr('rawPeriod', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceperiod
     """
@@ -41,22 +41,22 @@ class AdvancedCommerceTransactionInfo(AttrsRawValueAware):
     See period
     """
 
-    requestReferenceId: Optional[str] = attr.ib(default=None)
+    requestReferenceId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerequestreferenceid
     """
 
-    taxCode: Optional[str] = attr.ib(default=None)
+    taxCode: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxcode
     """
 
-    taxExclusivePrice: Optional[int] = attr.ib(default=None)
+    taxExclusivePrice: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxexclusiveprice
     """
 
-    taxRate: Optional[str] = attr.ib(default=None)
+    taxRate: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxrate
     """

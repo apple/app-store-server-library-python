@@ -7,7 +7,7 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 class AdvancedCommerceOfferReason(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The reason for the offer.
-    
+
     https://developer.apple.com/documentation/advancedcommerceapi/offer
     """
     ACQUISITION = "ACQUISITION"

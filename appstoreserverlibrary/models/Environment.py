@@ -7,10 +7,18 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 class Environment(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The server environment, either sandbox or production.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/environment
     """
     SANDBOX = "Sandbox"
+    """
+    Indicates that the data applies to testing in the sandbox environment.
+    """
+
     PRODUCTION = "Production"
+    """
+    Indicates that the data applies to the production environment.
+    """
+
     XCODE = "Xcode"
-    LOCAL_TESTING = "LocalTesting" # Used for unit testing
+    LOCAL_TESTING = "LocalTesting"

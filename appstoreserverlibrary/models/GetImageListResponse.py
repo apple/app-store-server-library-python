@@ -15,7 +15,7 @@ class GetImageListResponse:
     https://developer.apple.com/documentation/retentionmessaging/getimagelistresponse
     """
 
-    imageIdentifiers: Optional[List[GetImageListResponseItem]] = attr.ib(default=None)
+    imageIdentifiers: Optional[List[GetImageListResponseItem]] = attr.ib(default=None, kw_only=True)
     """
     An array of all image identifiers and their image state.
 

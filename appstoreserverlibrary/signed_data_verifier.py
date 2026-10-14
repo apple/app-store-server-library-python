@@ -1,6 +1,6 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple, Type, TypeVar
 from base64 import b64decode
 from enum import IntEnum
 import time
@@ -24,6 +24,8 @@ from .models.Environment import Environment
 from .models.ResponseBodyV2DecodedPayload import ResponseBodyV2DecodedPayload
 from .models.JWSTransactionDecodedPayload import JWSTransactionDecodedPayload
 from .models.JWSRenewalInfoDecodedPayload import JWSRenewalInfoDecodedPayload
+
+T = TypeVar('T')
 
 class SignedDataVerifier:
     """
@@ -55,12 +57,12 @@ class SignedDataVerifier:
         :throws VerificationException: Thrown if the data could not be verified
         """
         
-        decoded_renewal_info = _get_cattrs_converter(JWSRenewalInfoDecodedPayload).structure(self._decode_signed_object(signed_renewal_info), JWSRenewalInfoDecodedPayload)
+        decoded_renewal_info = self._decode_and_structure_signed_object(signed_renewal_info, JWSRenewalInfoDecodedPayload)
         if decoded_renewal_info.environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
         return decoded_renewal_info
 
-    def verify_and_decode_signed_transaction(self, signed_transaction: str) -> JWSTransactionDecodedPayload:
+    def verify_and_decode_transaction(self, signed_transaction: str) -> JWSTransactionDecodedPayload:
         """
         Verifies and decodes a signedTransaction obtained from the App Store Server API, an App Store Server Notification, or from a device
         See https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
@@ -69,7 +71,7 @@ class SignedDataVerifier:
         :return: The decoded transaction info after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        decoded_transaction_info = _get_cattrs_converter(JWSTransactionDecodedPayload).structure(self._decode_signed_object(signed_transaction), JWSTransactionDecodedPayload)
+        decoded_transaction_info = self._decode_and_structure_signed_object(signed_transaction, JWSTransactionDecodedPayload)
         if decoded_transaction_info.bundleId != self._bundle_id:
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if decoded_transaction_info.environment != self._environment:
@@ -81,12 +83,11 @@ class SignedDataVerifier:
         Verifies and decodes an App Store Server Notification signedPayload
         See https://developer.apple.com/documentation/appstoreservernotifications/signedpayload
 
-        :param signedPayload: The payload received by your server
+        :param signed_payload: The payload received by your server
         :return: The decoded payload after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        decoded_dict = self._decode_signed_object(signed_payload)
-        decoded_signed_notification = _get_cattrs_converter(ResponseBodyV2DecodedPayload).structure(decoded_dict, ResponseBodyV2DecodedPayload)
+        decoded_signed_notification = self._decode_and_structure_signed_object(signed_payload, ResponseBodyV2DecodedPayload)
         bundle_id = None
         app_apple_id = None
         environment = None
@@ -127,8 +128,7 @@ class SignedDataVerifier:
         :return: The decoded AppTransaction after validation
         :throws VerificationException: Thrown if the data could not be verified
         """
-        decoded_dict = self._decode_signed_object(signed_app_transaction)
-        decoded_app_transaction = _get_cattrs_converter(AppTransaction).structure(decoded_dict, AppTransaction)
+        decoded_app_transaction = self._decode_and_structure_signed_object(signed_app_transaction, AppTransaction)
         environment = decoded_app_transaction.receiptType
         if decoded_app_transaction.bundleId != self._bundle_id or (self._environment == Environment.PRODUCTION and decoded_app_transaction.appAppleId != self._app_apple_id):
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
@@ -141,17 +141,23 @@ class SignedDataVerifier:
         Verifies and decodes a Retention Messaging API signedPayload
         See https://developer.apple.com/documentation/retentionmessaging/signedpayload
 
-        :param signedPayload: The payload received by your server
+        :param signed_payload: The payload received by your server
         :return: The decoded payload after verification
         :throws VerificationException: Thrown if the data could not be verified
         """
-        decoded_dict = self._decode_signed_object(signed_payload)
-        decoded_realtime_request = _get_cattrs_converter(DecodedRealtimeRequestBody).structure(decoded_dict, DecodedRealtimeRequestBody)
+        decoded_realtime_request = self._decode_and_structure_signed_object(signed_payload, DecodedRealtimeRequestBody)
         if self._environment == Environment.PRODUCTION and decoded_realtime_request.appAppleId != self._app_apple_id:
             raise VerificationException(VerificationStatus.INVALID_APP_IDENTIFIER)
         if decoded_realtime_request.environment != self._environment:
             raise VerificationException(VerificationStatus.INVALID_ENVIRONMENT)
         return decoded_realtime_request
+
+    def _decode_and_structure_signed_object(self, signed_obj: str, cl: Type[T]) -> T:
+        decoded_dict = self._decode_signed_object(signed_obj)
+        try:
+            return _get_cattrs_converter(cl).structure(decoded_dict, cl)
+        except Exception as e:
+            raise VerificationException(VerificationStatus.VERIFICATION_FAILURE) from e
 
     def _decode_signed_object(self, signed_obj: str) -> dict:
         try:
@@ -161,10 +167,10 @@ class SignedDataVerifier:
                 # The environment MUST be checked in the public method calling this
                 return decoded_jwt
             unverified_headers: dict = jwt.get_unverified_header(signed_obj)
-            x5c_header: List[str] = unverified_headers.get("x5c")
+            x5c_header: Optional[List[str]] = unverified_headers.get("x5c")
             if x5c_header is None or len(x5c_header) == 0:
                 raise Exception("x5c claim was empty")
-            algorithm_header: str = unverified_headers.get("alg")
+            algorithm_header: Optional[str] = unverified_headers.get("alg")
             if algorithm_header is None or "ES256" != algorithm_header:
                 raise Exception("Algorithm was not ES256")
             signed_date = decoded_jwt.get('signedDate') if decoded_jwt.get('signedDate') is not None else decoded_jwt.get('receiptCreationDate')
@@ -184,9 +190,9 @@ class _ChainVerifier:
     def __init__(self, root_certificates: List[bytes], enable_strict_checks=True):
         self.enable_strict_checks = enable_strict_checks
         self.root_certificates = root_certificates
-        self.verified_certificates_cache: Dict[tuple[str, ...], (str, int)] = {}
+        self.verified_certificates_cache: Dict[Tuple[str, ...], Tuple[str, float]] = {}
 
-    def verify_chain(self, certificates: List[str], perform_online_checks: bool, effective_date: int) -> str:
+    def verify_chain(self, certificates: List[str], perform_online_checks: bool, effective_date: float) -> str:
         if perform_online_checks and len(certificates) > 0:
             cached_public_key = self.get_cached_public_key(certificates)
             if cached_public_key is not None:
@@ -196,7 +202,7 @@ class _ChainVerifier:
             self.put_verified_public_key(certificates, verified_public_key)
         return verified_public_key
     
-    def _verify_chain_without_caching(self, certificates: List[str], perform_online_checks: bool, effective_date: int) -> str:
+    def _verify_chain_without_caching(self, certificates: List[str], perform_online_checks: bool, effective_date: float) -> str:
         if len(self.root_certificates) == 0:
             raise VerificationException(VerificationStatus.INVALID_CERTIFICATE)
         if len(certificates) != 3:
@@ -290,7 +296,7 @@ class _ChainVerifier:
                                 break
 
                         elif ocsp_resp.responder_name:
-                            if ocsp_resp.responder_name == potential_signing_cert.subject.rfc4514_string():
+                            if ocsp_resp.responder_name == potential_signing_cert.to_cryptography().subject:
                                 signing_cert = potential_signing_cert
                                 break
                     if signing_cert is None:
@@ -311,7 +317,7 @@ class _ChainVerifier:
                             oid.ExtendedKeyUsageOID.OCSP_SIGNING
                             not in signing_cert.to_cryptography()
                             .extensions.get_extension_for_class(x509.ExtendedKeyUsage)
-                            .value._usages
+                            .value
                         ):
                             raise VerificationException(VerificationStatus.VERIFICATION_FAILURE)
 

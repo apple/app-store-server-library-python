@@ -1,6 +1,6 @@
 # Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-from typing import Optional, Dict
+from typing import Optional
 
 from attr import define
 import attr
@@ -13,7 +13,7 @@ class RealtimeRequestBody:
     https://developer.apple.com/documentation/retentionmessaging/realtimerequestbody
     """
 
-    signedPayload: Optional[str] = attr.ib(default=None)
+    signedPayload: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     The payload in JSON Web Signature (JWS) format, signed by the App Store.
 

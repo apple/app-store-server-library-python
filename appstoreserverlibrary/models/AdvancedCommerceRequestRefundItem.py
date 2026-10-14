@@ -8,6 +8,8 @@ import attr
 from .AbstractAdvancedCommerceBaseItem import AbstractAdvancedCommerceBaseItem
 from .AdvancedCommerceRefundReason import AdvancedCommerceRefundReason
 from .AdvancedCommerceRefundType import AdvancedCommerceRefundType
+from .HelperValidationUtils import HelperValidationUtils
+from .LibraryUtility import validate_not_none
 
 @define
 class AdvancedCommerceRequestRefundItem(AbstractAdvancedCommerceBaseItem):
@@ -17,9 +19,14 @@ class AdvancedCommerceRequestRefundItem(AbstractAdvancedCommerceBaseItem):
     https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem
     """
 
-    revoke: bool = attr.ib()
+    SKU: str = attr.ib(kw_only=True, validator=HelperValidationUtils.sku_validator)
+    """
+    The product identifier.
 
-    refundReason: AdvancedCommerceRefundReason = AdvancedCommerceRefundReason.create_main_attr('rawRefundReason', raw_required=True)
+    https://developer.apple.com/documentation/advancedcommerceapi/sku
+    """
+
+    refundReason: AdvancedCommerceRefundReason = AdvancedCommerceRefundReason.create_main_attr('rawRefundReason', raw_required=True, kw_only=True)
     """
     The reason for the refund request.
 
@@ -31,9 +38,11 @@ class AdvancedCommerceRequestRefundItem(AbstractAdvancedCommerceBaseItem):
     See refundReason
     """
 
-    refundType: AdvancedCommerceRefundType = AdvancedCommerceRefundType.create_main_attr('rawRefundType', raw_required=True)
+    refundType: AdvancedCommerceRefundType = AdvancedCommerceRefundType.create_main_attr('rawRefundType', raw_required=True, kw_only=True)
     """
     The type of refund requested.
+
+    https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem
     """
 
     rawRefundType: str = AdvancedCommerceRefundType.create_raw_attr('refundType', required=True)
@@ -41,9 +50,14 @@ class AdvancedCommerceRequestRefundItem(AbstractAdvancedCommerceBaseItem):
     See refundType
     """
 
-    refundAmount: Optional[int] = attr.ib(default=None)
+    revoke: bool = attr.ib(kw_only=True, validator=validate_not_none)
     """
-    The refund amount you're requesting for the SKU, in milliunits of the currency.
+    https://developer.apple.com/documentation/advancedcommerceapi/requestrefunditem
+    """
+
+    refundAmount: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The refund amount you’re requesting for the SKU, in milliunits of the currency.
 
     https://developer.apple.com/documentation/advancedcommerceapi/refundamount
     """

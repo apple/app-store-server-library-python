@@ -7,7 +7,7 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 class AdvancedCommerceOfferPeriod(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The period of the offer.
-    
+
     https://developer.apple.com/documentation/advancedcommerceapi/offer
     """
     P3D = "P3D"

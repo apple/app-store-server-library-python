@@ -10,5 +10,17 @@ class TokenType(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
 
     https://developer.apple.com/documentation/appstoreservernotifications/tokentype
     """
-    SERVICES = "SERVICES"
     ACQUISITION = "ACQUISITION"
+    """
+    A token type that indicates an initial acquisition.
+    """
+
+    SERVICES = "SERVICES"
+    """
+    A token type that indicates usage of App Store services.
+    """
+
+    CORE_TECHNOLOGY = "CORE_TECHNOLOGY"
+    """
+    A token type an app receives from the MarketplaceKit token(for:) API.
+    """

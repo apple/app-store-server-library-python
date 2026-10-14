@@ -6,8 +6,8 @@ from uuid import UUID
 from attr import define
 import attr
 
-from .MessageState import MessageState
 from .LibraryUtility import AttrsRawValueAware
+from .MessageState import MessageState
 
 @define
 class GetMessageListResponseItem(AttrsRawValueAware):
@@ -17,18 +17,18 @@ class GetMessageListResponseItem(AttrsRawValueAware):
     https://developer.apple.com/documentation/retentionmessaging/getmessagelistresponseitem
     """
 
-    messageIdentifier: Optional[UUID] = attr.ib(default=None)
+    messageIdentifier: Optional[UUID] = attr.ib(default=None, kw_only=True)
     """
     The identifier of the message.
 
     https://developer.apple.com/documentation/retentionmessaging/messageidentifier
     """
 
-    messageState: Optional[MessageState] = MessageState.create_main_attr('rawMessageState')
+    messageState: Optional[MessageState] = MessageState.create_main_attr('rawMessageState', kw_only=True)
     """
     The current state of the message.
 
-    https://developer.apple.com/documentation/retentionmessaging/messageState
+    https://developer.apple.com/documentation/retentionmessaging/messagestate
     """
 
     rawMessageState: Optional[str] = MessageState.create_raw_attr('messageState')

@@ -1,15 +1,32 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
 from attr import define
-from .AbstractAdvancedCommerceResponse import AbstractAdvancedCommerceResponse
+import attr
 
+from .AbstractAdvancedCommerceResponse import AbstractAdvancedCommerceResponse
+from .LibraryUtility import validate_not_none
 
 @define
 class AdvancedCommerceSubscriptionPriceChangeResponse(AbstractAdvancedCommerceResponse):
     """
     A response that contains signed JWS renewal and JWS transaction information after a subscription price change request.
-    
+
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionpricechangeresponse
     """
-    def __init__(self, signedRenewalInfo: str, signedTransactionInfo: str):
+
+    signedRenewalInfo: str = attr.ib(kw_only=True, validator=validate_not_none)
+    """
+    Subscription renewal information signed by the App Store, in JSON Web Signature (JWS) format.
+
+    https://developer.apple.com/documentation/advancedcommerceapi/jwsrenewalinfo
+    """
+
+    signedTransactionInfo: str = attr.ib(kw_only=True, validator=validate_not_none)
+    """
+    Transaction information signed by the App Store, in JWS Compact Serialization format.
+
+    https://developer.apple.com/documentation/advancedcommerceapi/jwstransaction
+    """
+
+    def __init__(self, *, signedRenewalInfo: str, signedTransactionInfo: str):
         super().__init__(signedRenewalInfo=signedRenewalInfo, signedTransactionInfo=signedTransactionInfo)

@@ -1,60 +1,70 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
 from typing import Optional
+
 from attr import define
 import attr
 
+from .LibraryUtility import AttrsRawValueAware, validate_not_none
 from .NotificationTypeV2 import NotificationTypeV2
 from .Subtype import Subtype
 
 @define
-class NotificationHistoryRequest: 
+class NotificationHistoryRequest(AttrsRawValueAware):
     """
     The request body for notification history.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/notificationhistoryrequest
     """
 
-    startDate: Optional[int] = attr.ib(default=None)
+    startDate: int = attr.ib(kw_only=True, validator=validate_not_none)
     """
-    The start date of the timespan for the requested App Store Server Notification history records. The startDate needs to precede the endDate. Choose a startDate that's within the past 180 days from the current date.
-    
+    The start date of the timespan for the requested App Store Server Notification history records.
+
     https://developer.apple.com/documentation/appstoreserverapi/startdate
     """
 
-    endDate: Optional[int] = attr.ib(default=None)
+    endDate: int = attr.ib(kw_only=True, validator=validate_not_none)
     """
-    The end date of the timespan for the requested App Store Server Notification history records. Choose an endDate that's later than the startDate. If you choose an endDate in the future, the endpoint automatically uses the current date as the endDate.
-    
+    The end date of the timespan for the requested App Store Server Notification history records.
+
     https://developer.apple.com/documentation/appstoreserverapi/enddate
     """
 
-    notificationType: Optional[NotificationTypeV2] = attr.ib(default=None)
+    notificationType: Optional[NotificationTypeV2] = NotificationTypeV2.create_main_attr('rawNotificationType', kw_only=True)
     """
-    A notification type. Provide this field to limit the notification history records to those with this one notification type. For a list of notifications types, see notificationType.
-    Include either the transactionId or the notificationType in your query, but not both.
-    
+    A notification type.
+
     https://developer.apple.com/documentation/appstoreserverapi/notificationtype
     """
 
-    notificationSubtype: Optional[Subtype] = attr.ib(default=None)
+    rawNotificationType: Optional[str] = NotificationTypeV2.create_raw_attr('notificationType')
     """
-    A notification subtype. Provide this field to limit the notification history records to those with this one notification subtype. For a list of subtypes, see subtype. If you specify a notificationSubtype, you need to also specify its related notificationType.
-    
+    See notificationType
+    """
+
+    notificationSubtype: Optional[Subtype] = Subtype.create_main_attr('rawNotificationSubtype', kw_only=True)
+    """
+    A notification subtype.
+
     https://developer.apple.com/documentation/appstoreserverapi/notificationsubtype
     """
 
-    transactionId: Optional[str] = attr.ib(default=None)
+    rawNotificationSubtype: Optional[str] = Subtype.create_raw_attr('notificationSubtype')
     """
-    The transaction identifier, which may be an original transaction identifier, of any transaction belonging to the customer. Provide this field to limit the notification history request to this one customer.
-    Include either the transactionId or the notificationType in your query, but not both.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/transactionid
+    See notificationSubtype
     """
 
-    onlyFailures: Optional[bool] = attr.ib(default=None)
+    onlyFailures: Optional[bool] = attr.ib(default=None, kw_only=True)
     """
-    A Boolean value you set to true to request only the notifications that haven’t reached your server successfully. The response also includes notifications that the App Store server is currently retrying to send to your server.
-    
+    A Boolean value you set to true to request only the notifications that haven’t reached your server successfully.
+
     https://developer.apple.com/documentation/appstoreserverapi/onlyfailures
+    """
+
+    transactionId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The transaction identifier, which may be an original transaction identifier, of any transaction belonging to the customer.
+
+    https://developer.apple.com/documentation/appstoreserverapi/transactionid
     """

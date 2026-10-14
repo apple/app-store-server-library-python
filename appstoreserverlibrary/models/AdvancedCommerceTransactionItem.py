@@ -1,6 +1,6 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-from typing import List, Optional
+from typing import Optional, List
 
 from attr import define
 import attr
@@ -14,37 +14,39 @@ class AdvancedCommerceTransactionItem:
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactionitem
     """
 
-    SKU: Optional[str] = attr.ib(default=None)
+    SKU: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercesku
     """
 
-    description: Optional[str] = attr.ib(default=None)
+    description: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescription
     """
 
-    displayName: Optional[str] = attr.ib(default=None)
+    displayName: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedisplayname
     """
 
-    offer: Optional[AdvancedCommerceOffer] = attr.ib(default=None)
+    offer: Optional[AdvancedCommerceOffer] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceoffer
     """
 
-    price: Optional[int] = attr.ib(default=None)
+    price: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceprice
     """
 
-    refunds: Optional[List[AdvancedCommerceRefund]] = attr.ib(default=None)
+    refunds: Optional[List[AdvancedCommerceRefund]] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefunds
     """
 
-    revocationDate: Optional[int] = attr.ib(default=None)
+    revocationDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
+    The UNIX time, in milliseconds, that the App Store refunded the transaction or revoked it from Family Sharing.
+
     https://developer.apple.com/documentation/appstoreserverapi/revocationdate
     """

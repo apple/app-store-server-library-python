@@ -11,5 +11,16 @@ class MessageState(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     https://developer.apple.com/documentation/retentionmessaging/messagestate
     """
     PENDING = "PENDING"
+    """
+    The message is awaiting approval.
+    """
+
     APPROVED = "APPROVED"
+    """
+    The message is approved.
+    """
+
     REJECTED = "REJECTED"
+    """
+    The message is rejected.
+    """

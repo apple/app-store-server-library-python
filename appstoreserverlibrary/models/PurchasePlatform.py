@@ -6,11 +6,12 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
 class PurchasePlatform(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    Values that represent Apple platforms.
-    
+    The platform on which a customer originally purchases an app.
+
     https://developer.apple.com/documentation/storekit/appstore/platform
+    https://developer.apple.com/documentation/appstoreserverapi/originalplatform
     """
-    IOS = "iOS"
     MAC_OS = "macOS"
+    IOS = "iOS"
     TV_OS = "tvOS"
     VISION_OS = "visionOS"

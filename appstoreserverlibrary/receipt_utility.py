@@ -4,7 +4,6 @@ from base64 import b64decode
 from typing import Optional
 
 import asn1
-import base64
 import re
 
 PKCS7_OID = "1.2.840.113549.1.7.2"
@@ -24,7 +23,7 @@ class ReceiptUtility:
         Extracts a transaction id from an encoded App Receipt. Throws if the receipt does not match the expected format.
         *NO validation* is performed on the receipt, and any data returned should only be used to call the App Store Server API.
 
-        :param appReceipt: The unmodified app receipt
+        :param app_receipt: The unmodified app receipt
         :return: A transaction id from the array of in-app purchases, null if the receipt contains no in-app purchases
         """
         try:
@@ -49,16 +48,25 @@ class ReceiptUtility:
     
     def extract_transaction_id_from_transaction_receipt(self, transaction_receipt: str) -> Optional[str]:
         """
-        Extracts a transaction id from an encoded transactional receipt. Throws if the receipt does not match the expected format.
+        Extracts a transaction id from an encoded transactional receipt.
         *NO validation* is performed on the receipt, and any data returned should only be used to call the App Store Server API.
-        :param transactionReceipt: The unmodified transactionReceipt
-        :return: A transaction id, or null if no transactionId is found in the receipt
+
+        :param transaction_receipt: The unmodified transactionReceipt
+        :return: A transaction id, or None if the receipt is well-formed but contains no transaction id
+        :raises ValueError: If the receipt is malformed: not valid base64, no "purchase-info" in the receipt, or otherwise not in the expected format
         """
-        decoded_top_level = base64.b64decode(transaction_receipt).decode('utf-8')
+        try:
+            decoded_top_level = b64decode(transaction_receipt, validate=True).decode('utf-8')
+        except Exception as e:
+            raise ValueError(e)
         matching_result = re.search(r'"purchase-info"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_top_level)
-        if matching_result:
-            decoded_inner_level = base64.b64decode(matching_result.group(1)).decode('utf-8')
-            inner_matching_result = re.search(r'"transaction-id"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_inner_level)
-            if inner_matching_result:
-                return inner_matching_result.group(1)
+        if not matching_result:
+            raise ValueError()
+        try:
+            decoded_inner_level = b64decode(matching_result.group(1), validate=True).decode('utf-8')
+        except Exception as e:
+            raise ValueError(e)
+        inner_matching_result = re.search(r'"transaction-id"\s+=\s+"([a-zA-Z0-9+/=]+)";', decoded_inner_level)
+        if inner_matching_result:
+            return inner_matching_result.group(1)
         return None

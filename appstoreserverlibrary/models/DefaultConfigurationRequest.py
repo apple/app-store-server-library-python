@@ -1,10 +1,11 @@
 # Copyright (c) 2025 Apple Inc. Licensed under MIT License.
 
-from typing import Optional
 from uuid import UUID
 
 from attr import define
 import attr
+
+from .LibraryUtility import validate_not_none
 
 @define
 class DefaultConfigurationRequest:
@@ -14,11 +15,9 @@ class DefaultConfigurationRequest:
     https://developer.apple.com/documentation/retentionmessaging/defaultconfigurationrequest
     """
 
-    messageIdentifier: Optional[UUID] = attr.ib(default=None)
+    messageIdentifier: UUID = attr.ib(kw_only=True, validator=validate_not_none)
     """
     The message identifier of the message to configure as a default message.
-
-    Note: In a future version, this field will become required.
 
     https://developer.apple.com/documentation/retentionmessaging/messageidentifier
     """

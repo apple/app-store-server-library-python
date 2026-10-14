@@ -5,30 +5,28 @@ from typing import Optional
 from attr import define
 import attr
 
-from .HelperValidationUtils import HelperValidationUtils
-
 @define
 class TransactionCommitmentInfo:
     """
     https://developer.apple.com/documentation/appstoreserverapi/transactioncommitmentinfo
     """
 
-    billingPeriodNumber: Optional[int] = attr.ib(default=None, validator=attr.validators.optional(HelperValidationUtils.period_count_validator))
+    billingPeriodNumber: Optional[int] = attr.ib(default=None, kw_only=True, validator=attr.validators.optional(attr.validators.and_(attr.validators.ge(1), attr.validators.le(12))))
     """
     https://developer.apple.com/documentation/appstoreserverapi/billingperiodnumber
     """
 
-    commitmentExpiresDate: Optional[int] = attr.ib(default=None)
+    commitmentExpiresDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentexpiresdate
     """
 
-    commitmentPrice: Optional[int] = attr.ib(default=None)
+    commitmentPrice: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentprice
     """
 
-    totalBillingPeriods: Optional[int] = attr.ib(default=None)
+    totalBillingPeriods: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/totalbillingperiods
     """

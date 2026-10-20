@@ -1,188 +1,64 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
+
 from typing import Optional
+from uuid import UUID
 
 from attr import define
 import attr
 
-from .OfferDiscountType import OfferDiscountType
+from .AdvancedCommerceTransactionInfo import AdvancedCommerceTransactionInfo
+from .BillingPlanType import BillingPlanType
 from .Environment import Environment
 from .InAppOwnershipType import InAppOwnershipType
 from .LibraryUtility import AttrsRawValueAware
+from .OfferDiscountType import OfferDiscountType
 from .OfferType import OfferType
 from .RevocationReason import RevocationReason
 from .RevocationType import RevocationType
-from .TransactionReason import TransactionReason
-from .BillingPlanType import BillingPlanType
-from .AdvancedCommerceTransactionInfo import AdvancedCommerceTransactionInfo
 from .TransactionCommitmentInfo import TransactionCommitmentInfo
-
+from .TransactionReason import TransactionReason
 from .Type import Type
 
 @define
 class JWSTransactionDecodedPayload(AttrsRawValueAware):
     """
-    A decoded payload containing transaction information.
-    
+    A decoded payload that contains transaction information.
+
     https://developer.apple.com/documentation/appstoreserverapi/jwstransactiondecodedpayload
     """
 
-    originalTransactionId: Optional[str] = attr.ib(default=None)
+    appAccountToken: Optional[UUID] = attr.ib(default=None, kw_only=True)
     """
-    The original transaction identifier of a purchase.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/originaltransactionid
-    """
+    A UUID you create at the time of purchase that associates the transaction with a customer on your own service.
 
-    transactionId: Optional[str] = attr.ib(default=None)
-    """
-    The unique identifier for a transaction such as an in-app purchase, restored in-app purchase, or subscription renewal.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/transactionid
-    """
-
-    webOrderLineItemId: Optional[str] = attr.ib(default=None)
-    """
-    The unique identifier of subscription-purchase events across devices, including renewals.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/weborderlineitemid
-    """
-
-    bundleId: Optional[str] = attr.ib(default=None)
-    """
-    The bundle identifier of an app.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/bundleid
-    """
-
-    productId: Optional[str] = attr.ib(default=None)
-    """
-    The unique identifier for the product, that you create in App Store Connect.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/productid
-    """    
-
-    subscriptionGroupIdentifier: Optional[str] = attr.ib(default=None)
-    """
-    The identifier of the subscription group that the subscription belongs to.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/subscriptiongroupidentifier
-    """
-
-    purchaseDate: Optional[int] = attr.ib(default=None)
-    """
-    The time that the App Store charged the user's account for an in-app purchase, a restored in-app purchase, a subscription, or a subscription renewal after a lapse.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/purchasedate
-    """
-
-    originalPurchaseDate: Optional[int] = attr.ib(default=None)
-    """
-    The purchase date of the transaction associated with the original transaction identifier.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/originalpurchasedate
-    """
-
-    expiresDate: Optional[int] = attr.ib(default=None)
-    """
-    The UNIX time, in milliseconds, an auto-renewable subscription expires or renews.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/expiresdate
-    """
-
-    quantity: Optional[int] = attr.ib(default=None)
-    """
-    The number of consumable products purchased.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/quantity
-    """
-
-    type: Optional[Type] = Type.create_main_attr('rawType')
-    """
-    The type of the in-app purchase.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/type
-    """
-
-    rawType: Optional[str] = Type.create_raw_attr('type')
-    """
-    See type
-    """
-
-    appAccountToken: Optional[str] = attr.ib(default=None)
-    """
-    The UUID that an app optionally generates to map a customer's in-app purchase with its resulting App Store transaction.
-    
     https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken
     """
 
-    inAppOwnershipType: Optional[InAppOwnershipType] = InAppOwnershipType.create_main_attr('rawInAppOwnershipType')
+    appTransactionId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    A string that describes whether the transaction was purchased by the user, or is available to them through Family Sharing.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/inappownershiptype
+    The unique identifier of the app download transaction.
+
+    https://developer.apple.com/documentation/appstoreserverapi/apptransactionid
     """
 
-    rawInAppOwnershipType: Optional[str] = InAppOwnershipType.create_raw_attr('inAppOwnershipType')
+    bundleId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    See inAppOwnershipType
+    The bundle identifier of the app.
+
+    https://developer.apple.com/documentation/appstoreserverapi/bundleid
     """
 
-    signedDate: Optional[int] = attr.ib(default=None)
+    currency: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature data.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/signeddate
+    The three-letter ISO 4217 currency code associated with the price parameter.
+
+    https://developer.apple.com/documentation/appstoreserverapi/currency
     """
 
-    revocationReason: Optional[RevocationReason] = RevocationReason.create_main_attr('rawRevocationReason')
-    """
-    The reason that the App Store refunded the transaction or revoked it from Family Sharing.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/revocationreason
-    """
-
-    rawRevocationReason: Optional[int] = RevocationReason.create_raw_attr('revocationReason')
-    """
-    See revocationReason
-    """
-
-    revocationDate: Optional[int] = attr.ib(default=None)
-    """
-    The UNIX time, in milliseconds, that Apple Support refunded a transaction.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/revocationdate
-    """    
-
-    isUpgraded: Optional[bool] = attr.ib(default=None)
-    """
-    The Boolean value that indicates whether the user upgraded to another subscription.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/isupgraded
-    """
-
-    offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType')
-    """
-    A value that represents the promotional offer type.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/offertype
-    """
-
-    rawOfferType: Optional[int] = OfferType.create_raw_attr('offerType')
-    """
-    See offerType
-    """
-
-    offerIdentifier: Optional[str] = attr.ib(default=None)
-    """
-    The identifier that contains the offer code or the promotional offer identifier.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
-    """
-
-    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment', kw_only=True)
     """
     The server environment, either sandbox or production.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/environment
     """
 
@@ -191,50 +67,36 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     See environment
     """
 
-    storefront: Optional[str] = attr.ib(default=None)
+    expiresDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
-    The three-letter code that represents the country or region associated with the App Store storefront for the purchase.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/storefront
+    The UNIX time, in milliseconds, that the subscription expires or renews.
+
+    https://developer.apple.com/documentation/appstoreserverapi/expiresdate
     """
 
-    storefrontId: Optional[str] = attr.ib(default=None)
+    inAppOwnershipType: Optional[InAppOwnershipType] = InAppOwnershipType.create_main_attr('rawInAppOwnershipType', kw_only=True)
     """
-    An Apple-defined value that uniquely identifies the App Store storefront associated with the purchase.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/storefrontid
+    A string that describes whether the transaction was purchased by the customer, or is available to them through Family Sharing, an organization, or a group.
+
+    https://developer.apple.com/documentation/appstoreserverapi/inappownershiptype
     """
 
-    transactionReason: Optional[TransactionReason] = TransactionReason.create_main_attr('rawTransactionReason')
+    rawInAppOwnershipType: Optional[str] = InAppOwnershipType.create_raw_attr('inAppOwnershipType')
     """
-    The reason for the purchase transaction, which indicates whether it's a customer's purchase or a renewal for an auto-renewable subscription that the system initiates.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/transactionreason
+    See inAppOwnershipType
     """
 
-    rawTransactionReason: Optional[str] = TransactionReason.create_raw_attr('transactionReason')
+    isUpgraded: Optional[bool] = attr.ib(default=None, kw_only=True)
     """
-    See transactionReason
+    A Boolean value that indicates whether the customer upgraded to another subscription.
+
+    https://developer.apple.com/documentation/appstoreserverapi/isupgraded
     """
 
-    currency: Optional[str] = attr.ib(default=None)
-    """
-    The three-letter ISO 4217 currency code for the price of the product.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/currency
-    """
-
-    price: Optional[int] = attr.ib(default=None)
-    """
-    The price, in milliunits, of the in-app purchase or subscription offer that you configured in App Store Connect.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/price
-    """
-
-    offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType')
+    offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType', kw_only=True)
     """
     The payment mode you configure for the offer.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype
     """
 
@@ -243,24 +105,105 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     See offerDiscountType
     """
 
-    appTransactionId: Optional[str] = attr.ib(default=None)
+    offerIdentifier: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    The unique identifier of the app download transaction.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/appTransactionId
+    The identifier that contains the offer code or the promotional offer identifier.
+
+    https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
     """
 
-    offerPeriod: Optional[str] = attr.ib(default=None)
+    offerPeriod: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    The duration of the offer.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/offerPeriod
+    The duration of the offer applied to the transaction.
+
+    https://developer.apple.com/documentation/appstoreserverapi/offerperiod
     """
-    revocationType: Optional[RevocationType] = RevocationType.create_main_attr('rawRevocationType')
+
+    offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType', kw_only=True)
+    """
+    A value that represents the promotional offer type.
+
+    https://developer.apple.com/documentation/appstoreserverapi/offertype
+    """
+
+    rawOfferType: Optional[int] = OfferType.create_raw_attr('offerType')
+    """
+    See offerType
+    """
+
+    originalPurchaseDate: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The UNIX time, in milliseconds, that represents the purchase date of the original transaction identifier.
+
+    https://developer.apple.com/documentation/appstoreserverapi/originalpurchasedate
+    """
+
+    originalTransactionId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The transaction identifier of the original purchase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/originaltransactionid
+    """
+
+    price: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    An integer value that represents the price multiplied by 1000 of the in-app purchase or subscription offer you configured in App Store Connect and that the system records at the time of the purchase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/price
+    """
+
+    productId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The unique identifier of the product.
+
+    https://developer.apple.com/documentation/appstoreserverapi/productid
+    """
+
+    purchaseDate: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The UNIX time, in milliseconds, that the App Store charged the customer’s account for a purchase, restored product, subscription, or subscription renewal after a lapse.
+
+    https://developer.apple.com/documentation/appstoreserverapi/purchasedate
+    """
+
+    quantity: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The number of products or seats the customer purchased.
+
+    https://developer.apple.com/documentation/appstoreserverapi/quantity
+    """
+
+    revocationDate: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The UNIX time, in milliseconds, that the App Store refunded the transaction or revoked it from Family Sharing.
+
+    https://developer.apple.com/documentation/appstoreserverapi/revocationdate
+    """
+
+    revocationPercentage: Optional[int] = attr.ib(default=None, kw_only=True, validator=attr.validators.optional(attr.validators.and_(attr.validators.ge(0), attr.validators.le(100000))))
+    """
+    The percentage, in milliunits, of the transaction that the App Store has refunded or revoked.
+
+    https://developer.apple.com/documentation/appstoreserverapi/revocationpercentage
+    """
+
+    revocationReason: Optional[RevocationReason] = RevocationReason.create_main_attr('rawRevocationReason', kw_only=True)
+    """
+    The reason that the App Store refunded the transaction or revoked it from Family Sharing.
+
+    https://developer.apple.com/documentation/appstoreserverapi/revocationreason
+    """
+
+    rawRevocationReason: Optional[int] = RevocationReason.create_raw_attr('revocationReason')
+    """
+    See revocationReason
+    """
+
+    revocationType: Optional[RevocationType] = RevocationType.create_main_attr('rawRevocationType', kw_only=True)
     """
     The type of the refund or revocation that applies to the transaction.
 
-    https://developer.apple.com/documentation/appstoreservernotifications/revocationtype
+    https://developer.apple.com/documentation/appstoreserverapi/revocationtype
     """
 
     rawRevocationType: Optional[str] = RevocationType.create_raw_attr('revocationType')
@@ -268,21 +211,80 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     See revocationType
     """
 
-    revocationPercentage: Optional[int] = attr.ib(default=None)
+    signedDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
-    The percentage, in milliunits, of the transaction that the App Store has refunded or revoked.
+    The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature (JWS) data.
 
-    https://developer.apple.com/documentation/appstoreservernotifications/revocationpercentage
+    https://developer.apple.com/documentation/appstoreserverapi/signeddate
     """
 
-    advancedCommerceInfo: Optional[AdvancedCommerceTransactionInfo] = attr.ib(default=None)
+    storefront: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The three-letter code that represents the country or region associated with the App Store storefront for the purchase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/storefront
+    """
+
+    storefrontId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    An Apple-defined value that uniquely identifies the App Store storefront associated with the purchase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/storefrontid
+    """
+
+    subscriptionGroupIdentifier: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The identifier of the subscription group to which the subscription belongs.
+
+    https://developer.apple.com/documentation/appstoreserverapi/subscriptiongroupidentifier
+    """
+
+    transactionId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The unique identifier of the transaction.
+
+    https://developer.apple.com/documentation/appstoreserverapi/transactionid
+    """
+
+    transactionReason: Optional[TransactionReason] = TransactionReason.create_main_attr('rawTransactionReason', kw_only=True)
+    """
+    The reason for the purchase transaction, which indicates whether it’s a customer’s purchase or a renewal for an auto-renewable subscription that the system initiates.
+
+    https://developer.apple.com/documentation/appstoreserverapi/transactionreason
+    """
+
+    rawTransactionReason: Optional[str] = TransactionReason.create_raw_attr('transactionReason')
+    """
+    See transactionReason
+    """
+
+    type: Optional[Type] = Type.create_main_attr('rawType', kw_only=True)
+    """
+    The type of the in-app purchase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/type
+    """
+
+    rawType: Optional[str] = Type.create_raw_attr('type')
+    """
+    See type
+    """
+
+    webOrderLineItemId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The unique identifier of subscription purchase events across devices, including subscription renewals.
+
+    https://developer.apple.com/documentation/appstoreserverapi/weborderlineitemid
+    """
+
+    advancedCommerceInfo: Optional[AdvancedCommerceTransactionInfo] = attr.ib(default=None, kw_only=True)
     """
     Transaction information that is present only for Advanced Commerce SKUs.
 
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactioninfo
     """
 
-    billingPlanType: Optional[BillingPlanType] = BillingPlanType.create_main_attr('rawBillingPlanType')
+    billingPlanType: Optional[BillingPlanType] = BillingPlanType.create_main_attr('rawBillingPlanType', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/billingplantype
     """
@@ -292,7 +294,14 @@ class JWSTransactionDecodedPayload(AttrsRawValueAware):
     See billingPlanType
     """
 
-    commitmentInfo: Optional[TransactionCommitmentInfo] = attr.ib(default=None)
+    commitmentInfo: Optional[TransactionCommitmentInfo] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/transactioncommitmentinfo
+    """
+
+    previousOriginalTransactionId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The subscription’s original transaction identifier, before you migrated the subscription.
+
+    https://developer.apple.com/documentation/appstoreservernotifications/previousoriginaltransactionid
     """

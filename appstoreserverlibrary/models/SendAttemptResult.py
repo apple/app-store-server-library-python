@@ -7,17 +7,60 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 class SendAttemptResult(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The success or error information the App Store server records when it attempts to send an App Store server notification to your server.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/sendattemptresult
     """
     SUCCESS = "SUCCESS"
+    """
+    The App Store server received a success response when it sent the notification to your server.
+    """
+
     TIMED_OUT = "TIMED_OUT"
+    """
+    The App Store server didn’t get a response from your server and timed out.
+    """
+
     TLS_ISSUE = "TLS_ISSUE"
+    """
+    The App Store server couldn’t establish a TLS session or validate your certificate.
+    """
+
     CIRCULAR_REDIRECT = "CIRCULAR_REDIRECT"
+    """
+    The App Store server detected a continual redirect.
+    """
+
     NO_RESPONSE = "NO_RESPONSE"
+    """
+    The App Store server didn’t receive a valid HTTP response from your server.
+    """
+
     SOCKET_ISSUE = "SOCKET_ISSUE"
+    """
+    A network error caused the notification attempt to fail.
+    """
+
     UNSUPPORTED_CHARSET = "UNSUPPORTED_CHARSET"
+    """
+    The App Store server doesn’t support the supplied charset.
+    """
+
     INVALID_RESPONSE = "INVALID_RESPONSE"
+    """
+    The App Store server received an invalid response from your server.
+    """
+
     PREMATURE_CLOSE = "PREMATURE_CLOSE"
+    """
+    The App Store server’s connection to your server was closed while the send was in progress.
+    """
+
     UNSUCCESSFUL_HTTP_RESPONSE_CODE = "UNSUCCESSFUL_HTTP_RESPONSE_CODE"
+    """
+    The App Store server didn’t receive an HTTP 200 response from your server.
+    """
+
     OTHER = "OTHER"
+    """
+    Another error occurred that prevented your server from receiving the notification.
+    """

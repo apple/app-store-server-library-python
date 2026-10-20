@@ -1,65 +1,55 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
-from typing import List, Optional
+
+from typing import Optional, List
+from uuid import UUID
 
 from attr import define
 import attr
+
+from .AdvancedCommerceRenewalInfo import AdvancedCommerceRenewalInfo
 from .AutoRenewStatus import AutoRenewStatus
 from .Environment import Environment
-
 from .ExpirationIntent import ExpirationIntent
 from .LibraryUtility import AttrsRawValueAware
+from .OfferDiscountType import OfferDiscountType
 from .OfferType import OfferType
 from .PriceIncreaseStatus import PriceIncreaseStatus
-from .OfferDiscountType import OfferDiscountType
 from .RenewalBillingPlanType import RenewalBillingPlanType
-from .AdvancedCommerceRenewalInfo import AdvancedCommerceRenewalInfo
 from .RenewalCommitmentInfo import RenewalCommitmentInfo
 
 @define
 class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     """
     A decoded payload containing subscription renewal information for an auto-renewable subscription.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfodecodedpayload
     """
 
-    expirationIntent: Optional[ExpirationIntent] = ExpirationIntent.create_main_attr('rawExpirationIntent')
+    appAccountToken: Optional[UUID] = attr.ib(default=None, kw_only=True)
     """
-    The reason the subscription expired.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/expirationintent
+    A UUID you create at the time of purchase that associates the transaction with a customer on your own service.
+
+    https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken
     """
 
-    rawExpirationIntent: Optional[int] = ExpirationIntent.create_raw_attr('expirationIntent')
+    appTransactionId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    See expirationIntent
+    The unique identifier of the app download transaction.
+
+    https://developer.apple.com/documentation/appstoreserverapi/apptransactionid
     """
 
-    originalTransactionId: Optional[str] = attr.ib(default=None)
+    autoRenewProductId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    The original transaction identifier of a purchase.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/originaltransactionid
-    """
+    The identifier of the product that renews at the next billing period.
 
-    autoRenewProductId: Optional[str] = attr.ib(default=None)
-    """
-    The product identifier of the product that will renew at the next billing period.
-    
     https://developer.apple.com/documentation/appstoreserverapi/autorenewproductid
     """
 
-    productId: Optional[str] = attr.ib(default=None)
-    """
-    The unique identifier for the product, that you create in App Store Connect.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/productid
-    """
-
-    autoRenewStatus: Optional[AutoRenewStatus] = AutoRenewStatus.create_main_attr('rawAutoRenewStatus')
+    autoRenewStatus: Optional[AutoRenewStatus] = AutoRenewStatus.create_main_attr('rawAutoRenewStatus', kw_only=True)
     """
     The renewal status of the auto-renewable subscription.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/autorenewstatus
     """
 
@@ -68,62 +58,24 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     See autoRenewStatus
     """
 
-    isInBillingRetryPeriod: Optional[bool] = attr.ib(default=None)
+    currency: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    A Boolean value that indicates whether the App Store is attempting to automatically renew an expired subscription.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/isinbillingretryperiod
+    The currency code for the renewalPrice of the subscription.
+
+    https://developer.apple.com/documentation/appstoreserverapi/currency
     """
 
-    priceIncreaseStatus: Optional[PriceIncreaseStatus] = PriceIncreaseStatus.create_main_attr('rawPriceIncreaseStatus')
+    eligibleWinBackOfferIds: Optional[List[str]] = attr.ib(default=None, kw_only=True)
     """
-    The status that indicates whether the auto-renewable subscription is subject to a price increase.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/priceincreasestatus
+    The list of win-back offer IDs that the customer is eligible for.
+
+    https://developer.apple.com/documentation/appstoreserverapi/eligiblewinbackofferids
     """
 
-    rawPriceIncreaseStatus: Optional[int] = PriceIncreaseStatus.create_raw_attr('priceIncreaseStatus')
-    """
-    See priceIncreaseStatus
-    """
-
-    gracePeriodExpiresDate: Optional[int] = attr.ib(default=None)
-    """
-    The time when the billing grace period for subscription renewals expires.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/graceperiodexpiresdate
-    """
-
-    offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType')
-    """
-    The type of subscription offer.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/offertype
-    """
-
-    rawOfferType: Optional[int] = OfferType.create_raw_attr('offerType')
-    """
-    See offerType
-    """
-
-    offerIdentifier: Optional[str] = attr.ib(default=None)
-    """
-    The offer code or the promotional offer identifier.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
-    """
-
-    signedDate: Optional[int] = attr.ib(default=None)
-    """
-    The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature data.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/signeddate
-    """
-
-    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment', kw_only=True)
     """
     The server environment, either sandbox or production.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/environment
     """
 
@@ -132,38 +84,36 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     See environment
     """
 
-    recentSubscriptionStartDate: Optional[int] = attr.ib(default=None)
+    expirationIntent: Optional[ExpirationIntent] = ExpirationIntent.create_main_attr('rawExpirationIntent', kw_only=True)
     """
-    The earliest start date of a subscription in a series of auto-renewable subscription purchases that ignores all lapses of paid service shorter than 60 days.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/recentsubscriptionstartdate
+    The reason the subscription expired.
+
+    https://developer.apple.com/documentation/appstoreserverapi/expirationintent
     """
 
-    renewalDate: Optional[int] = attr.ib(default=None)
+    rawExpirationIntent: Optional[int] = ExpirationIntent.create_raw_attr('expirationIntent')
     """
-    The UNIX time, in milliseconds, that the most recent auto-renewable subscription purchase expires.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/renewaldate
+    See expirationIntent
     """
 
-    currency: Optional[str] = attr.ib(default=None)
+    gracePeriodExpiresDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
-    The currency code for the renewalPrice of the subscription.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/currency
+    The time when the Billing Grace Period for subscription renewals expires.
+
+    https://developer.apple.com/documentation/appstoreserverapi/graceperiodexpiresdate
     """
 
-    renewalPrice: Optional[int] = attr.ib(default=None)
+    isInBillingRetryPeriod: Optional[bool] = attr.ib(default=None, kw_only=True)
     """
-    The renewal price, in milliunits, of the auto-renewable subscription that renews at the next billing period.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/renewalprice
+    A Boolean value that indicates whether the App Store is attempting to automatically renew the expired subscription.
+
+    https://developer.apple.com/documentation/appstoreserverapi/isinbillingretryperiod
     """
 
-    offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType')
+    offerDiscountType: Optional[OfferDiscountType] = OfferDiscountType.create_main_attr('rawOfferDiscountType', kw_only=True)
     """
     The payment mode you configure for the offer.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/offerdiscounttype
     """
 
@@ -172,47 +122,99 @@ class JWSRenewalInfoDecodedPayload(AttrsRawValueAware):
     See offerDiscountType
     """
 
-    eligibleWinBackOfferIds: Optional[List[str]] = attr.ib(default=None)
+    offerIdentifier: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    An array of win-back offer identifiers that a customer is eligible to redeem, which sorts the identifiers to present the better offers first.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/eligiblewinbackofferids
+    The offer code or the promotional offer identifier.
+
+    https://developer.apple.com/documentation/appstoreserverapi/offeridentifier
     """
 
-    appAccountToken: Optional[str] = attr.ib(default=None)
-    """
-    The UUID that an app optionally generates to map a customer's in-app purchase with its resulting App Store transaction.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/appaccounttoken
-    """
-
-    appTransactionId: Optional[str] = attr.ib(default=None)
-    """
-    The unique identifier of the app download transaction.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/appTransactionId
-    """
-
-    offerPeriod: Optional[str] = attr.ib(default=None)
+    offerPeriod: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     The duration of the offer.
 
-    https://developer.apple.com/documentation/appstoreserverapi/offerPeriod
+    https://developer.apple.com/documentation/appstoreserverapi/offerperiod
     """
 
-    advancedCommerceInfo: Optional[AdvancedCommerceRenewalInfo] = attr.ib(default=None)
+    offerType: Optional[OfferType] = OfferType.create_main_attr('rawOfferType', kw_only=True)
+    """
+    The type of subscription offer.
+
+    https://developer.apple.com/documentation/appstoreserverapi/offertype
+    """
+
+    rawOfferType: Optional[int] = OfferType.create_raw_attr('offerType')
+    """
+    See offerType
+    """
+
+    originalTransactionId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The transaction identifier of the original purchase associated with this transaction.
+
+    https://developer.apple.com/documentation/appstoreserverapi/originaltransactionid
+    """
+
+    priceIncreaseStatus: Optional[PriceIncreaseStatus] = PriceIncreaseStatus.create_main_attr('rawPriceIncreaseStatus', kw_only=True)
+    """
+    The status that indicates whether the auto-renewable subscription is subject to a price increase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/priceincreasestatus
+    """
+
+    rawPriceIncreaseStatus: Optional[int] = PriceIncreaseStatus.create_raw_attr('priceIncreaseStatus')
+    """
+    See priceIncreaseStatus
+    """
+
+    productId: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    The product identifier of the In-App Purchase.
+
+    https://developer.apple.com/documentation/appstoreserverapi/productid
+    """
+
+    recentSubscriptionStartDate: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The earliest start date of the auto-renewable subscription in a series of subscription purchases that ignores all lapses of paid service that are 60 days or fewer.
+
+    https://developer.apple.com/documentation/appstoreserverapi/recentsubscriptionstartdate
+    """
+
+    renewalDate: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The UNIX time, in milliseconds, when the most recent auto-renewable subscription purchase expires.
+
+    https://developer.apple.com/documentation/appstoreserverapi/renewaldate
+    """
+
+    renewalPrice: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The renewal price, in milliunits, of the auto-renewable subscription that renews at the next billing period.
+
+    https://developer.apple.com/documentation/appstoreserverapi/renewalprice
+    """
+
+    signedDate: Optional[int] = attr.ib(default=None, kw_only=True)
+    """
+    The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature (JWS) data.
+
+    https://developer.apple.com/documentation/appstoreserverapi/signeddate
+    """
+
+    advancedCommerceInfo: Optional[AdvancedCommerceRenewalInfo] = attr.ib(default=None, kw_only=True)
     """
     Renewal information that is present only for Advanced Commerce SKUs.
 
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalinfo
     """
 
-    commitmentInfo: Optional[RenewalCommitmentInfo] = attr.ib(default=None)
+    commitmentInfo: Optional[RenewalCommitmentInfo] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/renewalcommitmentinfo
     """
 
-    renewalBillingPlanType: Optional[RenewalBillingPlanType] = RenewalBillingPlanType.create_main_attr('rawRenewalBillingPlanType')
+    renewalBillingPlanType: Optional[RenewalBillingPlanType] = RenewalBillingPlanType.create_main_attr('rawRenewalBillingPlanType', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/renewalbillingplantype
     """

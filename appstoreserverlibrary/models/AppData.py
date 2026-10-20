@@ -1,4 +1,5 @@
 # Copyright (c) 2025 Apple Inc. Licensed under MIT License.
+
 from typing import Optional
 
 from attr import define
@@ -15,21 +16,21 @@ class AppData(AttrsRawValueAware):
     https://developer.apple.com/documentation/appstoreservernotifications/appdata
     """
 
-    appAppleId: Optional[int] = attr.ib(default=None)
+    appAppleId: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     The unique identifier of the app that the notification applies to.
 
     https://developer.apple.com/documentation/appstoreservernotifications/appappleid
     """
 
-    bundleId: Optional[str] = attr.ib(default=None)
+    bundleId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     The bundle identifier of the app.
 
     https://developer.apple.com/documentation/appstoreservernotifications/bundleid
     """
 
-    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment', kw_only=True)
     """
     The server environment that the notification applies to, either sandbox or production.
 
@@ -41,7 +42,7 @@ class AppData(AttrsRawValueAware):
     See environment
     """
 
-    signedAppTransactionInfo: Optional[str] = attr.ib(default=None)
+    signedAppTransactionInfo: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     App transaction information signed by the App Store, in JSON Web Signature (JWS) format.
 

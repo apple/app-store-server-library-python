@@ -1,0 +1,14 @@
+{
+  "groups": [
+    {
+      "groupId": "900000000000000000",
+      "groupType": "UNKNOWN_GROUP_TYPE",
+      "roles": [
+        {
+          "productId": "example.productId.one",
+          "role": "UNKNOWN_ROLE"
+        }
+      ]
+    }
+  ]
+}

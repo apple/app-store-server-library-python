@@ -6,8 +6,8 @@ from attr import define
 import attr
 
 from .AutoRenewStatus import AutoRenewStatus
-from .RenewalBillingPlanType import RenewalBillingPlanType
 from .LibraryUtility import AttrsRawValueAware
+from .RenewalBillingPlanType import RenewalBillingPlanType
 
 @define
 class RenewalCommitmentInfo(AttrsRawValueAware):
@@ -15,12 +15,12 @@ class RenewalCommitmentInfo(AttrsRawValueAware):
     https://developer.apple.com/documentation/appstoreserverapi/renewalcommitmentinfo
     """
 
-    commitmentAutoRenewProductId: Optional[str] = attr.ib(default=None)
+    commitmentAutoRenewProductId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentautorenewproductid
     """
 
-    commitmentAutoRenewStatus: Optional[AutoRenewStatus] = AutoRenewStatus.create_main_attr('rawCommitmentAutoRenewStatus')
+    commitmentAutoRenewStatus: Optional[AutoRenewStatus] = AutoRenewStatus.create_main_attr('rawCommitmentAutoRenewStatus', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentautorenewstatus
     """
@@ -30,7 +30,7 @@ class RenewalCommitmentInfo(AttrsRawValueAware):
     See commitmentAutoRenewStatus
     """
 
-    commitmentRenewalBillingPlanType: Optional[RenewalBillingPlanType] = RenewalBillingPlanType.create_main_attr('rawCommitmentRenewalBillingPlanType')
+    commitmentRenewalBillingPlanType: Optional[RenewalBillingPlanType] = RenewalBillingPlanType.create_main_attr('rawCommitmentRenewalBillingPlanType', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentrenewalbillingplantype
     """
@@ -40,12 +40,12 @@ class RenewalCommitmentInfo(AttrsRawValueAware):
     See commitmentRenewalBillingPlanType
     """
 
-    commitmentRenewalDate: Optional[int] = attr.ib(default=None)
+    commitmentRenewalDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentrenewaldate
     """
 
-    commitmentRenewalPrice: Optional[int] = attr.ib(default=None)
+    commitmentRenewalPrice: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/commitmentrenewalprice
     """

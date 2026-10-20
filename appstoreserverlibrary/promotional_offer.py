@@ -16,11 +16,11 @@ class PromotionalOfferSignatureCreator:
        self._signing_key = serialization.load_pem_private_key(signing_key, password=None, backend=default_backend())
        self._key_id = key_id
        self._bundle_id = bundle_id
-    def create_signature(self, product_identifier: str, subscription_offer_id: str, application_username: str, nonce: uuid.UUID, timestamp: int):
+    def create_signature(self, product_identifier: str, subscription_offer_id: str, application_username: str, nonce: uuid.UUID, timestamp: int) -> str:
         """
         Return the Base64 encoded signature
 
-        https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/subscriptions_and_offers/generating_a_signature_for_promotional_offers
+        https://developer.apple.com/documentation/storekit/generating-a-signature-for-promotional-offers
 
         :param product_identifier: The subscription product identifier
         :param subscription_offer_id: The subscription discount identifier

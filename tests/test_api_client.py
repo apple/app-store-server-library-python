@@ -2,7 +2,9 @@
 
 from typing import Any, Dict, List, Union
 import unittest
+import warnings
 
+from cattrs.errors import ClassValidationError
 from requests import Response
 from appstoreserverlibrary.api_client import APIError, APIException, AppStoreServerAPIClient, GetTransactionHistoryVersion
 from appstoreserverlibrary.models.AccountTenure import AccountTenure
@@ -32,6 +34,9 @@ from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.ExpirationIntent import ExpirationIntent
 from appstoreserverlibrary.models.ExtendReasonCode import ExtendReasonCode
 from appstoreserverlibrary.models.ExtendRenewalDateRequest import ExtendRenewalDateRequest
+from appstoreserverlibrary.models.GroupEntry import GroupEntry
+from appstoreserverlibrary.models.GroupMemberEntry import GroupMemberEntry
+from appstoreserverlibrary.models.GroupType import GroupType
 from appstoreserverlibrary.models.InAppOwnershipType import InAppOwnershipType
 from appstoreserverlibrary.models.LastTransactionsItem import LastTransactionsItem
 from appstoreserverlibrary.models.LifetimeDollarsPurchased import LifetimeDollarsPurchased
@@ -46,6 +51,8 @@ from appstoreserverlibrary.models.Platform import Platform
 from appstoreserverlibrary.models.PlayTime import PlayTime
 from appstoreserverlibrary.models.RefundPreference import RefundPreference
 from appstoreserverlibrary.models.RefundPreferenceV1 import RefundPreferenceV1
+from appstoreserverlibrary.models.Role import Role
+from appstoreserverlibrary.models.RoleEntry import RoleEntry
 from appstoreserverlibrary.models.SendAttemptItem import SendAttemptItem
 from appstoreserverlibrary.models.SendAttemptResult import SendAttemptResult
 from appstoreserverlibrary.models.Status import Status
@@ -71,7 +78,7 @@ from tests.util import decode_json_from_signed_date, read_data_from_binary_file,
 
 from io import BytesIO
 
-class DecodedPayloads(unittest.TestCase):
+class APIClientTest(unittest.TestCase):
     def test_extend_renewal_date_for_all_active_subscribers(self):
         client = self.get_client_with_body_from_file('tests/resources/models/extendRenewalDateForAllActiveSubscribersResponse.json',
                                            'POST',
@@ -111,6 +118,35 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual('9993', extend_renewal_date_response.webOrderLineItemId)
         self.assertTrue(extend_renewal_date_response.success)
         self.assertEqual(1698148900000, extend_renewal_date_response.effectiveDate)
+
+    def test_extend_renewal_dates_send_unknown_raw_extend_reason_code(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/extendRenewalDateForAllActiveSubscribersResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/inApps/v1/subscriptions/extend/mass',
+                                           {},
+                                           {'extendByDays': 45, 'extendReasonCode': 99, 'requestIdentifier': 'fdf964a4-233b-486c-aac1-97d8d52688ac', 'productId': 'com.example.productId'})
+
+        mass_extend_renewal_date_request = MassExtendRenewalDateRequest(
+             extendByDays=45,
+             rawExtendReasonCode=99,
+             requestIdentifier='fdf964a4-233b-486c-aac1-97d8d52688ac',
+             productId='com.example.productId')
+
+        self.assertIsNotNone(client.extend_renewal_date_for_all_active_subscribers(mass_extend_renewal_date_request))
+
+        client = self.get_client_with_body_from_file('tests/resources/models/extendSubscriptionRenewalDateResponse.json',
+                                           'PUT',
+                                           'https://local-testing-base-url/inApps/v1/subscriptions/extend/4124214',
+                                           {},
+                                           {'extendByDays': 45, 'extendReasonCode': 99, 'requestIdentifier': 'fdf964a4-233b-486c-aac1-97d8d52688ac'})
+
+        extend_renewal_date_request = ExtendRenewalDateRequest(
+             extendByDays=45,
+             rawExtendReasonCode=99,
+             requestIdentifier='fdf964a4-233b-486c-aac1-97d8d52688ac'
+        )
+
+        self.assertIsNotNone(client.extend_subscription_renewal_date('4124214', extend_renewal_date_request))
 
     def test_get_all_subscription_statuses(self):
         client = self.get_client_with_body_from_file('tests/resources/models/getAllSubscriptionStatusesResponse.json',
@@ -248,6 +284,22 @@ class DecodedPayloads(unittest.TestCase):
         ]
         self.assertEqual(expected_notification_history, notification_history_response.notificationHistory)
 
+    def test_get_notification_history_sends_unknown_raw_notification_type_and_subtype(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getNotificationHistoryResponse.json',
+                                           'POST',
+                                           'https://local-testing-base-url/inApps/v1/notifications/history',
+                                           {},
+                                           {'startDate': 1698148900000, 'endDate': 1698148950000, 'notificationType': 'NEW_NOTIFICATION_TYPE', 'notificationSubtype': 'NEW_SUBTYPE'})
+
+        notification_history_request = NotificationHistoryRequest(
+            startDate=1698148900000,
+            endDate=1698148950000,
+            rawNotificationType='NEW_NOTIFICATION_TYPE',
+            rawNotificationSubtype='NEW_SUBTYPE'
+        )
+
+        self.assertIsNotNone(client.get_notification_history(None, notification_history_request))
+
     def test_get_transaction_history_v1(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
                                            'GET',
@@ -260,7 +312,7 @@ class DecodedPayloads(unittest.TestCase):
                                             'sort': ['ASCENDING'],
                                             'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
                                             'inAppOwnershipType': ['FAMILY_SHARED'],
-                                            'revoked': ['False']},
+                                            'revoked': ['false']},
                                             None)
 
         request = TransactionHistoryRequest(
@@ -274,7 +326,8 @@ class DecodedPayloads(unittest.TestCase):
             subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
         )
 
-        history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V1)
+        with self.assertWarns(DeprecationWarning):
+            history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V1)
 
         self.assertIsNotNone(history_response)
         self.assertEqual('revision_output', history_response.revision)
@@ -297,7 +350,7 @@ class DecodedPayloads(unittest.TestCase):
                                             'sort': ['ASCENDING'],
                                             'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
                                             'inAppOwnershipType': ['FAMILY_SHARED'],
-                                            'revoked': ['False']},
+                                            'revoked': ['false']},
                                             None)
 
         request = TransactionHistoryRequest(
@@ -311,7 +364,10 @@ class DecodedPayloads(unittest.TestCase):
             subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
         )
 
-        history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V2)
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            warnings.simplefilter('always')
+            history_response = client.get_transaction_history('1234', 'revision_input', request, GetTransactionHistoryVersion.V2)
+        self.assertEqual([], [w for w in caught_warnings if issubclass(w.category, DeprecationWarning)])
 
         self.assertIsNotNone(history_response)
         self.assertEqual('revision_output', history_response.revision)
@@ -321,6 +377,75 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(Environment.LOCAL_TESTING, history_response.environment)
         self.assertEqual('LocalTesting', history_response.rawEnvironment)
         self.assertEqual(['signed_transaction_value', 'signed_transaction_value2'], history_response.signedTransactions)
+
+    def test_get_transaction_history_default_version(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/history/1234',
+                                           {},
+                                           None)
+
+        with self.assertWarns(DeprecationWarning):
+            history_response = client.get_transaction_history('1234', None, TransactionHistoryRequest())
+
+        self.assertIsNotNone(history_response)
+        self.assertEqual('revision_output', history_response.revision)
+
+    def test_get_transaction_history_revoked_true(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v2/history/1234',
+                                           {'revoked': ['true']},
+                                           None)
+
+        history_response = client.get_transaction_history('1234', None, TransactionHistoryRequest(revoked=True), GetTransactionHistoryVersion.V2)
+
+        self.assertIsNotNone(history_response)
+        self.assertEqual('revision_output', history_response.revision)
+
+    def test_get_transaction_history_with_string_version(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionHistoryResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v2/history/1234',
+                                           {},
+                                           None)
+
+        history_response = client.get_transaction_history('1234', None, TransactionHistoryRequest(), 'v2')
+
+        self.assertIsNotNone(history_response)
+        self.assertEqual('revision_output', history_response.revision)
+
+    def test_path_parameters_are_percent_encoded(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionInfoResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/transactions/..%2F..%2Fv1%2Fnotifications%2Ftest%3Ffoo%3Dbar%23fragment',
+                                           {},
+                                           None)
+
+        client.get_transaction_info('../../v1/notifications/test?foo=bar#fragment')
+
+    def test_multiple_path_parameters_are_percent_encoded(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getDefaultMessageResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/default/com.example%2Fproduct/en%20US',
+                                           {},
+                                           None)
+
+        client.get_default_message('com.example/product', 'en US')
+
+    def test_dot_and_empty_path_parameters_are_rejected(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionInfoResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/transactions/1234',
+                                           {},
+                                           None)
+
+        for path_parameter in ('..', '.', ''):
+            with self.subTest(path_parameter=path_parameter):
+                with self.assertRaises(ValueError):
+                    client.get_transaction_info(path_parameter)
+                with self.assertRaises(ValueError):
+                    client.get_default_message('com.example', path_parameter)
 
     def test_get_transaction_info(self):
         client = self.get_client_with_body_from_file('tests/resources/models/transactionInfoResponse.json',
@@ -384,7 +509,7 @@ class DecodedPayloads(unittest.TestCase):
             platform=Platform.NON_APPLE,
             sampleContentProvided=False,
             deliveryStatus=DeliveryStatusV1.DID_NOT_DELIVER_DUE_TO_SERVER_OUTAGE,
-            appAccountToken='7389a31a-fb6d-4569-a2a6-db7d85d84813',
+            appAccountToken=UUID('7389a31a-fb6d-4569-a2a6-db7d85d84813'),
             accountTenure=AccountTenure.THIRTY_DAYS_TO_NINETY_DAYS,
             playTime=PlayTime.ONE_DAY_TO_FOUR_DAYS,
             lifetimeDollarsRefunded=LifetimeDollarsRefunded.ONE_THOUSAND_DOLLARS_TO_ONE_THOUSAND_NINE_HUNDRED_NINETY_NINE_DOLLARS_AND_NINETY_NINE_CENTS,
@@ -500,6 +625,62 @@ class DecodedPayloads(unittest.TestCase):
                 self.assertIsNone(e.retry_after)
                 self.assertEqual([raw_retry_after], e.headers['retry-after'])
 
+    def test_api_error_with_charset_content_type(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/apiException.json',
+                                                     'POST',
+                                                     'https://local-testing-base-url/inApps/v1/notifications/test',
+                                                     {},
+                                                     None,
+                                                     500,
+                                                     response_headers={'Content-Type': 'application/json; charset=utf-8'})
+        try:
+            client.request_test_notification()
+        except APIException as e:
+            self.assertEqual(500, e.http_status_code)
+            self.assertEqual(5000000, e.raw_api_error)
+            self.assertEqual(APIError.GENERAL_INTERNAL, e.api_error)
+            self.assertEqual("An unknown error occurred.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_api_error_with_non_json_content_type(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/apiException.json',
+                                                     'POST',
+                                                     'https://local-testing-base-url/inApps/v1/notifications/test',
+                                                     {},
+                                                     None,
+                                                     500,
+                                                     response_headers={'Content-Type': 'text/plain'})
+        try:
+            client.request_test_notification()
+        except APIException as e:
+            self.assertEqual(500, e.http_status_code)
+            self.assertIsNone(e.raw_api_error)
+            self.assertIsNone(e.api_error)
+            self.assertIsNone(e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_api_error_without_error_message(self):
+        client = self.get_client_with_body(b'{"errorCode": 4000006}',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/transactions/1234',
+                                           {},
+                                           None,
+                                           400)
+        try:
+            client.get_transaction_info('1234')
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000006, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_TRANSACTION_ID, e.api_error)
+            self.assertIsNone(e.error_message)
+            return
+
+        self.assertFalse(True)
+
     def test_unknown_error(self):
         client = self.get_client_with_body_from_file('tests/resources/models/apiUnknownError.json',
                                                      'POST',
@@ -530,7 +711,7 @@ class DecodedPayloads(unittest.TestCase):
                                             'sort': ['ASCENDING'],
                                             'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
                                             'inAppOwnershipType': ['FAMILY_SHARED'],
-                                            'revoked': ['False']},
+                                            'revoked': ['false']},
                                             None)
 
         request = TransactionHistoryRequest(
@@ -561,7 +742,7 @@ class DecodedPayloads(unittest.TestCase):
                                             'sort': ['ASCENDING'],
                                             'subscriptionGroupIdentifier': ['sub_group_id', 'sub_group_id_2'],
                                             'inAppOwnershipType': ['FAMILY_SHARED'],
-                                            'revoked': ['False']},
+                                            'revoked': ['false']},
                                             None)
 
         request = TransactionHistoryRequest(
@@ -575,12 +756,10 @@ class DecodedPayloads(unittest.TestCase):
             subscriptionGroupIdentifiers=['sub_group_id', 'sub_group_id_2']
         )
 
-        try:
-            client.get_transaction_history('1234', 'revision_input', request)
-        except Exception:
-            return
-        
-        self.assertFalse(True)
+        with self.assertWarns(DeprecationWarning):
+            with self.assertRaises(Exception) as context:
+                client.get_transaction_history('1234', 'revision_input', request)
+        self.assertNotIsInstance(context.exception, AssertionError)
 
     def test_set_app_account_token(self):
         client = self.get_client_with_body(b'',
@@ -590,7 +769,7 @@ class DecodedPayloads(unittest.TestCase):
                                            {
                                                'appAccountToken': '7389a31a-fb6d-4569-a2a6-db7d85d84813'
                                            })
-        update_app_account_token_request = UpdateAppAccountTokenRequest(appAccountToken='7389a31a-fb6d-4569-a2a6-db7d85d84813')
+        update_app_account_token_request = UpdateAppAccountTokenRequest(appAccountToken=UUID('7389A31A-FB6D-4569-A2A6-DB7D85D84813'))
         client.set_app_account_token('49571273', update_app_account_token_request)
 
     def test_invalid_app_account_token_error(self):
@@ -605,7 +784,7 @@ class DecodedPayloads(unittest.TestCase):
         except APIException as e:
             self.assertEqual(400, e.http_status_code)
             self.assertEqual(4000183, e.raw_api_error)
-            self.assertEqual(APIError.INVALID_APP_ACCOUNT_TOKEN_UUID_ERROR, e.api_error)
+            self.assertEqual(APIError.INVALID_APP_ACCOUNT_TOKEN_UUID, e.api_error)
             self.assertEqual("Invalid request. The app account token field must be a valid UUID.", e.error_message)
             return
 
@@ -624,7 +803,7 @@ class DecodedPayloads(unittest.TestCase):
         except APIException as e:
             self.assertEqual(400, e.http_status_code)
             self.assertEqual(4000185, e.raw_api_error)
-            self.assertEqual(APIError.FAMILY_TRANSACTION_NOT_SUPPORTED_ERROR, e.api_error)
+            self.assertEqual(APIError.FAMILY_TRANSACTION_NOT_SUPPORTED, e.api_error)
             self.assertEqual("Invalid request. Family Sharing transactions aren't supported by this endpoint.", e.error_message)
             return
 
@@ -644,12 +823,65 @@ class DecodedPayloads(unittest.TestCase):
         except APIException as e:
             self.assertEqual(400, e.http_status_code)
             self.assertEqual(4000187, e.raw_api_error)
-            self.assertEqual(APIError.TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID_ERROR, e.api_error)
+            self.assertEqual(APIError.TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID, e.api_error)
             self.assertEqual("Invalid request. The transaction ID provided is not an original transaction ID.", e.error_message)
             return
 
         self.assertFalse(True)
 
+
+    def test_api_error_one_name_per_code(self):
+        expected = {
+            4000048: 'APP_TRANSACTION_ID_NOT_SUPPORTED',
+            4000183: 'INVALID_APP_ACCOUNT_TOKEN_UUID',
+            4000185: 'FAMILY_TRANSACTION_NOT_SUPPORTED',
+            4000187: 'TRANSACTION_ID_IS_NOT_ORIGINAL_TRANSACTION_ID',
+            4040019: 'APP_TRANSACTION_DOES_NOT_EXIST',
+        }
+        for code, name in expected.items():
+            self.assertEqual(name, APIError(code).name)
+            self.assertIs(APIError[name], APIError(code))
+            self.assertFalse(hasattr(APIError, name + '_ERROR'))
+        names_by_code: Dict[int, List[str]] = {}
+        for name, member in APIError.__members__.items():
+            names_by_code.setdefault(member.value, []).append(name)
+        self.assertEqual({}, {code: names for code, names in names_by_code.items() if len(names) > 1})
+
+    def test_consumption_percentage_out_of_range_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/consumptionPercentageOutOfRangeError.json',
+                                                     'PUT',
+                                                     'https://local-testing-base-url/inApps/v2/transactions/consumption/49571273',
+                                                     {},
+                                                     None,
+                                                     400)
+        try:
+            client.send_consumption_information('49571273', None)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000207, e.raw_api_error)
+            self.assertEqual(APIError.CONSUMPTION_PERCENTAGE_OUT_OF_RANGE, e.api_error)
+            self.assertEqual("Invalid request. The consumption percentage is outside the valid range.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_advanced_commerce_subscription_does_not_exist_error(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/subscriptionDoesNotExistError.json',
+                                                     'POST',
+                                                     'https://local-testing-base-url/advancedCommerce/v1/subscription/cancel/4124214',
+                                                     {},
+                                                     None,
+                                                     403)
+        try:
+            client.cancel_subscription('4124214', None)
+        except APIException as e:
+            self.assertEqual(403, e.http_status_code)
+            self.assertEqual(4030008, e.raw_api_error)
+            self.assertEqual(APIError.SUBSCRIPTION_DOES_NOT_EXIST, e.api_error)
+            self.assertEqual("The subscription doesn't exist.", e.error_message)
+            return
+
+        self.assertFalse(True)
 
     def test_upload_image(self):
         client = self.get_client_with_body(b'',
@@ -787,6 +1019,24 @@ class DecodedPayloads(unittest.TestCase):
         self.assertIsNotNone(response)
         self.assertEqual('https://example.com/realtime', response.realtimeURL)
 
+    def test_get_realtime_url_without_required_field_fails(self):
+        client = self.get_client_with_body(b'{}',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/realtime/url',
+                                           {},
+                                           None)
+        with self.assertRaises(ClassValidationError):
+            client.get_realtime_url()
+
+    def test_get_realtime_url_with_null_required_field_fails(self):
+        client = self.get_client_with_body(b'{"realtimeURL": null}',
+                                           'GET',
+                                           'https://local-testing-base-url/inApps/v1/messaging/realtime/url',
+                                           {},
+                                           None)
+        with self.assertRaises(ClassValidationError):
+            client.get_realtime_url()
+
     def test_upload_message_with_bullet_points(self):
         client = self.get_client_with_body(b'',
                                            'PUT',
@@ -810,7 +1060,7 @@ class DecodedPayloads(unittest.TestCase):
         performance_test_request = PerformanceTestRequest(originalTransactionId='70000500092808')
         response = client.initiate_performance_test(performance_test_request)
         self.assertIsNotNone(response)
-        self.assertEqual('c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d', response.requestId)
+        self.assertEqual(UUID('c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d'), response.requestId)
         self.assertIsNotNone(response.config)
         self.assertEqual(10, response.config.maxConcurrentRequests)
         self.assertEqual(100, response.config.totalRequests)
@@ -824,7 +1074,7 @@ class DecodedPayloads(unittest.TestCase):
                                            'https://local-testing-base-url/inApps/v1/messaging/performanceTest/result/c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d',
                                            {},
                                            None)
-        response = client.get_performance_test_results('c4b87a1d-2e3f-4a5b-9c6d-7e8f9a0b1c2d')
+        response = client.get_performance_test_results(UUID('C4B87A1D-2E3F-4A5B-9C6D-7E8F9A0B1C2D'))
         self.assertIsNotNone(response)
         self.assertIsNotNone(response.config)
         self.assertEqual(10, response.config.maxConcurrentRequests)
@@ -887,7 +1137,7 @@ class DecodedPayloads(unittest.TestCase):
         except APIException as e:
              self.assertEqual(404, e.http_status_code)
              self.assertEqual(4040019, e.raw_api_error)
-             self.assertEqual(APIError.APP_TRANSACTION_DOES_NOT_EXIST_ERROR, e.api_error)
+             self.assertEqual(APIError.APP_TRANSACTION_DOES_NOT_EXIST, e.api_error)
              self.assertEqual("No AppTransaction exists for the customer.", e.error_message)
              return
 
@@ -1003,6 +1253,32 @@ class DecodedPayloads(unittest.TestCase):
         self.assertIsNotNone(response)
         self.assertEqual('signed_transaction_info_value', response.signedTransactionInfo)
 
+    def test_request_transaction_refund_with_signed_renewal_info(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceRequestRefundResponseWithSignedRenewalInfo.json',
+                                           'POST',
+                                           'https://local-testing-base-url/advancedCommerce/v1/transaction/requestRefund/4124214',
+                                           {},
+                                           {'requestInfo': {'requestReferenceId': '932c6903-0ab8-4469-9f21-015f6fab013c'}, 'items': [{'SKU': 'AD_FREE_1M', 'revoke': True, 'refundReason': 'UNSATISFIED_WITH_PURCHASE', 'refundType': 'FULL'}], 'refundRiskingPreference': True, 'currency': 'USD', 'storefront': 'USA'})
+
+        request_refund_request = AdvancedCommerceRequestRefundRequest(
+            requestInfo=AdvancedCommerceRequestInfo(requestReferenceId=UUID('932c6903-0ab8-4469-9f21-015f6fab013c')),
+            items=[AdvancedCommerceRequestRefundItem(
+                SKU='AD_FREE_1M',
+                revoke=True,
+                refundReason=AdvancedCommerceRefundReason.UNSATISFIED_WITH_PURCHASE,
+                refundType=AdvancedCommerceRefundType.FULL
+            )],
+            refundRiskingPreference=True,
+            currency='USD',
+            storefront='USA'
+        )
+
+        response = client.request_transaction_refund('4124214', request_refund_request)
+
+        self.assertIsNotNone(response)
+        self.assertEqual('signed_transaction_info_value', response.signedTransactionInfo)
+        self.assertEqual('signed_renewal_info_value', response.signedRenewalInfo)
+
     def test_change_subscription_metadata(self):
         client = self.get_client_with_body_from_file('tests/resources/models/advancedCommerceSubscriptionChangeMetadataResponse.json',
                                            'POST',
@@ -1061,6 +1337,158 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual('signed_renewal_info_value', response.signedRenewalInfo)
         self.assertEqual('signed_transaction_info_value', response.signedTransactionInfo)
 
+    def test_get_customer_groups(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getCustomerGroupsResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/groups/v1/currentGroups/1234',
+                                           {},
+                                           None)
+
+        response = client.get_customer_groups('1234')
+
+        self.assertIsNotNone(response)
+        expected_groups = [
+            GroupEntry(
+                groupId='900000000000000000',
+                groupType=GroupType.ORGANIZATION,
+                roles=[
+                    RoleEntry(productId='example.productId.one', role=Role.ADMIN),
+                    RoleEntry(productId='example.productId.two', rawRole='NONE')
+                ]
+            ),
+            GroupEntry(
+                groupId='900000000000000001',
+                groupType=GroupType.CONSUMER
+            )
+        ]
+        self.assertEqual(expected_groups, response.groups)
+        self.assertEqual('ORGANIZATION', response.groups[0].rawGroupType)
+        self.assertEqual(Role.NONE, response.groups[0].roles[1].role)
+        self.assertEqual('ADMIN', response.groups[0].roles[0].rawRole)
+        self.assertIsNone(response.groups[1].roles)
+
+    def test_get_customer_groups_with_unknown_values(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getCustomerGroupsResponseWithUnknownValues.json',
+                                           'GET',
+                                           'https://local-testing-base-url/groups/v1/currentGroups/1234',
+                                           {},
+                                           None)
+
+        response = client.get_customer_groups('1234')
+
+        self.assertIsNotNone(response)
+        self.assertEqual(1, len(response.groups))
+        self.assertEqual('900000000000000000', response.groups[0].groupId)
+        self.assertIsNone(response.groups[0].groupType)
+        self.assertEqual('UNKNOWN_GROUP_TYPE', response.groups[0].rawGroupType)
+        self.assertEqual(1, len(response.groups[0].roles))
+        self.assertEqual('example.productId.one', response.groups[0].roles[0].productId)
+        self.assertIsNone(response.groups[0].roles[0].role)
+        self.assertEqual('UNKNOWN_ROLE', response.groups[0].roles[0].rawRole)
+
+    def test_get_customer_groups_transaction_id_not_found(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/transactionIdNotFoundError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/groups/v1/currentGroups/not_found_id',
+                                                      {},
+                                                      None,
+                                                      404)
+        try:
+            client.get_customer_groups('not_found_id')
+        except APIException as e:
+            self.assertEqual(404, e.http_status_code)
+            self.assertEqual(4040010, e.raw_api_error)
+            self.assertEqual(APIError.TRANSACTION_ID_NOT_FOUND, e.api_error)
+            self.assertEqual("Transaction id not found.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_get_group_members(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getGroupMembersResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/groups/v1/group/900000000000000000',
+                                           {'paginationToken': ['pagination_token_input'], 'limit': ['50']},
+                                           None)
+
+        response = client.get_group_members('900000000000000000', 'pagination_token_input', 50)
+
+        self.assertIsNotNone(response)
+        expected_members = [
+            GroupMemberEntry(appTransactionId='700000000000000000'),
+            GroupMemberEntry(appTransactionId='700000000000000001')
+        ]
+        self.assertEqual(expected_members, response.members)
+        self.assertEqual('pagination_token_output', response.paginationToken)
+        self.assertTrue(response.hasMore)
+
+    def test_get_group_members_without_optional_parameters(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/getGroupMembersResponse.json',
+                                           'GET',
+                                           'https://local-testing-base-url/groups/v1/group/900000000000000000',
+                                           {},
+                                           None)
+
+        response = client.get_group_members('900000000000000000')
+
+        self.assertIsNotNone(response)
+        self.assertEqual(2, len(response.members))
+        self.assertEqual('700000000000000000', response.members[0].appTransactionId)
+
+    def test_get_group_members_group_not_found(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/groupNotFoundError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/groups/v1/group/900000000000000000',
+                                                      {},
+                                                      None,
+                                                      404)
+        try:
+            client.get_group_members('900000000000000000')
+        except APIException as e:
+            self.assertEqual(404, e.http_status_code)
+            self.assertEqual(4040022, e.raw_api_error)
+            self.assertEqual(APIError.GROUP_NOT_FOUND, e.api_error)
+            self.assertEqual("Group not found.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_get_group_members_invalid_group_id(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/invalidGroupIdError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/groups/v1/group/invalid_id',
+                                                      {},
+                                                      None,
+                                                      400)
+        try:
+            client.get_group_members('invalid_id')
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000225, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_GROUP_ID, e.api_error)
+            self.assertEqual("Invalid request. The group ID is invalid.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
+    def test_get_group_members_invalid_limit(self):
+        client = self.get_client_with_body_from_file('tests/resources/models/invalidLimitError.json',
+                                                      'GET',
+                                                      'https://local-testing-base-url/groups/v1/group/900000000000000000',
+                                                      {'limit': ['101']},
+                                                      None,
+                                                      400)
+        try:
+            client.get_group_members('900000000000000000', limit=101)
+        except APIException as e:
+            self.assertEqual(400, e.http_status_code)
+            self.assertEqual(4000004, e.raw_api_error)
+            self.assertEqual(APIError.INVALID_LIMIT, e.api_error)
+            self.assertEqual("Invalid request limit.", e.error_message)
+            return
+
+        self.assertFalse(True)
+
 
     def get_signing_key(self):
         return read_data_from_binary_file('tests/resources/certs/testSigningKey.p8')
@@ -1080,6 +1508,9 @@ class DecodedPayloads(unittest.TestCase):
             self.assertEqual('issuerId', decoded_jwt['payload']['iss'])
             self.assertEqual('keyId', decoded_jwt['header']['kid'])
             self.assertEqual('com.example', decoded_jwt['payload']['bid'])
+            self.assertIsInstance(decoded_jwt['payload']['iat'], int)
+            self.assertIsInstance(decoded_jwt['payload']['exp'], int)
+            self.assertEqual(300, decoded_jwt['payload']['exp'] - decoded_jwt['payload']['iat'])
 
             # Content-specific validation
             if expected_data is not None:

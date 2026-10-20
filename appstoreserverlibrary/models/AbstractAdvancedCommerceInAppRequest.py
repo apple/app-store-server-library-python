@@ -6,9 +6,9 @@ from attr import define
 import attr
 
 from .AdvancedCommerceRequest import AdvancedCommerceRequest
-from ..jws_signature_creator import AdvancedCommerceAPIInAppRequest
+from ..jws_signature_creator import AdvancedCommerceInAppRequest
 
 @define
-class AbstractAdvancedCommerceInAppRequest(AdvancedCommerceRequest, AdvancedCommerceAPIInAppRequest, ABC):
+class AbstractAdvancedCommerceInAppRequest(AdvancedCommerceRequest, AdvancedCommerceInAppRequest, ABC):
     operation: str = attr.ib()
     version: str = attr.ib()

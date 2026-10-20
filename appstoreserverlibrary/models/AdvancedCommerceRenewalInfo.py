@@ -1,6 +1,6 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-from typing import List, Optional
+from typing import Optional, List
 
 from attr import define
 import attr
@@ -16,22 +16,22 @@ class AdvancedCommerceRenewalInfo(AttrsRawValueAware):
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalinfo
     """
 
-    consistencyToken: Optional[str] = attr.ib(default=None)
+    consistencyToken: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceconsistencytoken
     """
 
-    descriptors: Optional[AdvancedCommerceDescriptors] = attr.ib(default=None)
+    descriptors: Optional[AdvancedCommerceDescriptors] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescriptors
     """
 
-    items: Optional[List[AdvancedCommerceRenewalItem]] = attr.ib(default=None)
+    items: Optional[List[AdvancedCommerceRenewalItem]] = attr.ib(default=None, kw_only=True)
     """
-    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalitem
+    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalitems
     """
 
-    period: Optional[AdvancedCommercePeriod] = AdvancedCommercePeriod.create_main_attr('rawPeriod')
+    period: Optional[AdvancedCommercePeriod] = AdvancedCommercePeriod.create_main_attr('rawPeriod', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceperiod
     """
@@ -41,12 +41,12 @@ class AdvancedCommerceRenewalInfo(AttrsRawValueAware):
     See period
     """
 
-    requestReferenceId: Optional[str] = attr.ib(default=None)
+    requestReferenceId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerequestreferenceid
     """
 
-    taxCode: Optional[str] = attr.ib(default=None)
+    taxCode: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetaxcode
     """

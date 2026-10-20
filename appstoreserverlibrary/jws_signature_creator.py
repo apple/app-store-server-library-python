@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import serialization
 
 from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 
-class AdvancedCommerceAPIInAppRequest:
+class AdvancedCommerceInAppRequest:
     def __init__(self):
         pass
 
@@ -52,7 +52,7 @@ class PromotionalOfferV2SignatureCreator(JWSSignatureCreator):
         """
         super().__init__(audience="promotional-offer", signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id)
 
-    def create_signature(self, product_id: str, offer_identifier: str, transaction_id: Optional[str]) -> str:
+    def create_signature(self, product_id: str, offer_identifier: str, transaction_id: Optional[str] = None) -> str:
         """
         Create a promotional offer V2 signature.
         https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests
@@ -109,10 +109,10 @@ class IntroductoryOfferEligibilitySignatureCreator(JWSSignatureCreator):
         }
         return self._create_signature(feature_specific_claims=feature_specific_claims)
     
-class AdvancedCommerceAPIInAppSignatureCreator(JWSSignatureCreator):
+class AdvancedCommerceInAppSignatureCreator(JWSSignatureCreator):
     def __init__(self, signing_key: bytes, key_id: str, issuer_id: str, bundle_id: str):
         """
-        Create an AdvancedCommerceAPIInAppSignatureCreator
+        Create an AdvancedCommerceInAppSignatureCreator
 
         :param signing_key: Your private key downloaded from App Store Connect
         :param key_id: Your private key ID from App Store Connect
@@ -121,7 +121,7 @@ class AdvancedCommerceAPIInAppSignatureCreator(JWSSignatureCreator):
         """
         super().__init__(audience="advanced-commerce-api", signing_key=signing_key, key_id=key_id, issuer_id=issuer_id, bundle_id=bundle_id)
 
-    def create_signature(self, advanced_commerce_in_app_request: AdvancedCommerceAPIInAppRequest) -> str:
+    def create_signature(self, advanced_commerce_in_app_request: AdvancedCommerceInAppRequest) -> str:
         """
         Create an Advanced Commerce in-app signed request.
         https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests

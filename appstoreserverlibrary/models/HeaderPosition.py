@@ -11,4 +11,11 @@ class HeaderPosition(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     https://developer.apple.com/documentation/retentionmessaging/headerposition
     """
     ABOVE_BODY = "ABOVE_BODY"
+    """
+    Position the header text above the message body.
+    """
+
     ABOVE_IMAGE = "ABOVE_IMAGE"
+    """
+    Position the header text above the image.
+    """

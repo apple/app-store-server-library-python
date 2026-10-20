@@ -13,10 +13,11 @@ from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.signed_data_verifier import SignedDataVerifier
 
 def create_signed_data_from_json(path: str) -> str:
-    data = read_data_from_file(path)
-    decoded_data = json.loads(data)
+    return create_signed_data_from_dict(json.loads(read_data_from_file(path)))
+
+def create_signed_data_from_dict(payload: Dict[str, Any]) -> str:
     private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
-    return jwt.encode(payload=decoded_data, key=private_key, algorithm='ES256')
+    return jwt.encode(payload=payload, key=private_key, algorithm='ES256')
 
 def decode_json_from_signed_date(data: str) -> Dict[str, Any]:
     public_key = ec.generate_private_key(ec.SECP256R1()).public_key().public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo).decode()

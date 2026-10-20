@@ -16,21 +16,21 @@ class PromotionalOffer:
     https://developer.apple.com/documentation/retentionmessaging/promotionaloffer
     """
 
-    messageIdentifier: Optional[UUID] = attr.ib(default=None)
+    messageIdentifier: Optional[UUID] = attr.ib(default=None, kw_only=True)
     """
     The identifier of the message to display to the customer, along with the promotional offer.
 
     https://developer.apple.com/documentation/retentionmessaging/messageidentifier
     """
 
-    promotionalOfferSignatureV2: Optional[str] = attr.ib(default=None)
+    promotionalOfferSignatureV2: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     The promotional offer signature in V2 format.
 
     https://developer.apple.com/documentation/retentionmessaging/promotionaloffersignaturev2
     """
 
-    promotionalOfferSignatureV1: Optional[PromotionalOfferSignatureV1] = attr.ib(default=None)
+    promotionalOfferSignatureV1: Optional[PromotionalOfferSignatureV1] = attr.ib(default=None, kw_only=True)
     """
     The promotional offer signature in V1 format.
 

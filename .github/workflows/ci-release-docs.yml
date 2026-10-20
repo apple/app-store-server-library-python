@@ -20,7 +20,9 @@ jobs:
         pip install -r requirements.txt
         pip install -r docs/requirements.txt
     - name: Sphinx Api Docs
-      run: sphinx-apidoc -F -H "App Store Server Library" -A "Apple Inc." -V "0.2.1" -e -a -o _staging . tests pyproject.toml
+      run: |
+        VERSION=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+        sphinx-apidoc -F -H "App Store Server Library" -A "Apple Inc." -V "$VERSION" -e -a -o _staging . tests pyproject.toml
     - name: Spinx build
       run: sphinx-build -b html _staging _build
     - name: Upload docs

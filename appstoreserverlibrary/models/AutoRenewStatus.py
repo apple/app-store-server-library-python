@@ -7,8 +7,15 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 class AutoRenewStatus(IntEnum, metaclass=AppStoreServerLibraryEnumMeta):
     """
     The renewal status for an auto-renewable subscription.
-    
+
     https://developer.apple.com/documentation/appstoreserverapi/autorenewstatus
     """
     OFF = 0
+    """
+    Automatic renewal is off.
+    """
+
     ON = 1
+    """
+    Automatic renewal is on.
+    """

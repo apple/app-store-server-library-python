@@ -14,14 +14,14 @@ class AdvancedCommerceInfo:
     https://developer.apple.com/documentation/retentionmessaging/advancedcommerceinfo
     """
 
-    messageIdentifier: Optional[UUID] = attr.ib(default=None)
+    messageIdentifier: Optional[UUID] = attr.ib(default=None, kw_only=True)
     """
     The identifier of the message to display to the customer, along with the offer or switch-plan recommendation provided in advancedCommerceData.
 
     https://developer.apple.com/documentation/retentionmessaging/messageidentifier
     """
 
-    advancedCommerceData: Optional[str] = attr.ib(default=None)
+    advancedCommerceData: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     A Base64-encoded JSON object which contains a JWS describing an offer or switch-plan recommendation.
 

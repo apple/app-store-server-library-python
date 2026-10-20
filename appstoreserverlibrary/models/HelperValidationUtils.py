@@ -1,9 +1,5 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-from typing import TypeVar
-
-T = TypeVar('T')
-
 
 class HelperValidationUtils:
     MAXIMUM_DESCRIPTION_LENGTH = 45
@@ -18,8 +14,10 @@ class HelperValidationUtils:
         Validates description is not None and does not exceed maximum length.
 
         Raises:
-            ValueError: If description exceeds maximum length
+            ValueError: If description is None or exceeds maximum length
         """
+        if value is None:
+            raise ValueError("Description cannot be None")
         if len(value) > HelperValidationUtils.MAXIMUM_DESCRIPTION_LENGTH:
             raise ValueError(
                 f"Description length cannot exceed "
@@ -32,8 +30,10 @@ class HelperValidationUtils:
         Validates display name is not None and does not exceed maximum length.
 
         Raises:
-            ValueError: If display name exceeds maximum length
+            ValueError: If display name is None or exceeds maximum length
         """
+        if value is None:
+            raise ValueError("Display name cannot be None")
         if len(value) > HelperValidationUtils.MAXIMUM_DISPLAY_NAME_LENGTH:
             raise ValueError(
                 f"Display name length cannot exceed "
@@ -43,11 +43,13 @@ class HelperValidationUtils:
     @staticmethod
     def sku_validator(instance, attribute, value):
         """
-        Validates SKU does not exceed maximum length.
+        Validates SKU is not None and does not exceed maximum length.
 
         Raises:
-            ValueError: If SKU exceeds maximum length
+            ValueError: If SKU is None or exceeds maximum length
         """
+        if value is None:
+            raise ValueError("SKU cannot be None")
         if len(value) > HelperValidationUtils.MAXIMUM_SKU_LENGTH:
             raise ValueError(
                 f"SKU length cannot exceed "
@@ -60,8 +62,10 @@ class HelperValidationUtils:
         Validates periodCount is not None and between `MIN_PERIOD` and `MAX_PERIOD` inclusive.
 
         Raises:
-            ValueError: If period_count is out of range
+            ValueError: If period_count is None or out of range
         """
+        if value is None:
+            raise ValueError("Period count cannot be None")
         if (value < HelperValidationUtils.MIN_PERIOD or
             value > HelperValidationUtils.MAX_PERIOD):
             raise ValueError(
@@ -88,12 +92,14 @@ class HelperValidationUtils:
     @staticmethod
     def dependent_skus_validator(instance, attribute, value):
         """
-        Validates that each SKU in the dependentSKUs list does not exceed maximum length.
+        Validates that each SKU in the dependentSKUs list is not None and does not exceed maximum length.
 
         Raises:
-            ValueError: If any SKU exceeds maximum length
+            ValueError: If any SKU is None or exceeds maximum length
         """
-        for sku in value:
+        for i, sku in enumerate(value):
+            if sku is None:
+                raise ValueError(f"Item at index {i} in the list cannot be None")
             if len(sku) > HelperValidationUtils.MAXIMUM_SKU_LENGTH:
                 raise ValueError(
                     f"SKU length cannot exceed "

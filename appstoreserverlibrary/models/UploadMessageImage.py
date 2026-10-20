@@ -5,6 +5,8 @@ from uuid import UUID
 from attr import define
 import attr
 
+from .LibraryUtility import validate_not_none
+
 @define
 class UploadMessageImage:
     """
@@ -13,14 +15,14 @@ class UploadMessageImage:
     https://developer.apple.com/documentation/retentionmessaging/uploadmessageimage
     """
 
-    imageIdentifier: UUID = attr.ib()
+    imageIdentifier: UUID = attr.ib(kw_only=True, validator=validate_not_none)
     """
     The unique identifier of an image.
 
     https://developer.apple.com/documentation/retentionmessaging/imageidentifier
     """
 
-    altText: str = attr.ib(validator=attr.validators.max_len(150))
+    altText: str = attr.ib(kw_only=True, validator=[validate_not_none, attr.validators.max_len(150)])
     """
     The alternative text you provide for the corresponding image.
 

@@ -5,6 +5,8 @@ from uuid import UUID
 from attr import define
 import attr
 
+from .LibraryUtility import validate_not_none
+
 @define
 class BulletPoint:
     """
@@ -13,23 +15,23 @@ class BulletPoint:
     https://developer.apple.com/documentation/retentionmessaging/bulletpoint
     """
 
-    text: str = attr.ib(validator=attr.validators.max_len(66))
+    altText: str = attr.ib(kw_only=True, validator=[validate_not_none, attr.validators.max_len(150)])
     """
-    The text of the individual bullet point.
+    The alternative text you provide for the corresponding image of the bullet point.
 
-    https://developer.apple.com/documentation/retentionmessaging/bulletpointtext
+    https://developer.apple.com/documentation/retentionmessaging/alttext
     """
 
-    imageIdentifier: UUID = attr.ib()
+    imageIdentifier: UUID = attr.ib(kw_only=True, validator=validate_not_none)
     """
     The identifier of the image to use as the bullet point.
 
     https://developer.apple.com/documentation/retentionmessaging/imageidentifier
     """
 
-    altText: str = attr.ib(validator=attr.validators.max_len(150))
+    text: str = attr.ib(kw_only=True, validator=[validate_not_none, attr.validators.max_len(66)])
     """
-    The alternative text you provide for the corresponding image of the bullet point.
+    The text of the individual bullet point.
 
-    https://developer.apple.com/documentation/retentionmessaging/alttext
+    https://developer.apple.com/documentation/retentionmessaging/bulletpointtext
     """

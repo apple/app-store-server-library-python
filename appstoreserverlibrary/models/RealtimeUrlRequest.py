@@ -3,6 +3,8 @@
 from attr import define
 import attr
 
+from .LibraryUtility import validate_not_none
+
 @define
 class RealtimeUrlRequest:
     """
@@ -11,7 +13,7 @@ class RealtimeUrlRequest:
     https://developer.apple.com/documentation/retentionmessaging/realtimeurlrequest
     """
 
-    realtimeURL: str = attr.ib(validator=attr.validators.max_len(256))
+    realtimeURL: str = attr.ib(kw_only=True, validator=[validate_not_none, attr.validators.max_len(256)])
     """
     A string that contains the URL of your Get Retention Message endpoint for configuration.
 

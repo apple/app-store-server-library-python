@@ -11,5 +11,16 @@ class PerformanceTestStatus(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     https://developer.apple.com/documentation/retentionmessaging/performanceteststatus
     """
     PENDING = "PENDING"
+    """
+    The test is still pending.
+    """
+
     PASS = "PASS"
+    """
+    The test passed.
+    """
+
     FAIL = "FAIL"
+    """
+    The test failed.
+    """

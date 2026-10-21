@@ -229,6 +229,26 @@ class AdvancedCommerceModelsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             AdvancedCommerceOffer(periodCount=None, price=1000, period=AdvancedCommerceOfferPeriod.P1M, reason=AdvancedCommerceOfferReason.ACQUISITION)
 
+    def test_offer_rejects_non_integer_period_counts(self):
+        for count in [1.5, 1.0, float('nan'), True, False, None, '1']:
+            with self.subTest(count=count):
+                with self.assertRaises(ValueError):
+                    AdvancedCommerceOffer(
+                        periodCount=count, price=1000,
+                        period=AdvancedCommerceOfferPeriod.P1M,
+                        reason=AdvancedCommerceOfferReason.ACQUISITION
+                    )
+
+    def test_offer_accepts_integer_period_counts(self):
+        for count in range(1, 13):
+            with self.subTest(count=count):
+                offer = AdvancedCommerceOffer(
+                    periodCount=count, price=1000,
+                    period=AdvancedCommerceOfferPeriod.P1M,
+                    reason=AdvancedCommerceOfferReason.ACQUISITION
+                )
+                self.assertEqual(offer.periodCount, count)
+
     def test_validation_utils_items(self):
         valid_list = [
             AdvancedCommerceOneTimeChargeItem(

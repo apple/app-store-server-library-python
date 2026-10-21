@@ -1,23 +1,34 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+import json
 from typing import Optional
 import unittest
 from uuid import UUID
+
+from cattrs.errors import ClassValidationError
+import jwt
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from appstoreserverlibrary.models.AutoRenewStatus import AutoRenewStatus
 from appstoreserverlibrary.models.BillingPlanType import BillingPlanType
 from appstoreserverlibrary.models.ConsumptionRequestReason import ConsumptionRequestReason
 from appstoreserverlibrary.models.Environment import Environment
 from appstoreserverlibrary.models.ExpirationIntent import ExpirationIntent
 from appstoreserverlibrary.models.InAppOwnershipType import InAppOwnershipType
+from appstoreserverlibrary.models.JWSTransactionDecodedPayload import JWSTransactionDecodedPayload
+from appstoreserverlibrary.models.LibraryUtility import _get_cattrs_converter
 from appstoreserverlibrary.models.NotificationTypeV2 import NotificationTypeV2
 from appstoreserverlibrary.models.OfferDiscountType import OfferDiscountType
 from appstoreserverlibrary.models.OfferType import OfferType
 from appstoreserverlibrary.models.PriceIncreaseStatus import PriceIncreaseStatus
 from appstoreserverlibrary.models.PurchasePlatform import PurchasePlatform
 from appstoreserverlibrary.models.RenewalBillingPlanType import RenewalBillingPlanType
+from appstoreserverlibrary.models.ResponseBodyV2DecodedPayload import ResponseBodyV2DecodedPayload
 from appstoreserverlibrary.models.RevocationReason import RevocationReason
 from appstoreserverlibrary.models.RevocationType import RevocationType
 from appstoreserverlibrary.models.Status import Status
+from appstoreserverlibrary.models.StoreType import StoreType
 from appstoreserverlibrary.models.Subtype import Subtype
 from appstoreserverlibrary.models.TokenType import TokenType
 from appstoreserverlibrary.models.TransactionReason import TransactionReason
@@ -26,8 +37,9 @@ from appstoreserverlibrary.models.AdvancedCommercePeriod import AdvancedCommerce
 from appstoreserverlibrary.models.AdvancedCommercePriceIncreaseInfoStatus import AdvancedCommercePriceIncreaseInfoStatus
 from appstoreserverlibrary.models.AdvancedCommerceRefundReason import AdvancedCommerceRefundReason
 from appstoreserverlibrary.models.AdvancedCommerceRefundType import AdvancedCommerceRefundType
+from appstoreserverlibrary.signed_data_verifier import VerificationException, VerificationStatus
 
-from tests.util import create_signed_data_from_json, get_default_signed_data_verifier, get_signed_data_verifier
+from tests.util import create_signed_data_from_json, get_default_signed_data_verifier, get_signed_data_verifier, read_data_from_file
 
 class DecodedPayloads(unittest.TestCase):
     def test_app_transaction_decoding(self):
@@ -46,18 +58,20 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698148800000, app_transaction.originalPurchaseDate)
         self.assertEqual("1.1.2", app_transaction.originalApplicationVersion)
         self.assertEqual("device_verification_value", app_transaction.deviceVerification)
-        self.assertEqual("48ccfa42-7431-4f22-9908-7e88983e105a", app_transaction.deviceVerificationNonce)
+        self.assertEqual(UUID("48ccfa42-7431-4f22-9908-7e88983e105a"), app_transaction.deviceVerificationNonce)
         self.assertEqual(1698148700000, app_transaction.preorderDate)
         self.assertEqual("71134", app_transaction.appTransactionId)
         self.assertEqual(PurchasePlatform.IOS, app_transaction.originalPlatform)
         self.assertEqual("iOS", app_transaction.rawOriginalPlatform)
+        self.assertEqual(StoreType.CONSUMER, app_transaction.storeType)
+        self.assertEqual("CONSUMER", app_transaction.rawStoreType)
 
     def test_transaction_decoding(self):
         signed_transaction = create_signed_data_from_json('tests/resources/models/signedTransaction.json')
         
         signed_data_verifier = get_default_signed_data_verifier()
 
-        transaction = signed_data_verifier.verify_and_decode_signed_transaction(signed_transaction)
+        transaction = signed_data_verifier.verify_and_decode_transaction(signed_transaction)
         
         self.assertEqual("12345", transaction.originalTransactionId)
         self.assertEqual("23456", transaction.transactionId)
@@ -72,7 +86,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1, transaction.quantity)
         self.assertEqual(Type.AUTO_RENEWABLE_SUBSCRIPTION, transaction.type)
         self.assertEqual("Auto-Renewable Subscription", transaction.rawType)
-        self.assertEqual("7e3fb20b-4cdb-47cc-936d-99d65f608138", transaction.appAccountToken)
+        self.assertEqual(UUID("7e3fb20b-4cdb-47cc-936d-99d65f608138"), transaction.appAccountToken)
         self.assertEqual(InAppOwnershipType.PURCHASED, transaction.inAppOwnershipType)
         self.assertEqual("PURCHASED", transaction.rawInAppOwnershipType)
         self.assertEqual(1698148900000, transaction.signedDate)
@@ -131,6 +145,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1698150000000, commitment.commitmentExpiresDate)
         self.assertEqual(119880, commitment.commitmentPrice)
         self.assertEqual(12, commitment.totalBillingPeriods)
+        self.assertEqual("11111", transaction.previousOriginalTransactionId)
 
     def test_non_ascii_data_decoding_is_independent_of_the_default_charset(self):
         """
@@ -142,7 +157,7 @@ class DecodedPayloads(unittest.TestCase):
 
         signed_data_verifier = get_default_signed_data_verifier()
 
-        transaction = signed_data_verifier.verify_and_decode_signed_transaction(signed_transaction)
+        transaction = signed_data_verifier.verify_and_decode_transaction(signed_transaction)
 
         advanced_commerce_info = transaction.advancedCommerceInfo
         self.assertEqual("Abonnement Caf\u00e9 \u2014 5,99 \u20ac par mois", advanced_commerce_info.descriptors.description)
@@ -155,7 +170,7 @@ class DecodedPayloads(unittest.TestCase):
 
         signed_data_verifier = get_default_signed_data_verifier()
 
-        transaction = signed_data_verifier.verify_and_decode_signed_transaction(signed_transaction)
+        transaction = signed_data_verifier.verify_and_decode_transaction(signed_transaction)
 
         self.assertEqual("12345", transaction.originalTransactionId)
         self.assertEqual("23456", transaction.transactionId)
@@ -170,7 +185,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(1, transaction.quantity)
         self.assertEqual(Type.AUTO_RENEWABLE_SUBSCRIPTION, transaction.type)
         self.assertEqual("Auto-Renewable Subscription", transaction.rawType)
-        self.assertEqual("7e3fb20b-4cdb-47cc-936d-99d65f608138", transaction.appAccountToken)
+        self.assertEqual(UUID("7e3fb20b-4cdb-47cc-936d-99d65f608138"), transaction.appAccountToken)
         self.assertEqual(InAppOwnershipType.PURCHASED, transaction.inAppOwnershipType)
         self.assertEqual("PURCHASED", transaction.rawInAppOwnershipType)
         self.assertEqual(1698148900000, transaction.signedDate)
@@ -195,6 +210,18 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(RevocationType.REFUND_PRORATED, transaction.revocationType)
         self.assertEqual("REFUND_PRORATED", transaction.rawRevocationType)
         self.assertEqual(50000, transaction.revocationPercentage)
+
+    def test_transaction_with_assigned_ownership_and_assignment_revoke_decoding(self):
+        transaction_dict = json.loads(read_data_from_file('tests/resources/models/signedTransactionWithRevocation.json'))
+        transaction_dict['inAppOwnershipType'] = 'ASSIGNED'
+        transaction_dict['revocationType'] = 'ASSIGNMENT_REVOKE'
+
+        transaction = _get_cattrs_converter(JWSTransactionDecodedPayload).structure(transaction_dict, JWSTransactionDecodedPayload)
+
+        self.assertEqual(InAppOwnershipType.ASSIGNED, transaction.inAppOwnershipType)
+        self.assertEqual("ASSIGNED", transaction.rawInAppOwnershipType)
+        self.assertEqual(RevocationType.ASSIGNMENT_REVOKE, transaction.revocationType)
+        self.assertEqual("ASSIGNMENT_REVOKE", transaction.rawRevocationType)
 
 
     
@@ -231,7 +258,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(['eligible1', 'eligible2'], renewal_info.eligibleWinBackOfferIds)
         self.assertEqual("71134", renewal_info.appTransactionId)
         self.assertEqual("P1Y", renewal_info.offerPeriod)
-        self.assertEqual("7e3fb20b-4cdb-47cc-936d-99d65f608138", renewal_info.appAccountToken)
+        self.assertEqual(UUID("7e3fb20b-4cdb-47cc-936d-99d65f608138"), renewal_info.appAccountToken)
         self.assertIsNotNone(renewal_info.advancedCommerceInfo)
         acInfo = renewal_info.advancedCommerceInfo
         self.assertEqual("token-abc-123", acInfo.consistencyToken)
@@ -346,7 +373,7 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(41234, notification.summary.appAppleId)
         self.assertEqual("com.example", notification.summary.bundleId)
         self.assertEqual("com.example.product", notification.summary.productId)
-        self.assertEqual("efb27071-45a4-4aca-9854-2a1e9146f265", notification.summary.requestIdentifier)
+        self.assertEqual(UUID("efb27071-45a4-4aca-9854-2a1e9146f265"), notification.summary.requestIdentifier)
         self.assertEqual(["CAN", "USA", "MEX"], notification.summary.storefrontCountryCodes)
         self.assertEqual(5, notification.summary.succeededCount)
         self.assertEqual(2, notification.summary.failedCount)
@@ -414,7 +441,147 @@ class DecodedPayloads(unittest.TestCase):
         self.assertEqual(TokenType.ACQUISITION, notification.externalPurchaseToken.tokenType)
         self.assertEqual("ACQUISITION", notification.externalPurchaseToken.rawTokenType)
         self.assertEqual(1698149000000, notification.externalPurchaseToken.tokenExpirationDate)
+
+    def test_external_purchase_token_core_technology_decoding(self):
+        notification_dict = json.loads(read_data_from_file('tests/resources/models/signedExternalPurchaseTokenNotification.json'))
+        notification_dict['externalPurchaseToken']['tokenType'] = 'CORE_TECHNOLOGY'
+
+        notification = _get_cattrs_converter(ResponseBodyV2DecodedPayload).structure(notification_dict, ResponseBodyV2DecodedPayload)
+
+        self.assertEqual(TokenType.CORE_TECHNOLOGY, notification.externalPurchaseToken.tokenType)
+        self.assertEqual("CORE_TECHNOLOGY", notification.externalPurchaseToken.rawTokenType)
     
+    def test_uuid_fields_decode_uppercase_values(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        verifier = get_default_signed_data_verifier()
+
+        transaction_dict = json.loads(read_data_from_file('tests/resources/models/signedTransaction.json'))
+        transaction_dict['appAccountToken'] = '7E3FB20B-4CDB-47CC-936D-99D65F608138'
+        transaction = verifier.verify_and_decode_transaction(jwt.encode(payload=transaction_dict, key=private_key, algorithm='ES256'))
+        self.assertEqual(UUID('7e3fb20b-4cdb-47cc-936d-99d65f608138'), transaction.appAccountToken)
+
+        renewal_info_dict = json.loads(read_data_from_file('tests/resources/models/signedRenewalInfo.json'))
+        renewal_info_dict['appAccountToken'] = '7E3FB20B-4CDB-47CC-936D-99D65F608138'
+        renewal_info = verifier.verify_and_decode_renewal_info(jwt.encode(payload=renewal_info_dict, key=private_key, algorithm='ES256'))
+        self.assertEqual(UUID('7e3fb20b-4cdb-47cc-936d-99d65f608138'), renewal_info.appAccountToken)
+
+        app_transaction_dict = json.loads(read_data_from_file('tests/resources/models/appTransaction.json'))
+        app_transaction_dict['deviceVerificationNonce'] = '48CCFA42-7431-4F22-9908-7E88983E105A'
+        app_transaction = verifier.verify_and_decode_app_transaction(jwt.encode(payload=app_transaction_dict, key=private_key, algorithm='ES256'))
+        self.assertEqual(UUID('48ccfa42-7431-4f22-9908-7e88983e105a'), app_transaction.deviceVerificationNonce)
+
+    def test_uuid_fields_are_optional_when_decoding(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        verifier = get_default_signed_data_verifier()
+
+        transaction_dict = json.loads(read_data_from_file('tests/resources/models/signedTransaction.json'))
+        del transaction_dict['appAccountToken']
+        transaction = verifier.verify_and_decode_transaction(jwt.encode(payload=transaction_dict, key=private_key, algorithm='ES256'))
+        self.assertIsNone(transaction.appAccountToken)
+
+        renewal_info_dict = json.loads(read_data_from_file('tests/resources/models/signedRenewalInfo.json'))
+        del renewal_info_dict['appAccountToken']
+        renewal_info = verifier.verify_and_decode_renewal_info(jwt.encode(payload=renewal_info_dict, key=private_key, algorithm='ES256'))
+        self.assertIsNone(renewal_info.appAccountToken)
+
+    def test_summary_request_identifier_decodes_into_uuid(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        verifier = get_default_signed_data_verifier()
+
+        notification_dict = json.loads(read_data_from_file('tests/resources/models/signedSummaryNotification.json'))
+        notification_dict['summary']['requestIdentifier'] = 'EFB27071-45A4-4ACA-9854-2A1E9146F265'
+        notification = verifier.verify_and_decode_notification(jwt.encode(payload=notification_dict, key=private_key, algorithm='ES256'))
+        self.assertIsInstance(notification.summary.requestIdentifier, UUID)
+        self.assertEqual(UUID('efb27071-45a4-4aca-9854-2a1e9146f265'), notification.summary.requestIdentifier)
+
+        notification_dict = json.loads(read_data_from_file('tests/resources/models/signedSummaryNotification.json'))
+        notification = _get_cattrs_converter(ResponseBodyV2DecodedPayload).structure(notification_dict, ResponseBodyV2DecodedPayload)
+        self.assertEqual(UUID('efb27071-45a4-4aca-9854-2a1e9146f265'), notification.summary.requestIdentifier)
+
+        del notification_dict['summary']['requestIdentifier']
+        notification = _get_cattrs_converter(ResponseBodyV2DecodedPayload).structure(notification_dict, ResponseBodyV2DecodedPayload)
+        self.assertIsNone(notification.summary.requestIdentifier)
+
+    def test_summary_request_identifier_rejects_non_uuid_value(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        notification_dict = json.loads(read_data_from_file('tests/resources/models/signedSummaryNotification.json'))
+        notification_dict['summary']['requestIdentifier'] = 'not-a-uuid'
+
+        with self.assertRaises(VerificationException) as context:
+            get_default_signed_data_verifier().verify_and_decode_notification(jwt.encode(payload=notification_dict, key=private_key, algorithm='ES256'))
+        self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+        with self.assertRaises(ClassValidationError) as context:
+            _get_cattrs_converter(ResponseBodyV2DecodedPayload).structure(notification_dict, ResponseBodyV2DecodedPayload)
+        summary_error = context.exception.exceptions[0]
+        self.assertIsInstance(summary_error, ClassValidationError)
+        self.assertIsInstance(summary_error.exceptions[0], ValueError)
+
+    def test_uuid_fields_reject_non_uuid_values_when_decoding(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        verifier = get_default_signed_data_verifier()
+        cases = [
+            ('JWSTransactionDecodedPayload.appAccountToken', 'tests/resources/models/signedTransaction.json', [], 'appAccountToken', verifier.verify_and_decode_transaction),
+            ('JWSRenewalInfoDecodedPayload.appAccountToken', 'tests/resources/models/signedRenewalInfo.json', [], 'appAccountToken', verifier.verify_and_decode_renewal_info),
+            ('AppTransaction.deviceVerificationNonce', 'tests/resources/models/appTransaction.json', [], 'deviceVerificationNonce', verifier.verify_and_decode_app_transaction),
+            ('DecodedRealtimeRequestBody.requestIdentifier', 'tests/resources/models/decodedRealtimeRequest.json', [], 'requestIdentifier', verifier.verify_and_decode_realtime_request),
+            ('Summary.requestIdentifier', 'tests/resources/models/signedSummaryNotification.json', ['summary'], 'requestIdentifier', verifier.verify_and_decode_notification),
+        ]
+        for name, path, parents, key, decode in cases:
+            payload = json.loads(read_data_from_file(path))
+            target = payload
+            for parent in parents:
+                target = target[parent]
+            target[key] = 'not-a-uuid'
+            with self.subTest(field=name):
+                with self.assertRaises(VerificationException) as context:
+                    decode(jwt.encode(payload=payload, key=private_key, algorithm='ES256'))
+                self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_external_purchase_token_without_required_field_fails_decoding(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        for field in ['externalPurchaseId', 'tokenCreationDate', 'appAppleId', 'bundleId']:
+            notification_dict = json.loads(read_data_from_file('tests/resources/models/signedExternalPurchaseTokenNotification.json'))
+            del notification_dict['externalPurchaseToken'][field]
+            signed_notification = jwt.encode(payload=notification_dict, key=private_key, algorithm='ES256')
+
+            with self.subTest(field=field), self.assertRaises(VerificationException) as context:
+                get_default_signed_data_verifier().verify_and_decode_notification(signed_notification)
+            self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_realtime_request_without_required_field_fails_decoding(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        for field in ['originalTransactionId', 'appAppleId', 'productId', 'userLocale', 'requestIdentifier', 'environment', 'signedDate']:
+            request_dict = json.loads(read_data_from_file('tests/resources/models/decodedRealtimeRequest.json'))
+            del request_dict[field]
+            signed_realtime_request = jwt.encode(payload=request_dict, key=private_key, algorithm='ES256')
+
+            with self.subTest(field=field), self.assertRaises(VerificationException) as context:
+                get_default_signed_data_verifier().verify_and_decode_realtime_request(signed_realtime_request)
+            self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_external_purchase_token_with_null_required_field_fails_decoding(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        for field in ['externalPurchaseId', 'tokenCreationDate', 'appAppleId', 'bundleId']:
+            notification_dict = json.loads(read_data_from_file('tests/resources/models/signedExternalPurchaseTokenNotification.json'))
+            notification_dict['externalPurchaseToken'][field] = None
+            signed_notification = jwt.encode(payload=notification_dict, key=private_key, algorithm='ES256')
+
+            with self.subTest(field=field), self.assertRaises(VerificationException) as context:
+                get_default_signed_data_verifier().verify_and_decode_notification(signed_notification)
+            self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_realtime_request_with_null_required_field_fails_decoding(self):
+        private_key = ec.generate_private_key(ec.SECP256R1()).private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()).decode()
+        for field in ['originalTransactionId', 'appAppleId', 'productId', 'userLocale', 'requestIdentifier', 'environment', 'signedDate']:
+            request_dict = json.loads(read_data_from_file('tests/resources/models/decodedRealtimeRequest.json'))
+            request_dict[field] = None
+            signed_realtime_request = jwt.encode(payload=request_dict, key=private_key, algorithm='ES256')
+
+            with self.subTest(field=field), self.assertRaises(VerificationException) as context:
+                get_default_signed_data_verifier().verify_and_decode_realtime_request(signed_realtime_request)
+            self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
     def test_realtime_request_decoding(self):
         signed_realtime_request = create_signed_data_from_json('tests/resources/models/decodedRealtimeRequest.json')
 

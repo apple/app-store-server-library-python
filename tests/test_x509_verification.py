@@ -1,8 +1,18 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+import datetime
+import time
 import unittest
+from typing import List, Optional
 from unittest import mock
 from unittest.mock import MagicMock, patch
+
+import requests
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.x509 import ocsp
+from cryptography.x509.oid import AuthorityInformationAccessOID, ExtendedKeyUsageOID, NameOID
 
 from appstoreserverlibrary.signed_data_verifier import _ChainVerifier, VerificationException, VerificationStatus
 from base64 import b64decode, b64encode
@@ -23,6 +33,78 @@ REAL_APPLE_SIGNING_CERTIFICATE_BASE64_ENCODED = "MIIEMTCCA7agAwIBAgIQR8KHzdn554Z
 
 EFFECTIVE_DATE = 1761962975
 CLOCK_DATE = 41231
+
+def _create_certificate(subject: str, issuer: x509.Name, public_key, signing_key, is_ca: bool, extensions: List[x509.ExtensionType]) -> x509.Certificate:
+    now = datetime.datetime.now(datetime.timezone.utc)
+    builder = x509.CertificateBuilder() \
+        .subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, subject)])) \
+        .issuer_name(issuer) \
+        .public_key(public_key) \
+        .serial_number(x509.random_serial_number()) \
+        .not_valid_before(now - datetime.timedelta(days=1)) \
+        .not_valid_after(now + datetime.timedelta(days=365)) \
+        .add_extension(x509.BasicConstraints(ca=is_ca, path_length=None), critical=True)
+    for extension in extensions:
+        builder = builder.add_extension(extension, critical=False)
+    return builder.sign(signing_key, hashes.SHA256())
+
+def _ocsp_access(url: str) -> x509.AuthorityInformationAccess:
+    return x509.AuthorityInformationAccess([x509.AccessDescription(AuthorityInformationAccessOID.OCSP, x509.UniformResourceIdentifier(url))])
+
+class _GeneratedChain:
+    def __init__(self):
+        self.root_key = ec.generate_private_key(ec.SECP256R1())
+        self.intermediate_key = ec.generate_private_key(ec.SECP256R1())
+        self.leaf_key = ec.generate_private_key(ec.SECP256R1())
+        root_name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Root")])
+        self.root = _create_certificate("Root", root_name, self.root_key.public_key(), self.root_key, True, [])
+        self.intermediate = _create_certificate("Intermediate", root_name, self.intermediate_key.public_key(), self.root_key, True, [
+            x509.UnrecognizedExtension(x509.ObjectIdentifier("1.2.840.113635.100.6.2.1"), b"\x05\x00"),
+            _ocsp_access("http://ocsp.example.com/root"),
+        ])
+        self.leaf = _create_certificate("Leaf", self.intermediate.subject, self.leaf_key.public_key(), self.intermediate_key, False, [
+            x509.UnrecognizedExtension(x509.ObjectIdentifier("1.2.840.113635.100.6.11.1"), b"\x05\x00"),
+            _ocsp_access("http://ocsp.example.com/intermediate"),
+        ])
+
+    def root_bytes(self) -> bytes:
+        return self.root.public_bytes(serialization.Encoding.DER)
+
+    def chain(self) -> List[str]:
+        return [b64encode(cert.public_bytes(serialization.Encoding.DER)).decode() for cert in [self.leaf, self.intermediate, self.root]]
+
+    def leaf_public_key(self) -> str:
+        return self.leaf_key.public_key().public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo).decode()
+
+    def ocsp_responder(self, responder_encoding: ocsp.OCSPResponderEncoding = ocsp.OCSPResponderEncoding.HASH, delegated_signer_usages: Optional[List[x509.ObjectIdentifier]] = None, cert_status: ocsp.OCSPCertStatus = ocsp.OCSPCertStatus.GOOD):
+        def post(url, headers, data, timeout):
+            request = ocsp.load_der_ocsp_request(data)
+            if request.serial_number == self.leaf.serial_number:
+                cert, issuer, issuer_key = self.leaf, self.intermediate, self.intermediate_key
+            else:
+                cert, issuer, issuer_key = self.intermediate, self.root, self.root_key
+            now = datetime.datetime.now(datetime.timezone.utc)
+            builder = ocsp.OCSPResponseBuilder().add_response(
+                cert=cert,
+                issuer=issuer,
+                algorithm=hashes.SHA256(),
+                cert_status=cert_status,
+                this_update=now - datetime.timedelta(minutes=1),
+                next_update=now + datetime.timedelta(hours=1),
+                revocation_time=now - datetime.timedelta(days=1) if cert_status == ocsp.OCSPCertStatus.REVOKED else None,
+                revocation_reason=None
+            )
+            signing_cert, signing_key = issuer, issuer_key
+            if delegated_signer_usages is not None:
+                signing_key = ec.generate_private_key(ec.SECP256R1())
+                signing_cert = _create_certificate("Delegated OCSP Signer", issuer.subject, signing_key.public_key(), issuer_key, False, [x509.ExtendedKeyUsage(delegated_signer_usages)])
+                builder = builder.certificates([signing_cert])
+            builder = builder.responder_id(responder_encoding, signing_cert)
+            response = MagicMock()
+            response.status_code = 200
+            response.content = builder.sign(signing_key, hashes.SHA256()).public_bytes(serialization.Encoding.DER)
+            return response
+        return post
 
 class X509Verification(unittest.TestCase):
     def test_valid_chain_without_ocsp(self):
@@ -193,6 +275,96 @@ class X509Verification(unittest.TestCase):
                 REAL_APPLE_ROOT_BASE64_ENCODED
             ], True, EFFECTIVE_DATE)
         self.assertEqual(2, magic_mock.call_count)
+
+    def test_ocsp_response_caching_evicts_expired_entries(self):
+        verifier = _ChainVerifier([b64decode(REAL_APPLE_ROOT_BASE64_ENCODED)])
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE)):
+            for i in range(_ChainVerifier.MAXIMUM_CACHE_SIZE):
+                verifier.put_verified_public_key(["leaf" + str(i), "intermediate", "root"], "key" + str(i))
+        self.assertEqual(_ChainVerifier.MAXIMUM_CACHE_SIZE, len(verifier.verified_certificates_cache))
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE + 1)):
+            verifier.put_verified_public_key(["leaf", "intermediate", "root"], "key")
+        self.assertEqual(_ChainVerifier.MAXIMUM_CACHE_SIZE + 1, len(verifier.verified_certificates_cache))
+        with patch('time.time', mock.MagicMock(return_value=CLOCK_DATE + 900)):
+            verifier.put_verified_public_key(["newLeaf", "intermediate", "root"], "newKey")
+            self.assertEqual(2, len(verifier.verified_certificates_cache))
+            self.assertEqual("key", verifier.get_cached_public_key(["leaf", "intermediate", "root"]))
+            self.assertEqual("newKey", verifier.get_cached_public_key(["newLeaf", "intermediate", "root"]))
+            self.assertIsNone(verifier.get_cached_public_key(["leaf0", "intermediate", "root"]))
+
+    def test_empty_root_certificates(self):
+        verifier = _ChainVerifier([], False)
+        with self.assertRaises(VerificationException) as context:
+            verifier.verify_chain([
+                LEAF_CERT_BASE64_ENCODED,
+                INTERMEDIATE_CA_BASE64_ENCODED,
+                ROOT_CA_BASE64_ENCODED
+            ], False, EFFECTIVE_DATE)
+        self.assertEqual(VerificationStatus.INVALID_CERTIFICATE, context.exception.status)
+
+    def test_ocsp_responder_identified_by_key_hash(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=chain.ocsp_responder(responder_encoding=ocsp.OCSPResponderEncoding.HASH)) as post:
+            public_key = verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(chain.leaf_public_key(), public_key)
+        self.assertEqual(2, post.call_count)
+
+    def test_ocsp_responder_identified_by_name(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=chain.ocsp_responder(responder_encoding=ocsp.OCSPResponderEncoding.NAME)) as post:
+            public_key = verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(chain.leaf_public_key(), public_key)
+        self.assertEqual(2, post.call_count)
+
+    def test_ocsp_delegated_signer_identified_by_key_hash(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=chain.ocsp_responder(responder_encoding=ocsp.OCSPResponderEncoding.HASH, delegated_signer_usages=[ExtendedKeyUsageOID.OCSP_SIGNING])):
+            public_key = verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(chain.leaf_public_key(), public_key)
+
+    def test_ocsp_delegated_signer_identified_by_name(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=chain.ocsp_responder(responder_encoding=ocsp.OCSPResponderEncoding.NAME, delegated_signer_usages=[ExtendedKeyUsageOID.OCSP_SIGNING])):
+            public_key = verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(chain.leaf_public_key(), public_key)
+
+    def test_ocsp_delegated_signer_without_ocsp_signing_usage(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=chain.ocsp_responder(delegated_signer_usages=[ExtendedKeyUsageOID.SERVER_AUTH])):
+            with self.assertRaises(VerificationException) as context:
+                verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_ocsp_revoked_certificate(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=chain.ocsp_responder(cert_status=ocsp.OCSPCertStatus.REVOKED)):
+            with self.assertRaises(VerificationException) as context:
+                verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(VerificationStatus.VERIFICATION_FAILURE, context.exception.status)
+
+    def test_ocsp_network_failure_is_retryable(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        with patch('requests.post', side_effect=requests.exceptions.ConnectionError()):
+            with self.assertRaises(VerificationException) as context:
+                verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, context.exception.status)
+
+    def test_ocsp_unsuccessful_http_status_is_retryable(self):
+        chain = _GeneratedChain()
+        verifier = _ChainVerifier([chain.root_bytes()], False)
+        response = MagicMock()
+        response.status_code = 503
+        with patch('requests.post', return_value=response):
+            with self.assertRaises(VerificationException) as context:
+                verifier.verify_chain(chain.chain(), True, time.time())
+        self.assertEqual(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE, context.exception.status)
 
 
 if __name__ == '__main__':

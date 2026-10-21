@@ -1,0 +1,33 @@
+{
+  "originalTransactionId": "12345",
+  "productId": "com.example.product",
+  "signedDate": 1698148800000,
+  "environment": "LocalTesting",
+  "advancedCommerceInfo": {
+    "descriptors": {
+      "description": "Premium subscription, billed monthly",
+      "displayName": "Premium"
+    },
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "offer": {
+          "period": "P1M",
+          "periodCount": 3,
+          "price": 4990,
+          "reason": "WIN_BACK"
+        }
+      },
+      {
+        "SKU": "com.example.sku.addon",
+        "offer": {
+          "period": "P5Y",
+          "periodCount": 6,
+          "price": 2990,
+          "reason": "NEW_REASON"
+        }
+      }
+    ],
+    "period": "P1M"
+  }
+}

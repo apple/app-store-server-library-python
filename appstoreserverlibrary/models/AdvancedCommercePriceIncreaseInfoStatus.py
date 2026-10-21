@@ -6,7 +6,7 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
 class AdvancedCommercePriceIncreaseInfoStatus(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    https://developer.apple.com/documentation/appstoreservernotifications/advancedcommercepriceincreaseinfostatus
+    https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfostatus
     """
     SCHEDULED = "SCHEDULED"
     PENDING = "PENDING"

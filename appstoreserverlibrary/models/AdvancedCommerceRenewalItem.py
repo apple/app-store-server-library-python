@@ -14,32 +14,32 @@ class AdvancedCommerceRenewalItem:
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalitem
     """
 
-    SKU: Optional[str] = attr.ib(default=None)
+    SKU: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercesku
     """
 
-    description: Optional[str] = attr.ib(default=None)
+    description: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedescription
     """
 
-    displayName: Optional[str] = attr.ib(default=None)
+    displayName: Optional[str] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercedisplayname
     """
 
-    offer: Optional[AdvancedCommerceOffer] = attr.ib(default=None)
+    offer: Optional[AdvancedCommerceOffer] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceoffer
     """
 
-    price: Optional[int] = attr.ib(default=None)
+    price: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommerceprice
     """
 
-    priceIncreaseInfo: Optional[AdvancedCommercePriceIncreaseInfo] = attr.ib(default=None)
+    priceIncreaseInfo: Optional[AdvancedCommercePriceIncreaseInfo] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercepriceincreaseinfo
     """

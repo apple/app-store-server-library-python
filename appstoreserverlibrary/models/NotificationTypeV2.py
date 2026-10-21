@@ -6,30 +6,121 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
 class NotificationTypeV2(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    The type that describes the in-app purchase or external purchase event for which the App Store sends the version 2 notification.
-    
+    The type that describes the In-App Purchase or external purchase event for which the App Store sends the version 2 notification.
+
     https://developer.apple.com/documentation/appstoreservernotifications/notificationtype
     """
     SUBSCRIBED = "SUBSCRIBED"
+    """
+    A notification type that, along with its subtype, indicates that the customer subscribed to an auto-renewable subscription.
+    """
+
     DID_CHANGE_RENEWAL_PREF = "DID_CHANGE_RENEWAL_PREF"
+    """
+    A notification type that, along with its subtype, indicates that the customer made a change to their subscription plan.
+    """
+
     DID_CHANGE_RENEWAL_STATUS = "DID_CHANGE_RENEWAL_STATUS"
+    """
+    A notification type that, along with its subtype, indicates that the customer made a change to the subscription renewal status.
+    """
+
     OFFER_REDEEMED = "OFFER_REDEEMED"
+    """
+    A notification type that, along with its subtype, indicates that a customer with an active subscription redeemed a subscription offer.
+    """
+
     DID_RENEW = "DID_RENEW"
+    """
+    A notification type that, along with its subtype, indicates that the subscription successfully renewed.
+    """
+
     EXPIRED = "EXPIRED"
+    """
+    A notification type that, along with its subtype, indicates that a subscription expired.
+    """
+
     DID_FAIL_TO_RENEW = "DID_FAIL_TO_RENEW"
+    """
+    A notification type that, along with its subtype, indicates that the subscription failed to renew due to a billing issue.
+    """
+
     GRACE_PERIOD_EXPIRED = "GRACE_PERIOD_EXPIRED"
+    """
+    A notification type that indicates that the billing grace period has ended without renewing the subscription, so you can turn off access to the service or content.
+    """
+
     PRICE_INCREASE = "PRICE_INCREASE"
+    """
+    A notification type that, along with its subtype, indicates that the system has informed the customer of an auto-renewable subscription price increase.
+    """
+
     REFUND = "REFUND"
+    """
+    A notification type that indicates that the App Store successfully refunded a transaction for a consumable In-App Purchase, a non-consumable In-App Purchase, an auto-renewable subscription, or a non-renewing subscription.
+    """
+
     REFUND_DECLINED = "REFUND_DECLINED"
+    """
+    A notification type that indicates the App Store declined a refund request.
+    """
+
     CONSUMPTION_REQUEST = "CONSUMPTION_REQUEST"
+    """
+    A notification type that indicates that the customer initiated a refund request for a consumable In-App Purchase or auto-renewable subscription, and the App Store is requesting that you provide consumption data.
+    """
+
     RENEWAL_EXTENDED = "RENEWAL_EXTENDED"
+    """
+    A notification type that indicates the App Store extended the subscription renewal date for a specific subscription.
+    """
+
     REVOKE = "REVOKE"
+    """
+    A notification type that indicates that an In-App Purchase the customer was entitled to through Family Sharing is no longer available through sharing.
+    """
+
     TEST = "TEST"
+    """
+    A notification type that the App Store server sends when you request it by calling the Request a Test Notification endpoint.
+    """
+
     RENEWAL_EXTENSION = "RENEWAL_EXTENSION"
+    """
+    A notification type that, along with its subtype, indicates that the App Store is attempting to extend the subscription renewal date that you request by calling Extend Subscription Renewal Dates for All Active Subscribers.
+    """
+
     REFUND_REVERSED = "REFUND_REVERSED"
+    """
+    A notification type that indicates the App Store reversed a previously granted refund due to a dispute that the customer raised.
+    """
+
     EXTERNAL_PURCHASE_TOKEN = "EXTERNAL_PURCHASE_TOKEN"
+    """
+    A notification type that applies only to apps that get tokens from the External Purchase or TransactionReporting APIs.
+    """
+
     ONE_TIME_CHARGE = "ONE_TIME_CHARGE"
-    RESCIND_CONSENT = "RESCIND_CONSENT"
-    METADATA_UPDATE = "METADATA_UPDATE"
-    MIGRATION = "MIGRATION"
+    """
+    A notification type that indicates the customer purchased a consumable, non-consumable, or non-renewing subscription.
+    """
+
     PRICE_CHANGE = "PRICE_CHANGE"
+    """
+    A notification type that indicates that you called the Change Subscription Price endpoint.
+    """
+
+    METADATA_UPDATE = "METADATA_UPDATE"
+    """
+    A notification type that indicates you used the Change Subscription Metadata endpoint to change the metadata for a subscription.
+    """
+
+    MIGRATION = "MIGRATION"
+    """
+    A notification type that indicates you used the Migrate Subscription to Advanced Commerce API endpoint.
+    """
+
+    RESCIND_CONSENT = "RESCIND_CONSENT"
+    """
+    A notification type that indicates the parent or guardian has withdrawn consent for a child’s app usage.
+    """

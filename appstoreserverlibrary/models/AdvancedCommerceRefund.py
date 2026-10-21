@@ -15,17 +15,17 @@ class AdvancedCommerceRefund(AttrsRawValueAware):
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefund
     """
 
-    refundAmount: Optional[int] = attr.ib(default=None)
+    refundAmount: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefundamount
     """
 
-    refundDate: Optional[int] = attr.ib(default=None)
+    refundDate: Optional[int] = attr.ib(default=None, kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefunddate
     """
 
-    refundReason: Optional[AdvancedCommerceRefundReason] = AdvancedCommerceRefundReason.create_main_attr('rawRefundReason')
+    refundReason: Optional[AdvancedCommerceRefundReason] = AdvancedCommerceRefundReason.create_main_attr('rawRefundReason', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefundreason
     """
@@ -35,7 +35,7 @@ class AdvancedCommerceRefund(AttrsRawValueAware):
     See refundReason
     """
 
-    refundType: Optional[AdvancedCommerceRefundType] = AdvancedCommerceRefundType.create_main_attr('rawRefundType')
+    refundType: Optional[AdvancedCommerceRefundType] = AdvancedCommerceRefundType.create_main_attr('rawRefundType', kw_only=True)
     """
     https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerefundtype
     """

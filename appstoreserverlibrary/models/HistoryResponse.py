@@ -1,7 +1,8 @@
 # Copyright (c) 2023 Apple Inc. Licensed under MIT License.
 
+from typing import Optional, List
+
 from attr import define
-from typing import List, Optional
 import attr
 
 from .Environment import Environment
@@ -10,43 +11,29 @@ from .LibraryUtility import AttrsRawValueAware
 @define
 class HistoryResponse(AttrsRawValueAware):
     """
-    A response that contains the customer's transaction history for an app.
-    
+    A response that contains the customer’s transaction history for an app.
+
     https://developer.apple.com/documentation/appstoreserverapi/historyresponse
     """
 
-    revision: Optional[str] = attr.ib(default=None)
+    appAppleId: Optional[int] = attr.ib(default=None, kw_only=True)
     """
-    A token you use in a query to request the next set of transactions for the customer.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/revision
+    The app’s identifier in the App Store.
+
+    https://developer.apple.com/documentation/appstoreserverapi/appappleid
     """
 
-    hasMore: Optional[bool] = attr.ib(default=None)
+    bundleId: Optional[str] = attr.ib(default=None, kw_only=True)
     """
-    A Boolean value indicating whether the App Store has more transaction data.
-    
-    https://developer.apple.com/documentation/appstoreserverapi/hasmore
-    """
+    The bundle identifier of the app.
 
-    bundleId: Optional[str] = attr.ib(default=None)
-    """
-    The bundle identifier of an app.
-    
     https://developer.apple.com/documentation/appstoreserverapi/bundleid
     """
 
-    appAppleId: Optional[int] = attr.ib(default=None)
+    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment', kw_only=True)
     """
-    The unique identifier of an app in the App Store.
-    
-    https://developer.apple.com/documentation/appstoreservernotifications/appappleid
-    """
+    The server environment in which you’re making the request, whether sandbox or production.
 
-    environment: Optional[Environment] = Environment.create_main_attr('rawEnvironment')
-    """
-    The server environment in which you're making the request, whether sandbox or production.
-    
     https://developer.apple.com/documentation/appstoreserverapi/environment
     """
 
@@ -55,9 +42,23 @@ class HistoryResponse(AttrsRawValueAware):
     See environment
     """
 
-    signedTransactions: Optional[List[str]] = attr.ib(default=None)
+    hasMore: Optional[bool] = attr.ib(default=None, kw_only=True)
     """
-    An array of in-app purchase transactions for the customer, signed by Apple, in JSON Web Signature format.
-    
+    A Boolean value that indicates whether the App Store has more transactions than it returns in this response.
+
+    https://developer.apple.com/documentation/appstoreserverapi/hasmore
+    """
+
+    revision: Optional[str] = attr.ib(default=None, kw_only=True)
+    """
+    A token you use in a query to request the next set of transactions from the endpoint.
+
+    https://developer.apple.com/documentation/appstoreserverapi/revision
+    """
+
+    signedTransactions: Optional[List[str]] = attr.ib(default=None, kw_only=True)
+    """
+    An array of in-app purchase transactions for the customer, signed by Apple, in JSON Web Signature (JWS) format.
+
     https://developer.apple.com/documentation/appstoreserverapi/jwstransaction
     """

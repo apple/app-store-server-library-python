@@ -1,0 +1,35 @@
+{
+  "transactionId": "23456",
+  "originalTransactionId": "12345",
+  "bundleId": "com.example",
+  "productId": "com.example.product",
+  "signedDate": 1698148900000,
+  "environment": "LocalTesting",
+  "advancedCommerceInfo": {
+    "descriptors": {
+      "description": "Premium Plan",
+      "displayName": "Premium Plan Monthly"
+    },
+    "items": [
+      {
+        "SKU": "com.example.sku.premium",
+        "offer": {
+          "period": "P1W",
+          "periodCount": 1,
+          "price": 0,
+          "reason": "ACQUISITION"
+        }
+      },
+      {
+        "SKU": "com.example.sku.addon",
+        "offer": {
+          "period": "P2W",
+          "periodCount": 12,
+          "price": 1990,
+          "reason": "RETENTION"
+        }
+      }
+    ],
+    "period": "P1M"
+  }
+}

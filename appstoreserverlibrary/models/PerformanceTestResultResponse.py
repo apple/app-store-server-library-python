@@ -1,32 +1,43 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-from typing import Dict, Optional
+from typing import Dict
 
 from attr import define, Attribute
 import attr
 
-from .LibraryUtility import AttrsRawValueAware, metadata_key, metadata_type_key
+from .LibraryUtility import AttrsRawValueAware, metadata_key, metadata_required_key, metadata_type_key, validate_not_none
 from .PerformanceTestConfig import PerformanceTestConfig
 from .PerformanceTestResponseTimes import PerformanceTestResponseTimes
 from .PerformanceTestStatus import PerformanceTestStatus
 from .SendAttemptResult import SendAttemptResult
 
-def _failures_value_set(self, _: Attribute, value: Optional[Dict[SendAttemptResult, int]]):
-    new_raw = {k.value: v for k, v in value.items()} if value is not None else None
+def _failures_value_set(self, attribute: Attribute, value: Dict[SendAttemptResult, int]):
+    if value is None:
+        raise ValueError(f"{attribute.name} cannot be set to None when field is required")
+    new_raw = {k.value: v for k, v in value.items()}
     if new_raw != getattr(self, 'rawFailures'):
         object.__setattr__(self, 'rawFailures', new_raw)
     return value
 
-def _raw_failures_value_set(self, _: Attribute, value: Optional[Dict[str, int]]):
+def _raw_failures_value_set(self, attribute: Attribute, value: Dict[str, int]):
+    if value is None:
+        raise ValueError(f"{attribute.name} cannot be None")
     new_typed = {}
-    if value is not None:
-        for k, v in value.items():
-            if k in SendAttemptResult:
-                new_typed[SendAttemptResult(k)] = v
-    new_typed = new_typed if new_typed else None
+    for k, v in value.items():
+        if k in SendAttemptResult:
+            new_typed[SendAttemptResult(k)] = v
     if new_typed != getattr(self, 'failures'):
         object.__setattr__(self, 'failures', new_typed)
     return value
+
+def _raw_failures_default(self) -> Dict[str, int]:
+    if self.failures is not None:
+        return {k.value: v for k, v in self.failures.items()}
+    raise ValueError("Either failures or rawFailures must be provided")
+
+def _validate_raw_failures(self, attribute: Attribute, value: Dict[str, int]):
+    if value is None:
+        raise ValueError(f"{attribute.name} cannot be None")
 
 @define
 class PerformanceTestResultResponse(AttrsRawValueAware):
@@ -36,61 +47,61 @@ class PerformanceTestResultResponse(AttrsRawValueAware):
     https://developer.apple.com/documentation/retentionmessaging/performancetestresultresponse
     """
 
-    config: Optional[PerformanceTestConfig] = attr.ib(default=None)
+    config: PerformanceTestConfig = attr.ib(kw_only=True, validator=validate_not_none)
     """
     A PerformanceTestConfig object that enumerates the test parameters.
 
     https://developer.apple.com/documentation/retentionmessaging/performancetestconfig
     """
 
-    target: Optional[str] = attr.ib(default=None)
+    failures: Dict[SendAttemptResult, int] = attr.ib(default=None, kw_only=True, on_setattr=_failures_value_set, metadata={metadata_key: 'rawFailures', metadata_type_key: 'main'})
     """
-    The target URL for the performance test.
+    A Failures object that represents a map of server-to-server notification failure reasons and counts that represent the number of failures encountered during the performance test.
 
-    https://developer.apple.com/documentation/retentionmessaging/target
-    """
-
-    result: Optional[PerformanceTestStatus] = PerformanceTestStatus.create_main_attr('rawResult')
-    """
-    A PerformanceTestStatus object that describes the overall result of the test.
-
-    https://developer.apple.com/documentation/retentionmessaging/performanceteststatus
+    https://developer.apple.com/documentation/retentionmessaging/failures
     """
 
-    rawResult: Optional[str] = PerformanceTestStatus.create_raw_attr('result')
+    rawFailures: Dict[str, int] = attr.ib(default=attr.Factory(_raw_failures_default, takes_self=True), kw_only=True, on_setattr=_raw_failures_value_set, validator=_validate_raw_failures, metadata={metadata_key: 'failures', metadata_type_key: 'raw', metadata_required_key: True})
     """
-    See result
-    """
-
-    successRate: Optional[int] = attr.ib(default=None)
-    """
-    An integer that describes he success rate percentage of the performance test.
-
-    https://developer.apple.com/documentation/retentionmessaging/successrate
+    See failures
     """
 
-    numPending: Optional[int] = attr.ib(default=None)
+    numPending: int = attr.ib(kw_only=True, validator=validate_not_none)
     """
     An integer that describes the number of pending requests in the performance test.
 
-    https://developer.apple.com/documentation/retentionmessaging/numpending
+    https://developer.apple.com/documentation/retentionmessaging/performancetestresultresponse
     """
 
-    responseTimes: Optional[PerformanceTestResponseTimes] = attr.ib(default=None)
+    responseTimes: PerformanceTestResponseTimes = attr.ib(kw_only=True, validator=validate_not_none)
     """
     A PerformanceTestResponseTimes object that enumerates the response times measured during the test.
 
     https://developer.apple.com/documentation/retentionmessaging/performancetestresponsetimes
     """
 
-    failures: Optional[Dict[SendAttemptResult, int]] = attr.ib(default=None, on_setattr=_failures_value_set, metadata={metadata_key: 'rawFailures', metadata_type_key: 'main'})
+    result: PerformanceTestStatus = PerformanceTestStatus.create_main_attr('rawResult', raw_required=True, kw_only=True)
     """
-    A map of server-to-server notification failure reasons and counts that represent the number of failures encountered during the performance test.
+    A PerformanceTestStatus object that describes the overall result of the test.
 
-    https://developer.apple.com/documentation/retentionmessaging/failures
+    https://developer.apple.com/documentation/retentionmessaging/performanceteststatus
     """
 
-    rawFailures: Optional[Dict[str, int]] = attr.ib(default=None, kw_only=True, on_setattr=_raw_failures_value_set, metadata={metadata_key: 'failures', metadata_type_key: 'raw'})
+    rawResult: str = PerformanceTestStatus.create_raw_attr('result', required=True)
     """
-    See failures
+    See result
+    """
+
+    successRate: int = attr.ib(kw_only=True, validator=validate_not_none)
+    """
+    An integer that describes the success rate percentage of the performance test.
+
+    https://developer.apple.com/documentation/retentionmessaging/performancetestresultresponse
+    """
+
+    target: str = attr.ib(kw_only=True, validator=validate_not_none)
+    """
+    The target URL for the performance test.
+
+    https://developer.apple.com/documentation/retentionmessaging/performancetestresultresponse
     """

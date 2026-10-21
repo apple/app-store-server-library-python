@@ -15,9 +15,9 @@ class GetMessageListResponse:
     https://developer.apple.com/documentation/retentionmessaging/getmessagelistresponse
     """
 
-    messageIdentifiers: Optional[List[GetMessageListResponseItem]] = attr.ib(default=None)
+    messageIdentifiers: Optional[List[GetMessageListResponseItem]] = attr.ib(default=None, kw_only=True)
     """
-    An array of all message identifiers and their message state.
+    An array of all message identifiers and their message states.
 
     https://developer.apple.com/documentation/retentionmessaging/getmessagelistresponseitem
     """

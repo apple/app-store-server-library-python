@@ -6,8 +6,6 @@ from .LibraryUtility import AppStoreServerLibraryEnumMeta
 
 class AdvancedCommerceReason(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     """
-    The data your app provides to change an item of an auto-renewable subscription.
-
     https://developer.apple.com/documentation/advancedcommerceapi/subscriptionmodifychangeitem
     """
     UPGRADE = "UPGRADE"

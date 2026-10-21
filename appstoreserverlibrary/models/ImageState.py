@@ -11,5 +11,16 @@ class ImageState(str, Enum, metaclass=AppStoreServerLibraryEnumMeta):
     https://developer.apple.com/documentation/retentionmessaging/imagestate
     """
     PENDING = "PENDING"
+    """
+    The image is awaiting approval.
+    """
+
     APPROVED = "APPROVED"
+    """
+    The image is approved.
+    """
+
     REJECTED = "REJECTED"
+    """
+    The image is rejected.
+    """

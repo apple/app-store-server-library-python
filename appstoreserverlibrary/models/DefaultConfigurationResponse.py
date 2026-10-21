@@ -5,6 +5,8 @@ from uuid import UUID
 from attr import define
 import attr
 
+from .LibraryUtility import validate_not_none
+
 @define
 class DefaultConfigurationResponse:
     """
@@ -13,7 +15,7 @@ class DefaultConfigurationResponse:
     https://developer.apple.com/documentation/retentionmessaging/defaultconfigurationresponse
     """
 
-    messageIdentifier: UUID = attr.ib()
+    messageIdentifier: UUID = attr.ib(kw_only=True, validator=validate_not_none)
     """
     The message identifier of the retention message you configured as a default.
 

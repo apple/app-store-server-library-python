@@ -5,10 +5,10 @@ from typing import Optional
 from attr import define
 import attr
 
-from .Message import Message
-from .AlternateProduct import AlternateProduct
-from .PromotionalOffer import PromotionalOffer
 from .AdvancedCommerceInfo import AdvancedCommerceInfo
+from .AlternateProduct import AlternateProduct
+from .Message import Message
+from .PromotionalOffer import PromotionalOffer
 
 @define
 class RealtimeResponseBody:
@@ -18,28 +18,28 @@ class RealtimeResponseBody:
     https://developer.apple.com/documentation/retentionmessaging/realtimeresponsebody
     """
 
-    message: Optional[Message] = attr.ib(default=None)
+    message: Optional[Message] = attr.ib(default=None, kw_only=True)
     """
-    A retention message that's text-based and can include an optional image.
+    A retention message that’s text-based and can include an optional image.
 
     https://developer.apple.com/documentation/retentionmessaging/message
     """
 
-    alternateProduct: Optional[AlternateProduct] = attr.ib(default=None)
+    alternateProduct: Optional[AlternateProduct] = attr.ib(default=None, kw_only=True)
     """
     A retention message with a switch-plan option.
 
     https://developer.apple.com/documentation/retentionmessaging/alternateproduct
     """
 
-    promotionalOffer: Optional[PromotionalOffer] = attr.ib(default=None)
+    promotionalOffer: Optional[PromotionalOffer] = attr.ib(default=None, kw_only=True)
     """
     A retention message that includes a promotional offer.
 
     https://developer.apple.com/documentation/retentionmessaging/promotionaloffer
     """
 
-    advancedCommerceInfo: Optional[AdvancedCommerceInfo] = attr.ib(default=None)
+    advancedCommerceInfo: Optional[AdvancedCommerceInfo] = attr.ib(default=None, kw_only=True)
     """
     A retention offer or switch plan option.
 

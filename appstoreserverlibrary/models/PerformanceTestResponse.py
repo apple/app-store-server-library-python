@@ -1,10 +1,11 @@
 # Copyright (c) 2026 Apple Inc. Licensed under MIT License.
 
-from typing import Optional
+from uuid import UUID
 
 from attr import define
 import attr
 
+from .LibraryUtility import validate_not_none
 from .PerformanceTestConfig import PerformanceTestConfig
 
 @define
@@ -15,14 +16,14 @@ class PerformanceTestResponse:
     https://developer.apple.com/documentation/retentionmessaging/performancetestresponse
     """
 
-    config: Optional[PerformanceTestConfig] = attr.ib(default=None)
+    config: PerformanceTestConfig = attr.ib(kw_only=True, validator=validate_not_none)
     """
     The performance test configuration object.
 
     https://developer.apple.com/documentation/retentionmessaging/performancetestconfig
     """
 
-    requestId: Optional[str] = attr.ib(default=None)
+    requestId: UUID = attr.ib(kw_only=True, validator=validate_not_none)
     """
     The performance test request identifier.
 

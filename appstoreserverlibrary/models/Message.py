@@ -1,4 +1,5 @@
 # Copyright (c) 2025 Apple Inc. Licensed under MIT License.
+
 from typing import Optional
 from uuid import UUID
 
@@ -13,7 +14,7 @@ class Message:
     https://developer.apple.com/documentation/retentionmessaging/message
     """
 
-    messageIdentifier: Optional[UUID] = attr.ib(default=None)
+    messageIdentifier: Optional[UUID] = attr.ib(default=None, kw_only=True)
     """
     The identifier of the message to display to the customer.
 

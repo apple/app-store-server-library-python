@@ -12,10 +12,12 @@ TRANSACTION_IDENTIFIER = 1703
 ORIGINAL_TRANSACTION_IDENTIFIER = 1705
 
 class ReceiptUtility:
-    def _decode_octet_string(self, octet_string: bytes):
+    def _decode_octet_string(self, octet_string: bytes, expected_type: Optional[asn1.Numbers] = None):
         decoder = asn1.Decoder()
         decoder.start(octet_string)
-        _, value = decoder.read()
+        tag, value = decoder.read()
+        if expected_type is not None and (tag.cls != asn1.Classes.Universal or tag.nr != expected_type):
+            raise ValueError()
         return value
 
     def extract_transaction_id_from_app_receipt(self, app_receipt: str) -> Optional[str]:
@@ -33,15 +35,15 @@ class ReceiptUtility:
                 raise ValueError()
             inner_value = val[1][0][2][1][0]
             # Xcode uses nested OctetStrings, we extract the inner string in this case
-            value = self._decode_octet_string(inner_value)
+            value = self._decode_octet_string(inner_value, asn1.Numbers.Set)
             # We are in the top-level sequence, work our way to the array of in-apps
             for inner_value in value:
                 if inner_value[0] == IN_APP_ARRAY:
-                    array_values = self._decode_octet_string(inner_value[2])
+                    array_values = self._decode_octet_string(inner_value[2], asn1.Numbers.Set)
                     # In-app array
                     for array_value in array_values:
                         if array_value[0] == TRANSACTION_IDENTIFIER or array_value[0] == ORIGINAL_TRANSACTION_IDENTIFIER:
-                            return self._decode_octet_string(array_value[2])
+                            return self._decode_octet_string(array_value[2], asn1.Numbers.UTF8String)
             return None
         except Exception as e:
             raise ValueError(e)
